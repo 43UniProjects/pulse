@@ -1,8 +1,8 @@
-version: '3.8'
+version: "3.8"
 
 services:
   pulse-app:
-    image: pulse:latest 
+    image: pulse:latest
     container_name: pulse-app-container
     ports:
       - 3000:3000

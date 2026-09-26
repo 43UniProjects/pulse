@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# 1. Block direct commits to the main branch
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+if [ "$BRANCH" = "main" ]; then
+  echo "❌ Error: Direct commits to the 'main' branch are prohibited. Please create a feature branch."
+  exit 1
+fi
+
+# 2. Run linting, formatting, and quality checks
+npx lint-staged
