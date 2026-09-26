@@ -1,11 +1,14 @@
-#!/bin/sh
+#!/usr/bin/env sh
 
-# 1. Block direct commits to the main branch
+# block direct commits to the main branch
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
-if [ "$BRANCH" = "main" ]; then
-  echo "❌ Error: Direct commits to the 'main' branch are prohibited. Please create a feature branch."
+if [ "$BRANCH" = "main" ] || [ "$BRANCH" = "master" ]; then
+  echo "❌ Error: Direct commits to the 'main' branch are prohibited. Please create a feature branch and submit a Pull Request."
   exit 1
 fi
 
-# 2. Run linting, formatting, and quality checks
+#  linting, formatting, and standard quality checks on staged files
 npx lint-staged
+
+# enforcing type safty
+npm run typecheck
