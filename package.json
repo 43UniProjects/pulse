@@ -66,5 +66,19 @@
   },
   "allowScripts": {
     "unrs-resolver@1.12.2": true
+  },
+  "prettier": {
+    "semi": true,
+    "singleQuote": true
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
+  "postcss": {
+    "plugins": {
+      "@tailwindcss/postcss": {}
+    }
   }
 }
