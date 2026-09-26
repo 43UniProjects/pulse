@@ -13,10 +13,10 @@
   "private": true,
   "license": "MIT",
   "scripts": {
-    "dev": "NEXT_TELEMETRY_DISABLED=1 next dev",
-    "build": "NEXT_TELEMETRY_DISABLED=1 next build",
+    "dev": "next dev",
+    "build": "next build",
     "build:analyze": "ANALYZE=true next build",
-    "start": "NEXT_TELEMETRY_DISABLED=1 next start",
+    "start": "next start",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc --noEmit",
@@ -42,9 +42,10 @@
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^6.1.1",
-    "babel-plugin-react-compiler": "^0.0.0-experimental-860ff3b-20250221",
+    "babel-plugin-react-compiler": "0.0.0-experimental-860ff3b-20250221",
     "eslint": "^9.11.0",
     "eslint-config-next": "^16.3.6",
+    "eslint-config-prettier": "^10.1.8",
     "husky": "^9.1.7",
     "jsdom": "^30.1.1",
     "lint-staged": "^17.6.0",
@@ -54,16 +55,16 @@
     "vite": "^8.3.1",
     "vitest": "^5.0.2"
   },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,css,scss,md}": [
+      "prettier --write"
+    ]
+  },
   "allowScripts": {
     "unrs-resolver@1.12.2": true
-  },
-  "lint-staged": {
-  "*.{js,jsx,ts,tsx}": [
-    "eslint --fix",
-    "prettier --write"
-  ],
-  "*.{json,css,scss,md}": [
-    "prettier --write"
-  ]
-}
+  }
 }
