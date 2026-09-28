@@ -3,19 +3,21 @@
 Pulse is a centralized web application that connects hospitals with eligible blood donors in real time during critical emergencies. Built to eliminate the delays and inefficiencies of manual communication, Pulse ensures that the right donors are contacted instantly based on location, blood group compatibility, and medical eligibility.
 
 ## 📖 Table of Contents
-- [About the Project](#about-the-project)
-- [Key Features](#key-features)
-- [Architecture & Tech Stack](#architecture--tech-stack)
-- [Getting Started](#getting-started)
-- [Testing](#testing)
-- [Project Structure](#project-structure)
-- [Contributors](#contributors)
+
+- [About the Project](#-about-the-project)
+- [Key Features](#-key-features)
+- [Architecture & Tech Stack](#-architecture--tech-stack)
+- [Getting Started](#-getting-started)
+- [Testing](#-testing)
+- [Project Structure](#-project-structure)
+- [Contributors](#-contributors)
 
 ## 🎯 About the Project
 
 When every minute counts, hospitals often rely on scattered, unverified, and outdated social media posts to find blood donors. Pulse bridges this gap by providing a verified channel that coordinates emergency blood requests. The system automatically filters for compatible blood types, medical eligibility (enforcing a strict 4-month waiting period between donations), and geographic proximity to alert the nearest capable donors instantly.
 
 **Target Audience:**
+
 - **Hospitals:** Post urgent requests and track real-time donor responses.
 - **Donors:** Manage availability, receive nearby emergency alerts, and accept/decline requests.
 - **Admins:** Verify hospitals and monitor platform activity.
@@ -42,6 +44,7 @@ This project is built using the MERN stack alongside modern testing frameworks:
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Node.js (v18 or higher)
 - npm or yarn
 - Docker (optional, for containerized local development)
@@ -50,35 +53,34 @@ This project is built using the MERN stack alongside modern testing frameworks:
 ### Installation
 
 1. **Clone the repository:**
-   ```bash
-   git clone [https://github.com/yourusername/pulse.git](https://github.com/yourusername/pulse.git)
-   cd pulse
 
-```
+   ```bash
+   git clone https://github.com/43UniProjects/pulse.git
+   cd pulse
+   ```
 
 2. **Install dependencies:**
-```bash
-npm install
 
-```
+   ```bash
+   npm install
 
+   ```
 
 3. **Set up Environment Variables:**
-Create a `.env.local` file in the root directory and add the necessary configuration:
-```env
-NEXT_PUBLIC_API_URL=http://localhost:3000/api
-MONGODB_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret
+   Create a `.env.local` file in the root directory and add the necessary configuration:
 
-```
+   ```bash
+   NEXT_PUBLIC_API_URL=http://localhost:3000/api
+   MONGODB_URI=your_mongodb_connection_string
+   JWT_SECRET=your_jwt_secret
 
+   ```
 
 4. **Run the Development Server:**
-```bash
-npm run dev
+   ```bash
+   npm run dev
 
-```
-
+   ```
 
 The application will be available at `http://localhost:3000`.
 
@@ -95,32 +97,37 @@ docker-compose up --build
 
 Pulse uses a dual testing strategy to ensure high reliability.
 
-* **Run Unit/Component Tests (Vitest):**
-```bash
-npm run test
+- **Run Unit/Component Tests (Vitest):**
 
-```
+  ```bash
+  npm run test
 
+  ```
 
-* **Run End-to-End Tests (Playwright):**
-```bash
-npm run test:e2e
+- **Run End-to-End Tests (Playwright):**
+  ```bash
+  npm run test:e2e
 
-```
+  ```
 
+_(Note: Ensure your local dev server is running before executing E2E tests, or configure Playwright's `webServer` option to start it automatically)._
 
+## 📁 Project Structure
 
-*(Note: Ensure your local dev server is running before executing E2E tests, or configure Playwright's `webServer` option to start it automatically).*
+- `app/` - Next.js application routes, layout, and global styles.
+- `public/` - Static assets served by the application.
+- `tests/` - Unit and component tests.
+- `e2e/` - End-to-end Playwright tests.
+- `Dockerfile` and `docker-compose.yml` - Container configuration.
 
 ## 👥 Contributors
 
+- K.M.M.I. Karunarathna (ICT/24/868)
 
-* K.M.M.I. Karunarathna (ICT/24/868)
+- R.M.U.A Harshana (ICT/24/851)
 
-* R.M.U.A Harshana (ICT/24/851)
+- Y.M.R. Shehan (ICT/24/931)
 
-* Y.M.R. Shehan (ICT/24/931)
+- M.B. Subhasinghe (ICT/24/934)
 
-* M.B. Subhasinghe (ICT/24/934)
-
-* J.J. Malshan (ICT/24/883)
+- J.J. Malshan (ICT/24/883)
