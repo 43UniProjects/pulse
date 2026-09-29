@@ -8,7 +8,7 @@ if [ "$BRANCH" = "main" ] || [ "$BRANCH" = "master" ]; then
 fi
 
 #  linting, formatting, and standard quality checks on staged files
-npx lint-staged
+bunx lint-staged
 
 # enforcing type safty
-npm run typecheck
+bun run typecheck
