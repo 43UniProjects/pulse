@@ -33,6 +33,10 @@ const urgencyColors: Record<string, string> = {
   Medium: 'bg-yellow-100 text-yellow-700',
 };
 
+import { Metadata } from 'next';
+
+export const metadata: Metadata = { title: 'Donor Dashboard' };
+
 export default function DonorDashboard() {
   return (
     <div className="p-8 max-w-5xl mx-auto">

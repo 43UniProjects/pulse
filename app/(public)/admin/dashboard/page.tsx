@@ -36,6 +36,10 @@ const activity = [
   { time: '3 hrs ago', text: 'System: 5 expired requests auto-closed.' },
 ];
 
+import { Metadata } from 'next';
+
+export const metadata: Metadata = { title: 'Admin Dashboard' };
+
 export default function AdminDashboard() {
   return (
     <div className="p-8">

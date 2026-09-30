@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { Zap, MapPin, ShieldCheck, ArrowRight, Activity } from 'lucide-react';
 import { Header } from '@/components/Header';
 
@@ -14,42 +15,68 @@ export default function HomePage() {
           HERO SECTION
           ========================================== */}
       <main className="flex-1">
-        <section className="relative overflow-hidden py-20 lg:py-28 border-b border-border">
+        <section className="relative overflow-hidden min-h-[calc(100vh-4rem)] flex items-center justify-center border-b border-border py-12">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-red-950/20 via-transparent to-transparent pointer-events-none" />
 
-          <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
-            {/* Emergency Network Badge */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-semibold tracking-wide uppercase mb-6">
-              <Zap className="w-3.5 h-3.5" />
-              Emergency Blood Donation Network
+          <div className="max-w-7xl mx-auto px-6 relative z-10 w-full flex flex-col md:flex-row items-center justify-between gap-12 lg:gap-20">
+            <div className="w-full md:w-3/5 lg:w-2/3 text-center md:text-left md:-mt-8 lg:-mt-12">
+              {/* Emergency Network Badge */}
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-semibold tracking-wide uppercase mb-6">
+                <Zap className="w-5 h-5" />
+                Emergency Blood Donation Network
+              </div>
+
+              {/* Mobile Animated Logo (Hidden on Desktop) */}
+              <div className="flex md:hidden justify-center -mb-2 relative z-0">
+                <Image
+                  src="/logo-radar-beam.svg"
+                  alt="Pulse Animated Blood Drop"
+                  width={280}
+                  height={280}
+                  className="w-full max-w-[240px] h-auto object-contain drop-shadow-2xl opacity-90 animate-pulse duration-[6000ms]"
+                  priority
+                />
+              </div>
+
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight text-foreground leading-[1.1] mb-6">
+                Real-time blood donation, <br className="hidden sm:inline" />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-foreground via-foreground to-muted-foreground">
+                  where it&apos;s needed most.
+                </span>
+              </h1>
+
+              <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto md:mx-0 leading-relaxed mb-10">
+                Pulse connects hospitals with verified nearby donors the moment
+                an emergency occurs—reducing response time from hours to
+                minutes.
+              </p>
+
+              <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4">
+                <Link
+                  href="/register/donor"
+                  className="w-full sm:w-auto inline-flex items-center justify-center h-11 px-6 rounded-md bg-primary text-primary-foreground font-medium hover:bg-red-700 transition-all shadow-lg shadow-red-600/20"
+                >
+                  Register as Donor
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Link>
+                <Link
+                  href="/register/hospital"
+                  className="w-full sm:w-auto inline-flex items-center justify-center h-11 px-6 rounded-md bg-card border border-border text-foreground font-medium hover:bg-secondary hover:border-zinc-700 transition-all"
+                >
+                  Register as Hospital
+                </Link>
+              </div>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight text-foreground leading-[1.1] mb-6">
-              Real-time blood donation, <br className="hidden sm:inline" />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-foreground via-foreground to-muted-foreground">
-                where it&apos;s needed most.
-              </span>
-            </h1>
-
-            <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed mb-10">
-              Pulse connects hospitals with verified nearby donors the moment an
-              emergency occurs—reducing response time from hours to minutes.
-            </p>
-
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link
-                href="/register/donor"
-                className="w-full sm:w-auto inline-flex items-center justify-center h-11 px-6 rounded-md bg-primary text-primary-foreground font-medium hover:bg-red-700 transition-all shadow-lg shadow-red-600/20"
-              >
-                Register as Donor
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Link>
-              <Link
-                href="/register/hospital"
-                className="w-full sm:w-auto inline-flex items-center justify-center h-11 px-6 rounded-md bg-card border border-border text-foreground font-medium hover:bg-secondary hover:border-zinc-700 transition-all"
-              >
-                Register as Hospital
-              </Link>
+            <div className="hidden md:flex w-full md:w-2/5 lg:w-5/12 items-center justify-center md:justify-end self-center">
+              <Image
+                src="/logo-radar-beam.svg"
+                alt="Pulse Animated Blood Drop"
+                width={600}
+                height={600}
+                className="w-full max-w-[320px] lg:max-w-[480px] h-auto object-contain drop-shadow-2xl opacity-90 animate-pulse duration-[6000ms] scale-110 lg:scale-100 md:origin-right"
+                priority
+              />
             </div>
           </div>
         </section>
