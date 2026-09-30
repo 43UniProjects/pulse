@@ -6,10 +6,10 @@ Pulse is a centralized web application that connects hospitals with eligible blo
 
 - [About the Project](#about-the-project)
 - [Key Features](#key-features)
-- [Architecture & Tech Stack](#architecture--tech-stack)
+- [Architecture & Tech Stack](#architecture-tech-stack)
 - [Getting Started](#getting-started)
-- [Development Workflow & Quality Control](#development-workflow--quality-control)
-- [Docker Deployment](#docker-deployment)
+- [Development Workflow & Quality Control](#development-workflow-quality-control)
+- [Docker Configuration](#docker-configuration)
 - [Testing](#testing)
 - [Project Structure](#project-structure)
 - [Contributors](#contributors)

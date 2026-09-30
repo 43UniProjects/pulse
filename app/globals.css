@@ -1,165 +1,66 @@
 @import 'tailwindcss';
-@import 'tw-animate-css';
-
-@custom-variant dark (&:is(.dark *));
-
-:root {
-  --background: #f4f4f5; /* Zinc 100: Clean clinical canvas base */
-  --foreground: #09090b; /* Zinc 900: High-emphasis text */
-
-  --card: #ffffff; /* Surface Level 2: Pure white interactive cards */
-  --card-foreground: #09090b;
-
-  --popover: #ffffff; /* Surface Level 3: Modals, Overlays, Dropdowns */
-  --popover-foreground: #09090b;
-
-  --primary: #dc2626; /* Arterial Crimson Default */
-  --primary-foreground: #fafafa;
-
-  --secondary: #f1f1f3; /* Surface Container Low */
-  --secondary-foreground: #27272a;
-
-  --muted: #f4f4f5;
-  --muted-foreground: #71717a; /* Medium Emphasis metadata / labels */
-
-  --accent: #f4f4f5;
-  --accent-foreground: #09090b;
-
-  --destructive: #dc2626;
-  --destructive-foreground: #fafafa;
-
-  --border: #e4e4e7; /* Zinc 200: Clean structural hairline border */
-  --input: #ffffff; /* Input wells / fields */
-  --ring: rgba(220, 38, 38, 0.35); /* Arterial Crimson Focus Ring */
-
-  --chart-1: #dc2626;
-  --chart-2: #27272a;
-  --chart-3: #71717a;
-  --chart-4: #a1a1aa;
-  --chart-5: #e4e4e7;
-
-  --radius: 0.375rem; /* Standard 6px rounded-md token */
-
-  --sidebar: #ffffff; /* Navigation rails & toolbars */
-  --sidebar-foreground: #09090b;
-  --sidebar-primary: #dc2626;
-  --sidebar-primary-foreground: #fafafa;
-  --sidebar-accent: #f4f4f5;
-  --sidebar-accent-foreground: #09090b;
-  --sidebar-border: #e4e4e7;
-  --sidebar-ring: rgba(220, 38, 38, 0.35);
-}
-
-.dark {
-  --background: #131316; /* Canvas Base */
-  --foreground: #e4e1e6; /* High Emphasis text */
-
-  --card: #18181b; /* Surface Level 2: Cards & Data Units */
-  --card-foreground: #e4e1e6;
-
-  --popover: #222226; /* Surface Level 3: Modals, Overlays, Dropdowns */
-  --popover-foreground: #e4e1e6;
-
-  --primary: #dc2626; /* Arterial Crimson Default */
-  --primary-foreground: #fafafa;
-
-  --secondary: #1b1b1e; /* Surface Container Low */
-  --secondary-foreground: #c6c5cf;
-
-  --muted: #222226;
-  --muted-foreground: #a1a1aa; /* Medium Emphasis metadata */
-
-  --accent: #222226;
-  --accent-foreground: #fafafa;
-
-  --destructive: #dc2626;
-  --destructive-foreground: #fafafa;
-
-  --border: #2e2e33; /* Hairline Border */
-  --input: #121215; /* Surface Level 1: Input Wells */
-  --ring: rgba(220, 38, 38, 0.4); /* Arterial Crimson Focus Ring */
-
-  --chart-1: #dc2626;
-  --chart-2: #c6c5cf;
-  --chart-3: #a1a1aa;
-  --chart-4: #52525b;
-  --chart-5: #2e2e33;
-
-  --sidebar: #121215; /* Surface Level 1: Navigation rails & toolbars */
-  --sidebar-foreground: #e4e1e6;
-  --sidebar-primary: #dc2626;
-  --sidebar-primary-foreground: #fafafa;
-  --sidebar-accent: #222226;
-  --sidebar-accent-foreground: #fafafa;
-  --sidebar-border: #2e2e33;
-  --sidebar-ring: rgba(220, 38, 38, 0.4);
-}
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-
-  --font-sans: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
-  --font-mono: var(--font-geist-mono), monospace;
-  --font-heading: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
-
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-
-  /* Clinical Geometry Radius Tokens */
-  --radius-sm: 0.25rem; /* 4px - Micro / Checkboxes / Badges */
-  --radius-md: 0.375rem; /* 6px - Inputs, Buttons, Chips[cite: 3] */
-  --radius-lg: 0.5rem; /* 8px - Cards, Metric Tiles, Containers[cite: 3] */
-  --radius-xl: 0.75rem; /* 12px */
-  --radius-2xl: 1rem;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+  --color-red-pulse: #dc2626;
+  --color-red-light: #fee2e2;
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
   body {
-    @apply bg-background text-foreground font-sans antialiased selection:bg-red-500/30 selection:text-red-200;
-  }
-  button:not(:disabled),
-  [role='button']:not(:disabled) {
-    cursor: pointer;
-  }
-  html {
-    @apply font-sans;
+    background: #fff;
+    color: #111;
   }
 
-  /* Monospace activation for tabular data, coordinates, timestamps & blood inventories */
-  .font-tabular {
-    font-variant-numeric: tabular-nums;
+  h1,
+  h2,
+  h3,
+  h4,
+  h5 {
+    font-family: var(--font-display);
   }
+}
+
+/* Frosted glass surface for navbars and title bars */
+@utility glass {
+  background-color: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Slightly more opaque variant for side rails */
+@utility glass-rail {
+  background-color: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+/* Ambient wash so the blur has something to refract */
+@utility app-bg {
+  background-color: #f8fafc;
+  background-image:
+    radial-gradient(
+      60rem 60rem at 110% -10%,
+      rgba(220, 38, 38, 0.1),
+      transparent 60%
+    ),
+    radial-gradient(
+      50rem 50rem at -10% 110%,
+      rgba(59, 130, 246, 0.08),
+      transparent 55%
+    );
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 99px;
 }
