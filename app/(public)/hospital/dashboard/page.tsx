@@ -45,6 +45,10 @@ const statusStyles: Record<string, string> = {
   Expired: 'bg-gray-100 text-gray-500',
 };
 
+import { Metadata } from 'next';
+
+export const metadata: Metadata = { title: 'Hospital Dashboard' };
+
 export default function HospitalDashboard() {
   return (
     <div className="p-8">
