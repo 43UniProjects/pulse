@@ -1,22 +1,31 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Activity, MessageSquare, LocateFixed, Loader2 } from 'lucide-react';
 
 const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
 export default function RegisterForm() {
+  const searchParams = useSearchParams();
+
+  // 2. Initialize with default 'donor'
   const [tab, setTab] = useState<'donor' | 'hospital'>('donor');
   const [location, setLocation] = useState('');
   const [isLocating, setIsLocating] = useState(false);
-
-  // Optional: Add an error state for backend validation messages
-  // const [error, setError] = useState<string | null>(null);
-  // const [isLoading, setIsLoading] = useState(false);
-
   const router = useRouter();
+
+  // 3. Synchronize tab state whenever the URL search parameter changes
+  useEffect(() => {
+    const type = searchParams.get('type');
+    if (type === 'hospital' || type === 'donor') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setTab(type);
+    }
+  }, [searchParams]);
+
+  // ... rest of your component code stays identical
 
   async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
