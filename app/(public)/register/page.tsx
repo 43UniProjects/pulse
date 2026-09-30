@@ -1,15 +1,17 @@
+'use client';
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
 export default function Register() {
   const [tab, setTab] = useState<'donor' | 'hospital'>('donor');
-  const navigate = useNavigate();
+  const router = useRouter();
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    navigate(tab === 'donor' ? '/donor' : '/hospital');
+    router.push(tab === 'donor' ? '/donor' : '/hospital');
   }
 
   return (
@@ -131,7 +133,7 @@ export default function Register() {
           <p className="text-sm text-gray-500">
             Already have an account?{' '}
             <Link
-              to="/login"
+              href="/login"
               className="text-red-600 font-medium hover:underline"
             >
               Login

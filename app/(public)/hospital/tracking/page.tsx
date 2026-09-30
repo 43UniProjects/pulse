@@ -1,4 +1,5 @@
-import { useParams } from 'react-router';
+'use client';
+import { useParams } from 'next/navigation';
 
 const donors = [
   {

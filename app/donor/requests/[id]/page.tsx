@@ -1,5 +1,7 @@
+'use client';
 import { useState } from 'react';
-import { useParams, Link } from 'react-router';
+import { useParams } from 'next/navigation';
+import Link from 'next/link';
 
 type RequestDetails = {
   hospital: string;
@@ -46,7 +48,8 @@ const urgencyColors: Record<string, string> = {
 
 export default function RequestDetail() {
   const { id } = useParams();
-  const req = requestData[id ?? '1'] ?? requestData['1'];
+  const stringId = Array.isArray(id) ? id[0] : id;
+  const req = requestData[stringId ?? '1'] ?? requestData['1'];
   const [status, setStatus] = useState<'Pending' | 'Accepted' | 'Declined'>(
     'Pending',
   );
@@ -61,7 +64,7 @@ export default function RequestDetail() {
     <div className="p-8 max-w-2xl">
       <div className="mb-6 flex items-center gap-2">
         <Link
-          to="/donor"
+          href="/donor"
           className="text-sm text-gray-400 hover:text-black transition-colors"
         >
           Dashboard

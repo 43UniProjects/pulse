@@ -1,4 +1,4 @@
-import { Link } from 'react-router';
+import Link from 'next/link';
 
 const requests = [
   {
@@ -56,7 +56,7 @@ export default function HospitalDashboard() {
           <p className="text-sm text-gray-500">Nawaloka Hospital</p>
         </div>
         <Link
-          to="/hospital/post-request"
+          href="/hospital/post-request"
           className="bg-red-600 text-white font-medium text-sm px-4 py-2 rounded hover:bg-red-700 transition-colors shadow-sm hover:shadow-md"
         >
           + Post New Request
@@ -118,7 +118,7 @@ export default function HospitalDashboard() {
                   <td className="px-5 py-3.5 text-gray-600">{r.responses}</td>
                   <td className="px-5 py-3.5">
                     <Link
-                      to={`/hospital/tracking/${r.id}`}
+                      href={`/hospital/tracking/${r.id}`}
                       className="text-xs font-medium text-red-600 hover:underline"
                     >
                       Track

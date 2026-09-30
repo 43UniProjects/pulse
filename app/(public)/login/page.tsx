@@ -1,17 +1,19 @@
+'use client';
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function Login() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [role, setRole] = useState<'donor' | 'hospital' | 'admin'>('donor');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (role === 'donor') navigate('/donor');
-    else if (role === 'hospital') navigate('/hospital');
-    else navigate('/admin');
+    if (role === 'donor') router.push('/donor');
+    else if (role === 'hospital') router.push('/hospital');
+    else router.push('/admin');
   }
 
   return (
@@ -87,7 +89,7 @@ export default function Login() {
           <p className="text-sm text-gray-500">
             Don&apos;t have an account?{' '}
             <Link
-              to="/register"
+              href="/register"
               className="text-red-600 font-medium hover:underline"
             >
               Register

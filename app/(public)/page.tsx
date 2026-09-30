@@ -1,4 +1,4 @@
-import { Link } from 'react-router';
+import Link from 'next/link';
 
 const features = [
   {
@@ -35,13 +35,13 @@ export default function Landing() {
           </p>
           <div className="flex gap-3">
             <Link
-              to="/register"
+              href="/register"
               className="bg-red-600 text-white font-medium px-5 py-2.5 rounded hover:bg-red-700 transition-colors text-sm shadow-sm hover:shadow-md"
             >
               Register as Donor
             </Link>
             <Link
-              to="/register"
+              href="/register"
               className="border border-gray-300 text-gray-700 font-medium px-5 py-2.5 rounded hover:bg-gray-50 transition-colors text-sm shadow-sm hover:shadow-md"
             >
               Register as Hospital
@@ -90,13 +90,13 @@ export default function Landing() {
           </div>
           <div className="flex gap-3 shrink-0">
             <Link
-              to="/register"
+              href="/register"
               className="bg-black text-white font-medium text-sm px-4 py-2 rounded hover:bg-gray-800 transition-colors shadow-sm hover:shadow-md"
             >
               Register as Donor
             </Link>
             <Link
-              to="/register"
+              href="/register"
               className="bg-white text-black border border-gray-300 font-medium text-sm px-4 py-2 rounded hover:bg-gray-50 transition-colors shadow-sm hover:shadow-md"
             >
               Register as Hospital

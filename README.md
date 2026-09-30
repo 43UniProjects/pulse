@@ -1,6 +1,6 @@
 # Pulse - Real-Time Emergency Blood Donation Network
 
-Pulse is a centralized web application that connects hospitals with eligible blood donors in real time during critical emergencies. Built to eliminate the delays and inefficiencies of manual communication, Pulse ensures that the right donors are contacted instantly based on location, blood group compatibility, and medical eligibility.
+Pulse is a centralized web application that connects hospitals with eligible blood donors in real time during critical emergencies[cite: 4]. Built to eliminate the delays and inefficiencies of manual communication, Pulse ensures that the right donors are contacted instantly based on location, blood group compatibility, and medical eligibility[cite: 4, 5].
 
 ## 📖 Table of Contents
 

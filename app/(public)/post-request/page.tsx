@@ -1,18 +1,19 @@
+'use client';
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useRouter } from 'next/navigation';
 
 const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 const radii = ['5 km', '10 km', '20 km'];
 
 export default function PostRequest() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [radius, setRadius] = useState('10 km');
   const [submitted, setSubmitted] = useState(false);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitted(true);
-    setTimeout(() => navigate('/hospital'), 1200);
+    setTimeout(() => router.push('/hospital'), 1200);
   }
 
   return (

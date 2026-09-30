@@ -1,4 +1,4 @@
-import { Link } from 'react-router';
+import Link from 'next/link';
 
 const stats = [
   { label: 'Total Hospitals', value: '142', change: '+3 this week' },
@@ -73,13 +73,13 @@ export default function AdminDashboard() {
       {/* Quick Actions */}
       <div className="flex gap-3 mb-8">
         <Link
-          to="/admin/verify-hospitals"
+          href="/admin/verify-hospitals"
           className="bg-red-600 text-white font-medium text-sm px-4 py-2 rounded hover:bg-red-700 transition-colors shadow-sm hover:shadow-md"
         >
           Review Pending Verifications (7)
         </Link>
         <Link
-          to="/admin/manage-users"
+          href="/admin/manage-users"
           className="border border-gray-200 text-gray-700 font-medium text-sm px-4 py-2 rounded hover:bg-gray-50 transition-colors shadow-sm hover:shadow-md"
         >
           Manage Users
