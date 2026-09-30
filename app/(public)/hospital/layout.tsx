@@ -11,14 +11,6 @@ export default function HospitalLayout({
   return (
     <div className="min-h-screen flex app-bg">
       <aside className="w-56 bg-white border-r border-gray-200 flex flex-col shrink-0">
-        <div className="h-14 flex items-center px-5 border-b border-gray-200">
-          <Link
-            href="/"
-            className="font-display font-bold text-lg tracking-tight text-black"
-          >
-            Pulse
-          </Link>
-        </div>
         <nav className="flex-1 p-3 flex flex-col gap-0.5 text-sm font-medium">
           <Link
             href="/hospital/dashboard"

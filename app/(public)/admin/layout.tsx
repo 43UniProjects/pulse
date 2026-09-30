@@ -11,14 +11,6 @@ export default function AdminLayout({
   return (
     <div className="min-h-screen flex app-bg">
       <aside className="w-56 bg-white border-r border-gray-200 flex flex-col shrink-0">
-        <div className="h-14 flex items-center px-5 border-b border-gray-200">
-          <Link
-            href="/"
-            className="font-display font-bold text-lg tracking-tight text-black"
-          >
-            Pulse
-          </Link>
-        </div>
         <div className="px-5 py-2">
           <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
             Admin
