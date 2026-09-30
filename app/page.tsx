@@ -15,14 +15,14 @@ export default function HomePage() {
           HERO SECTION
           ========================================== */}
       <main className="flex-1">
-        <section className="relative overflow-hidden py-20 lg:py-28 border-b border-border">
+        <section className="relative overflow-hidden min-h-[calc(100vh-4rem)] flex items-center justify-center border-b border-border py-12">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-red-950/20 via-transparent to-transparent pointer-events-none" />
 
-          <div className="max-w-6xl mx-auto px-6 relative z-10 flex flex-col md:flex-row items-center gap-12">
-            <div className="flex-1 text-center md:text-left">
+          <div className="max-w-7xl mx-auto px-6 relative z-10 w-full flex flex-col md:flex-row items-center justify-between gap-12 lg:gap-20">
+            <div className="w-full md:w-3/5 lg:w-2/3 text-center md:text-left md:-mt-8 lg:-mt-12">
               {/* Emergency Network Badge */}
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-semibold tracking-wide uppercase mb-6">
-                <Zap className="w-3.5 h-3.5" />
+                <Zap className="w-5 h-5" />
                 Emergency Blood Donation Network
               </div>
 
@@ -56,13 +56,13 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="flex-1 flex justify-center md:justify-end w-full max-w-md md:max-w-none">
+            <div className="w-full md:w-2/5 lg:w-5/12 flex items-center justify-center md:justify-end self-center">
               <Image
-                src="/animated-blood-drop.svg"
+                src="/logo-lightning-sharp.svg"
                 alt="Pulse Animated Blood Drop"
-                width={500}
-                height={500}
-                className="w-full h-auto object-contain drop-shadow-2xl opacity-90 animate-pulse duration-[3000ms]"
+                width={600}
+                height={600}
+                className="w-full max-w-[320px] lg:max-w-[480px] h-auto object-contain drop-shadow-2xl opacity-90 animate-pulse duration-[4000ms] scale-110 lg:scale-100 md:origin-right"
                 priority
               />
             </div>
