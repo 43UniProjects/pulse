@@ -29,11 +29,11 @@ export default function HomePage() {
               {/* Mobile Animated Logo (Hidden on Desktop) */}
               <div className="flex md:hidden justify-center -mb-2 relative z-0">
                 <Image
-                  src="/logo-lightning-sharp.svg"
+                  src="/logo-radar-beam.svg"
                   alt="Pulse Animated Blood Drop"
                   width={280}
                   height={280}
-                  className="w-full max-w-[240px] h-auto object-contain drop-shadow-2xl opacity-90 animate-pulse duration-[4000ms]"
+                  className="w-full max-w-[240px] h-auto object-contain drop-shadow-2xl opacity-90 animate-pulse duration-[6000ms]"
                   priority
                 />
               </div>
@@ -70,11 +70,11 @@ export default function HomePage() {
 
             <div className="hidden md:flex w-full md:w-2/5 lg:w-5/12 items-center justify-center md:justify-end self-center">
               <Image
-                src="/logo-lightning-sharp.svg"
+                src="/logo-radar-beam.svg"
                 alt="Pulse Animated Blood Drop"
                 width={600}
                 height={600}
-                className="w-full max-w-[320px] lg:max-w-[480px] h-auto object-contain drop-shadow-2xl opacity-90 animate-pulse duration-[4000ms] scale-110 lg:scale-100 md:origin-right"
+                className="w-full max-w-[320px] lg:max-w-[480px] h-auto object-contain drop-shadow-2xl opacity-90 animate-pulse duration-[6000ms] scale-110 lg:scale-100 md:origin-right"
                 priority
               />
             </div>
