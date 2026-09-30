@@ -14,7 +14,7 @@ Pulse is a centralized web application that connects hospitals with eligible blo
 - [Project Structure](#project-structure)
 - [Contributors](#contributors)
 
-## 🎯 About the Project
+## <a id="about-the-project"></a>🎯 About the Project
 
 When every minute counts, hospitals often rely on scattered, unverified, and outdated social media posts to find blood donors. Pulse bridges this gap by providing a verified channel that coordinates emergency blood requests. The system automatically filters for compatible blood types, medical eligibility (enforcing a strict 4-month waiting period between donations), and geographic proximity to alert the nearest capable donors instantly.
 
@@ -24,14 +24,14 @@ When every minute counts, hospitals often rely on scattered, unverified, and out
 - **Donors:** Manage availability, receive nearby emergency alerts, and accept/decline requests.
 - **Admins:** Verify hospitals and monitor platform activity.
 
-## ✨ Key Features
+## <a id="key-features"></a>✨ Key Features
 
 - **Real-Time Emergency Notifications:** Instant push alerts to matching donors via Socket.io, with live status updates on the hospital dashboard.
 - **Location-Based Donor Search:** Utilizes GeoJSON and MongoDB `$near` queries (2dsphere index) to filter donors within an adjustable radius (e.g., 5–20 km), prioritizing proximity.
 - **Medical Eligibility Engine:** Automatically excludes donors who have donated within the last 4 months, ensuring donor and patient safety.
 - **Role-Based Access Control:** Secure JWT authentication providing tailored interfaces for Hospitals, Donors, and Admins.
 
-## 🛠 Architecture & Tech Stack
+## <a id="architecture-tech-stack"></a>🛠 Architecture & Tech Stack
 
 This project is built using modern full-stack tooling and optimized for high-performance execution:
 
@@ -45,7 +45,7 @@ This project is built using modern full-stack tooling and optimized for high-per
 - **Testing:** Vitest (Unit/Component) and Playwright (E2E).
 - **Containerization:** Docker & Docker Compose utilizing multi-stage Bun builds.
 
-## 🚀 Getting Started
+## <a id="getting-started"></a>🚀 Getting Started
 
 ### Prerequisites
 
@@ -86,7 +86,7 @@ This project is built using modern full-stack tooling and optimized for high-per
 
 The application will be available at `http://localhost:3000`.
 
-## 🔄 Development Workflow & Quality Control
+## <a id="development-workflow-quality-control"></a>🔄 Development Workflow & Quality Control
 
 Pulse enforces strict code quality standards using automated Git hooks and conventional commit guidelines.
 
@@ -107,7 +107,7 @@ Before any commit is finalized, Husky triggers **`lint-staged`** and TypeScript 
 - Lints code with **ESLint** (fixing auto-fixable issues).
 - Validates strict TypeScript types across the codebase.
 
-## 🐳 Docker Configuration
+## <a id="docker-configuration"></a>🐳 Docker Configuration
 
 The application features a production-ready, multi-stage `Dockerfile` built on top of `oven/bun:1-alpine`. It optimizes build layers, bypasses local Git hooks safely via environment configuration (`ENV HUSKY=0`), and leverages Next.js standalone output for minimal image sizes.
 
@@ -118,7 +118,7 @@ docker-compose up --build
 
 ```
 
-## 🧪 Testing
+## <a id="testing"></a>🧪 Testing
 
 Pulse uses a dual testing strategy to ensure high reliability.
 
@@ -135,7 +135,7 @@ Pulse uses a dual testing strategy to ensure high reliability.
 
 _(Note: Ensure your local dev server is running before executing E2E tests, or configure Playwright's `webServer` option to start it automatically)._
 
-## 📁 Project Structure
+## <a id="project-structure"></a>📁 Project Structure
 
 - `app/` - Next.js application routes, layout, and global styles.
 - `public/` - Static assets served by the application.
@@ -143,7 +143,7 @@ _(Note: Ensure your local dev server is running before executing E2E tests, or c
 - `e2e/` - End-to-end Playwright tests.
 - `Dockerfile` and `docker-compose.yml` - Container configuration.
 
-## 👥 Contributors
+## <a id="contributors"></a>👥 Contributors
 
 - [M.B. Subhasinghe](https://github.com/banuka20431) - ICT/24/934
 
