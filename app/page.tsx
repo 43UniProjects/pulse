@@ -26,6 +26,18 @@ export default function HomePage() {
                 Emergency Blood Donation Network
               </div>
 
+              {/* Mobile Animated Logo (Hidden on Desktop) */}
+              <div className="flex md:hidden justify-center -mb-2 relative z-0">
+                <Image
+                  src="/logo-lightning-sharp.svg"
+                  alt="Pulse Animated Blood Drop"
+                  width={280}
+                  height={280}
+                  className="w-full max-w-[240px] h-auto object-contain drop-shadow-2xl opacity-90 animate-pulse duration-[4000ms]"
+                  priority
+                />
+              </div>
+
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight text-foreground leading-[1.1] mb-6">
                 Real-time blood donation, <br className="hidden sm:inline" />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-foreground via-foreground to-muted-foreground">
@@ -56,7 +68,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="w-full md:w-2/5 lg:w-5/12 flex items-center justify-center md:justify-end self-center">
+            <div className="hidden md:flex w-full md:w-2/5 lg:w-5/12 items-center justify-center md:justify-end self-center">
               <Image
                 src="/logo-lightning-sharp.svg"
                 alt="Pulse Animated Blood Drop"
