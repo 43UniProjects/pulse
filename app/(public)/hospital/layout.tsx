@@ -9,7 +9,7 @@ export default function HospitalLayout({
 }) {
   const pathname = usePathname();
   return (
-    <div className="min-h-screen flex app-bg">
+    <div className="flex-1 flex app-bg h-0">
       <aside className="w-56 bg-white border-r border-gray-200 flex flex-col shrink-0">
         <nav className="flex-1 p-3 flex flex-col gap-0.5 text-sm font-medium">
           <Link
