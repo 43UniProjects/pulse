@@ -26,8 +26,8 @@ export default function AdminLayout({
         </div>
         <nav className="flex-1 p-3 flex flex-col gap-0.5 text-sm font-medium">
           <Link
-            href="/admin"
-            className={`flex items-center gap-2.5 px-3 py-2 rounded transition-colors ${pathname === '/admin' ? 'bg-red-50 text-red-600' : 'text-gray-600 hover:bg-gray-100 hover:text-black'}`}
+            href="/admin/dashboard"
+            className={`flex items-center gap-2.5 px-3 py-2 rounded transition-colors ${pathname === '/admin/dashboard' ? 'bg-red-50 text-red-600' : 'text-gray-600 hover:bg-gray-100 hover:text-black'}`}
           >
             Dashboard
           </Link>

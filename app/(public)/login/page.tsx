@@ -11,9 +11,9 @@ export default function Login() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (role === 'donor') router.push('/donor');
-    else if (role === 'hospital') router.push('/hospital');
-    else router.push('/admin');
+    if (role === 'donor') router.push('/donor/dashboard');
+    else if (role === 'hospital') router.push('/hospital/dashboard');
+    else router.push('/admin/dashboard');
   }
 
   return (
