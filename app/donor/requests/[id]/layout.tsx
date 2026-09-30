@@ -1,5 +1,11 @@
-import { Metadata } from 'next';
-export const metadata: Metadata = { title: 'Request Details' };
-export default function Layout({ children }: { children: React.ReactNode }) {
-  return children;
+export default function DonorLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="min-h-screen flex flex-col bg-background">
+      <main className="flex-1">{children}</main>
+    </div>
+  );
 }

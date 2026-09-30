@@ -115,7 +115,7 @@ export default function DonorDashboard() {
                 </div>
               </div>
               <Link
-                href={`/donor/request/${r.id}`}
+                href={`/donor/requests/${r.id}`}
                 className="ml-4 shrink-0 border border-gray-200 text-gray-700 text-xs font-medium px-3 py-1.5 rounded hover:bg-gray-50 transition-colors shadow-sm hover:shadow-md"
               >
                 View
