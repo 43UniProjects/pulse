@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { Zap, MapPin, ShieldCheck, ArrowRight, Activity } from 'lucide-react';
 import { Header } from '@/components/Header';
 
@@ -17,39 +18,53 @@ export default function HomePage() {
         <section className="relative overflow-hidden py-20 lg:py-28 border-b border-border">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-red-950/20 via-transparent to-transparent pointer-events-none" />
 
-          <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
-            {/* Emergency Network Badge */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-semibold tracking-wide uppercase mb-6">
-              <Zap className="w-3.5 h-3.5" />
-              Emergency Blood Donation Network
+          <div className="max-w-6xl mx-auto px-6 relative z-10 flex flex-col md:flex-row items-center gap-12">
+            <div className="flex-1 text-center md:text-left">
+              {/* Emergency Network Badge */}
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-semibold tracking-wide uppercase mb-6">
+                <Zap className="w-3.5 h-3.5" />
+                Emergency Blood Donation Network
+              </div>
+
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight text-foreground leading-[1.1] mb-6">
+                Real-time blood donation, <br className="hidden sm:inline" />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-foreground via-foreground to-muted-foreground">
+                  where it&apos;s needed most.
+                </span>
+              </h1>
+
+              <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto md:mx-0 leading-relaxed mb-10">
+                Pulse connects hospitals with verified nearby donors the moment
+                an emergency occurs—reducing response time from hours to
+                minutes.
+              </p>
+
+              <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4">
+                <Link
+                  href="/register/donor"
+                  className="w-full sm:w-auto inline-flex items-center justify-center h-11 px-6 rounded-md bg-primary text-primary-foreground font-medium hover:bg-red-700 transition-all shadow-lg shadow-red-600/20"
+                >
+                  Register as Donor
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Link>
+                <Link
+                  href="/register/hospital"
+                  className="w-full sm:w-auto inline-flex items-center justify-center h-11 px-6 rounded-md bg-card border border-border text-foreground font-medium hover:bg-secondary hover:border-zinc-700 transition-all"
+                >
+                  Register as Hospital
+                </Link>
+              </div>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight text-foreground leading-[1.1] mb-6">
-              Real-time blood donation, <br className="hidden sm:inline" />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-foreground via-foreground to-muted-foreground">
-                where it&apos;s needed most.
-              </span>
-            </h1>
-
-            <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed mb-10">
-              Pulse connects hospitals with verified nearby donors the moment an
-              emergency occurs—reducing response time from hours to minutes.
-            </p>
-
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link
-                href="/register/donor"
-                className="w-full sm:w-auto inline-flex items-center justify-center h-11 px-6 rounded-md bg-primary text-primary-foreground font-medium hover:bg-red-700 transition-all shadow-lg shadow-red-600/20"
-              >
-                Register as Donor
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Link>
-              <Link
-                href="/register/hospital"
-                className="w-full sm:w-auto inline-flex items-center justify-center h-11 px-6 rounded-md bg-card border border-border text-foreground font-medium hover:bg-secondary hover:border-zinc-700 transition-all"
-              >
-                Register as Hospital
-              </Link>
+            <div className="flex-1 flex justify-center md:justify-end w-full max-w-md md:max-w-none">
+              <Image
+                src="/animated-blood-drop.svg"
+                alt="Pulse Animated Blood Drop"
+                width={500}
+                height={500}
+                className="w-full h-auto object-contain drop-shadow-2xl opacity-90 animate-pulse duration-[3000ms]"
+                priority
+              />
             </div>
           </div>
         </section>
