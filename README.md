@@ -145,12 +145,12 @@ _(Note: Ensure your local dev server is running before executing E2E tests, or c
 
 ## 👥 Contributors
 
-- K.M.M.I. Karunarathna (ICT/24/868)
+- [M.B. Subhasinghe](https://github.com/banuka20431) - ICT/24/934
 
-- R.M.U.A. Harshana (ICT/24/851)
+- [J.J. Malshan](https://github.com/imjanindu) - ICT/24/883
 
-- Y.M.R. Shehan (ICT/24/931)
+- [K.M.M.I. Karunarathna](https://github.com/) - ICT/24/868
 
-- M.B. Subhasinghe (ICT/24/934)
+- [R.M.U.A. Harshana](https://github.com/) - ICT/24/851
 
-- J.J. Malshan (ICT/24/883)
+- [Y.M.R. Shehan](https://github.com/) - ICT/24/931
