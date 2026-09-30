@@ -33,8 +33,7 @@ export default function HomePage() {
 
             <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed mb-10">
               Pulse connects hospitals with verified nearby donors the moment an
-              emergency occurs—reducing response time from hours to
-              minutes[cite: 5].
+              emergency occurs—reducing response time from hours to minutes.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -81,7 +80,7 @@ export default function HomePage() {
                 &lt; 30s
               </div>
               <div className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">
-                Socket.io Dispatch
+                WebSocket Dispatch
               </div>
             </div>
             <div>
@@ -126,7 +125,7 @@ export default function HomePage() {
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   Hospitals broadcast emergency requirements instantly.
                   Qualified donors in the local grid receive immediate push
-                  notifications via WebSockets[cite: 5].
+                  notifications via WebSockets.
                 </p>
               </div>
             </div>
@@ -146,9 +145,9 @@ export default function HomePage() {
                   Location-based Matching
                 </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  MongoDB GeoJSON and `$near` queries filter donors by precise
+                  MongoDB GeoJSON and $near queries filter donors by precise
                   coordinates, prioritizing proximity to minimize critical
-                  transport delays[cite: 5].
+                  transport delays.
                 </p>
               </div>
             </div>
@@ -170,7 +169,7 @@ export default function HomePage() {
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   Automated checks strictly enforce the mandatory 4-month
                   waiting period between donations, ensuring total safety for
-                  both patients and donors[cite: 5].
+                  both patients and donors.
                 </p>
               </div>
             </div>
