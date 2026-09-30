@@ -137,8 +137,8 @@
 
   /* Clinical Geometry Radius Tokens */
   --radius-sm: 0.25rem; /* 4px - Micro / Checkboxes / Badges */
-  --radius-md: 0.375rem; /* 6px - Inputs, Buttons, Chips[cite: 3] */
-  --radius-lg: 0.5rem; /* 8px - Cards, Metric Tiles, Containers[cite: 3] */
+  --radius-md: 0.375rem; /* 6px - Inputs, Buttons, Chips */
+  --radius-lg: 0.5rem; /* 8px - Cards, Metric Tiles, Containers */
   --radius-xl: 0.75rem; /* 12px */
   --radius-2xl: 1rem;
 }
@@ -148,7 +148,7 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground font-sans antialiased selection:bg-red-500/30 selection:text-red-200;
+    @apply bg-background text-foreground font-sans antialiased selection:bg-red-500/30 selection:text-red-200 select-none;
   }
   button:not(:disabled),
   [role='button']:not(:disabled) {
