@@ -1,102 +1,28 @@
-'use client';
-import { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { Metadata } from 'next';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
+import LoginForm from '@/components/auth/LoginForm';
 
-export default function Login() {
-  const router = useRouter();
-  const [role, setRole] = useState<'donor' | 'hospital' | 'admin'>('donor');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+export const metadata: Metadata = {
+  title: 'Authentication',
+  description: 'Login to the Pulse Emergency Blood Network',
+};
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (role === 'donor') router.push('/donor/dashboard');
-    else if (role === 'hospital') router.push('/hospital/dashboard');
-    else router.push('/admin/dashboard');
-  }
-
+export default function LoginPage() {
   return (
-    <div className="min-h-[calc(100vh-56px)] flex items-center justify-center app-bg px-4">
-      <div className="w-full max-w-sm glass border rounded-2xl p-8 shadow-lg">
-        <div className="mb-6">
-          <h1 className="font-display font-bold text-2xl text-black mb-1">
-            Sign in
-          </h1>
-          <p className="text-sm text-gray-500">Welcome back to Pulse</p>
+    <div className="min-h-screen bg-background text-foreground flex flex-col font-sans">
+      <Header />
+
+      <main className="flex-1 flex items-center justify-center p-6 relative">
+        {/* Subtle grid background for the clinical telemetry feel */}
+        <div className="absolute inset-0 z-0 bg-[linear-gradient(to_right,var(--color-border)_1px,transparent_1px),linear-gradient(to_bottom,var(--color-border)_1px,transparent_1px)] bg-[size:3rem_3rem] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,#000_20%,transparent_100%)] opacity-20 pointer-events-none" />
+
+        <div className="relative z-10 w-full flex justify-center">
+          <LoginForm />
         </div>
+      </main>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div>
-            <label className="text-xs font-medium text-gray-600 block mb-1">
-              Sign in as
-            </label>
-            <div className="flex gap-2">
-              {(['donor', 'hospital', 'admin'] as const).map((r) => (
-                <button
-                  key={r}
-                  type="button"
-                  onClick={() => setRole(r)}
-                  className={`flex-1 text-xs font-medium py-1.5 rounded border transition-colors capitalize ${
-                    role === r
-                      ? 'bg-red-600 text-white border-red-600'
-                      : 'bg-white/70 border-gray-300 text-gray-600 hover:border-gray-400 hover:bg-white'
-                  }`}
-                >
-                  {r}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="text-xs font-medium text-gray-600 block mb-1">
-              Email address
-            </label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              className="w-full border border-gray-200 rounded px-3 py-2 text-sm outline-none focus:border-gray-400 transition-colors"
-            />
-          </div>
-
-          <div>
-            <label className="text-xs font-medium text-gray-600 block mb-1">
-              Password
-            </label>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full border border-gray-200 rounded px-3 py-2 text-sm outline-none focus:border-gray-400 transition-colors"
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="bg-red-600 text-white font-medium text-sm py-2.5 rounded hover:bg-red-700 transition-colors mt-1 shadow-sm hover:shadow-md"
-          >
-            Login
-          </button>
-        </form>
-
-        <div className="mt-5 pt-5 border-t border-gray-100 text-center">
-          <p className="text-sm text-gray-500">
-            Don&apos;t have an account?{' '}
-            <Link
-              href="/register"
-              className="text-red-600 font-medium hover:underline"
-            >
-              Register
-            </Link>
-          </p>
-        </div>
-      </div>
+      <Footer />
     </div>
   );
 }
