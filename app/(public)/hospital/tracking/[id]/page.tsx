@@ -52,7 +52,7 @@ export default function RequestTracking() {
   const pct = Math.round((accepted / needed) * 100);
 
   return (
-    <div className="p-8 max-w-3xl">
+    <div className="p-8 max-w-5xl mx-auto">
       <div className="mb-6 glass rounded-xl border px-5 py-4 shadow-sm">
         <h1 className="font-display font-bold text-2xl text-black mb-1">
           Request Tracking

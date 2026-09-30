@@ -14,7 +14,7 @@ export default function DonorProfile() {
   }
 
   return (
-    <div className="p-8 max-w-lg">
+    <div className="p-8 max-w-3xl mx-auto">
       <div className="mb-6 glass rounded-xl border px-5 py-4 shadow-sm">
         <h1 className="font-display font-bold text-2xl text-black mb-1">
           My Profile

@@ -35,7 +35,7 @@ const urgencyColors: Record<string, string> = {
 
 export default function DonorDashboard() {
   return (
-    <div className="p-8 max-w-3xl">
+    <div className="p-8 max-w-5xl mx-auto">
       <div className="mb-6 glass rounded-xl border px-5 py-4 shadow-sm">
         <div className="flex items-center gap-2.5 mb-1">
           <h1 className="font-display font-bold text-2xl text-black">
