@@ -37,7 +37,7 @@ export default function HomePage() {
 
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight text-foreground leading-[1.1] mb-6">
                 Real-time blood donation, <br className="hidden sm:inline" />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-foreground via-foreground to-muted-foreground">
+                <span className="text-transparent bg-clip-text bg-linear-to-r from-foreground via-foreground to-muted-foreground">
                   where it&apos;s needed most.
                 </span>
               </h1>
@@ -51,14 +51,14 @@ export default function HomePage() {
               {/* Action Bar 01 */}
               <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4">
                 <Link
-                  href="/register/donor"
+                  href="/register?type=donor"
                   className="w-full sm:w-auto inline-flex items-center justify-center h-11 px-6 rounded-md bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
                 >
                   Register as Donor
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Link>
                 <Link
-                  href="/register/hospital"
+                  href="/register?type=hospital"
                   className="w-full sm:w-auto inline-flex items-center justify-center h-11 px-6 rounded-md bg-card border border-border text-foreground font-medium hover:bg-secondary hover:border-foreground/30 transition-all"
                 >
                   Register as Hospital
@@ -73,7 +73,7 @@ export default function HomePage() {
                 alt="Pulse Animated Blood Drop"
                 width={600}
                 height={600}
-                className="w-full max-w-[320px] lg:max-w-[480px] h-auto object-contain drop-shadow-2xl opacity-90 animate-pulse duration-6000 scale-110 lg:scale-100 md:origin-right"
+                className="w-full max-w-[320px] lg:max-w-120 h-auto object-contain drop-shadow-2xl opacity-90 animate-pulse duration-6000 scale-110 lg:scale-100 md:origin-right"
                 priority
               />
             </div>
@@ -210,13 +210,13 @@ export default function HomePage() {
             </p>
             <div className="flex flex-wrap items-center justify-center gap-4">
               <Link
-                href="/register/donor"
+                href="/register?type=donor"
                 className="inline-flex items-center justify-center h-10 px-5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
               >
                 Register as Donor
               </Link>
               <Link
-                href="/register/hospital"
+                href="/register?type=hospital"
                 className="inline-flex items-center justify-center h-10 px-5 rounded-md bg-card border border-border text-foreground text-sm font-medium hover:bg-secondary transition-colors"
               >
                 Register as Hospital

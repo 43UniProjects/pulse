@@ -1,7 +1,12 @@
-'use client';
-import { useParams } from 'next/navigation';
+type Donor = {
+  name: string;
+  distance: string;
+  status: string;
+  phone: string;
+  verified: boolean;
+};
 
-const donors = [
+const donors: Array<Donor> = [
   {
     name: 'Kamal Perera',
     distance: '1.2 km',
@@ -45,8 +50,7 @@ const statusStyles: Record<string, string> = {
   Declined: 'bg-red-100 text-red-600',
 };
 
-export default function RequestTracking() {
-  const { id } = useParams();
+export default function RequestTrackingClient({ id }: { id: string }) {
   const accepted = donors.filter((d) => d.status === 'Accepted').length;
   const needed = 2;
   const pct = Math.round((accepted / needed) * 100);
