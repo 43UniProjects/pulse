@@ -31,31 +31,33 @@ export default function MobileMenu() {
         </SheetTrigger>
         <SheetContent side="right" className="w-[300px] sm:w-[400px]">
           <SheetHeader>
-            <SheetTitle className="text-left">Menu</SheetTitle>
+            <SheetTitle className="text-left font-semibold tracking-tight text-2xl text-foreground">
+              Pulse
+            </SheetTitle>
           </SheetHeader>
-          <div className="flex flex-col gap-4 mt-6">
-            <ul className="flex flex-col gap-4">
+          <div className="flex flex-col mt-8 px-4">
+            <ul className="flex flex-col gap-6">
               {NAV_LINKS.map(({ label, href }) => (
                 <li key={href}>
                   <Link
                     href={href}
                     onClick={() => setOpen(false)}
-                    className="block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                    className="block text-lg font-medium text-muted-foreground hover:text-foreground transition-all"
                   >
                     {label}
                   </Link>
                 </li>
               ))}
+              <li>
+                <Link
+                  href="/register"
+                  onClick={() => setOpen(false)}
+                  className="block text-lg font-medium text-muted-foreground hover:text-foreground transition-all"
+                >
+                  Register
+                </Link>
+              </li>
             </ul>
-            <div className="mt-4 pt-4 border-t border-border">
-              <Link
-                href="/register"
-                onClick={() => setOpen(false)}
-                className="flex items-center justify-center h-10 px-4 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
-              >
-                Register
-              </Link>
-            </div>
           </div>
         </SheetContent>
       </Sheet>
