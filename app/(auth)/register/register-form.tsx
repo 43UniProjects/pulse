@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useActionState } from 'react';
+import { useState, useEffect, useActionState, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
@@ -14,7 +14,7 @@ import { registerAccount } from './actions';
 
 const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
-export default function RegisterForm() {
+function RegisterFormContent() {
   const searchParams = useSearchParams();
 
   // Initialize states
@@ -278,6 +278,18 @@ export default function RegisterForm() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function RegisterForm() {
+  return (
+    <Suspense
+      fallback={
+        <div className="w-full max-w-lg h-[600px] bg-card border border-border rounded-xl animate-pulse shadow-sm" />
+      }
+    >
+      <RegisterFormContent />
+    </Suspense>
   );
 }
 
