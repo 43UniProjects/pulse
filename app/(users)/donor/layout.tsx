@@ -1,5 +1,3 @@
-import Footer from '@/components/Footer';
-import Header from '@/components/Header';
 import DashboardSidebar from '@/components/users/DashboardSidebar';
 
 const DONOR_LINKS = [
@@ -15,19 +13,13 @@ export default function DonorLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen flex flex-col bg-background font-sans">
-      <Header />
-      <div className="flex-1 flex overflow-hidden h-[calc(100vh-4rem)]">
-        <DashboardSidebar
-          roleLabel="Verified Donor"
-          userName="Kamal Perera"
-          links={DONOR_LINKS}
-        />
-        <main className="flex-1 overflow-auto bg-background p-6">
-          {children}
-        </main>
-      </div>
-      <Footer />
+    <div className="flex-1 flex w-full overflow-hidden h-[calc(100vh-4rem)]">
+      <DashboardSidebar
+        roleLabel="Verified Donor"
+        userName="Kamal Perera"
+        links={DONOR_LINKS}
+      />
+      <main className="flex-1 overflow-auto bg-background p-6">{children}</main>
     </div>
   );
 }

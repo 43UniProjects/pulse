@@ -82,7 +82,7 @@ export default function HomePage() {
               5&ndash;20 km
             </div>
             <div className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">
-              Geo-Radius Filtering
+              Smart Local Matching
             </div>
           </div>
           <div>
@@ -90,7 +90,7 @@ export default function HomePage() {
               4 Months
             </div>
             <div className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">
-              Eligibility Rule Engine
+              Safe Donation Intervals
             </div>
           </div>
           <div>
@@ -98,7 +98,7 @@ export default function HomePage() {
               &lt; 30s
             </div>
             <div className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">
-              WebSocket Dispatch
+              Instant Notifications
             </div>
           </div>
           <div>
@@ -106,7 +106,7 @@ export default function HomePage() {
               100%
             </div>
             <div className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">
-              Verified Credentialing
+              Verified Hospitals
             </div>
           </div>
         </div>
@@ -115,8 +115,8 @@ export default function HomePage() {
       {/* How it works section */}
       <section className="py-24 max-w-7xl mx-auto px-6">
         <div className="text-center max-w-xl mx-auto mb-16">
-          <span className="text-xs font-mono uppercase tracking-widest text-primary mb-2 block">
-            Architecture Flow
+          <span className="text-s font-mono uppercase tracking-widest text-primary mb-2 block">
+            A Simple Process
           </span>
           <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
             How Pulse Operates
@@ -136,12 +136,12 @@ export default function HomePage() {
                 </div>
               </div>
               <h3 className="text-lg font-medium text-foreground mb-2">
-                Real-time Alerts
+                Instant Emergency Alerts
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Hospitals broadcast emergency requirements instantly. Qualified
-                donors in the local grid receive immediate push notifications
-                via WebSockets.
+                Hospitals send out emergency blood requests the moment they need
+                it. Eligible donors nearby receive immediate push notifications
+                directly to their devices.
               </p>
             </div>
           </div>
@@ -158,12 +158,12 @@ export default function HomePage() {
                 </div>
               </div>
               <h3 className="text-lg font-medium text-foreground mb-2">
-                Location-based Matching
+                Smart Location Matching
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                MongoDB GeoJSON and $near queries filter donors by precise
-                coordinates, prioritizing proximity to minimize critical
-                transport delays.
+                Our smart system filters donors by their exact location,
+                prioritizing those closest to the hospital to minimize critical
+                transport delays and save precious time.
               </p>
             </div>
           </div>
@@ -180,12 +180,12 @@ export default function HomePage() {
                 </div>
               </div>
               <h3 className="text-lg font-medium text-foreground mb-2">
-                Eligibility Verification
+                Safe & Verified Process
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Automated checks strictly enforce the mandatory 4-month waiting
-                period between donations, ensuring total safety for both
-                patients and donors.
+                We automatically ensure that all donors are healthy and eligible
+                to donate by enforcing standard waiting periods, keeping the
+                entire process safe for everyone.
               </p>
             </div>
           </div>
