@@ -1,22 +1,31 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useActionState } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Activity, MessageSquare, LocateFixed, Loader2 } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import {
+  Activity,
+  MessageSquare,
+  LocateFixed,
+  Loader2,
+  AlertCircle,
+} from 'lucide-react';
+import { registerAccount } from './actions';
 
 const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
 export default function RegisterForm() {
   const searchParams = useSearchParams();
 
-  // 2. Initialize with default 'donor'
+  // Initialize states
   const [tab, setTab] = useState<'donor' | 'hospital'>('donor');
   const [location, setLocation] = useState('');
   const [isLocating, setIsLocating] = useState(false);
-  const router = useRouter();
 
-  // 3. Synchronize tab state whenever the URL search parameter changes
+  // Wire up the Server Action
+  const [state, formAction, isPending] = useActionState(registerAccount, null);
+
+  // Synchronize tab state whenever the URL search parameter changes
   useEffect(() => {
     const type = searchParams.get('type');
     if (type === 'hospital' || type === 'donor') {
@@ -24,61 +33,6 @@ export default function RegisterForm() {
       setTab(type);
     }
   }, [searchParams]);
-
-  // ... rest of your component code stays identical
-
-  async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
-    e.preventDefault();
-
-    // ==========================================
-    // BACKEND INTEGRATION INSTRUCTIONS
-    // ==========================================
-
-    // 1. Extract all form inputs using the native FormData API
-    // const formData = new FormData(e.currentTarget);
-    // const data = Object.fromEntries(formData.entries());
-
-    // 2. Combine the form data with our custom state variables (role & location)
-    // const payload = {
-    //   ...data,
-    //   role: tab,
-    //   coordinates: location
-    // };
-
-    // 3. Send the POST request to your Express/Node backend
-    /*
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || 'Registration failed');
-      }
-
-      // 4. On success, save JWT token (if applicable) and route to dashboard
-      // const { token } = await res.json();
-      // localStorage.setItem('pulse_token', token); // Or use secure HttpOnly cookies
-      
-      router.push(tab === 'donor' ? '/donor/dashboard' : '/hospital/dashboard');
-      
-    } catch (err: any) {
-      setError(err.message);
-      console.error("Registration Error:", err);
-    } finally {
-      setIsLoading(false);
-    }
-    */
-
-    // --- TEMPORARY MOCK REDIRECT (Remove this when backend is active) ---
-    router.push(tab === 'donor' ? '/donor/dashboard' : '/hospital/dashboard');
-  }
 
   const handleGetLocation = () => {
     if (!navigator.geolocation) {
@@ -149,11 +103,14 @@ export default function RegisterForm() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      <form action={formAction} className="flex flex-col gap-5">
+        {/* Hidden inputs to pass state variables to the Server Action */}
+        <input type="hidden" name="role" value={tab} />
+        <input type="hidden" name="location" value={location} />
+
         {tab === 'donor' ? (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              {/* Added 'name' props to all Fields to support FormData extraction */}
               <Field
                 name="fullName"
                 label="Full Name"
@@ -287,11 +244,27 @@ export default function RegisterForm() {
           </>
         )}
 
+        {/* Error Banner */}
+        {state?.error && (
+          <div className="flex items-start gap-2 p-3 mt-2 text-sm text-red-600 bg-red-50 border border-red-100 rounded-md">
+            <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+            <p>{state.error}</p>
+          </div>
+        )}
+
         <button
           type="submit"
-          className="w-full h-10 mt-4 rounded-md bg-primary text-primary-foreground text-sm font-semibold hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
+          disabled={isPending}
+          className="w-full h-10 mt-4 flex items-center justify-center rounded-md bg-primary text-primary-foreground text-sm font-semibold hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Create Account
+          {isPending ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Creating Account...
+            </>
+          ) : (
+            'Create Account'
+          )}
         </button>
       </form>
 
@@ -310,7 +283,6 @@ export default function RegisterForm() {
   );
 }
 
-// Added 'name' prop to Field component
 function Field({
   name,
   label,

@@ -1,4 +1,4 @@
-import RequestTrackingClient from '@/components/hospital/RequestTrackingClient';
+import RequestTrackingClient from './request-tracking-client';
 
 export default async function RequestTracking({
   params,
