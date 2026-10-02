@@ -1,4 +1,4 @@
-import RequestDetailClient from './request-details-client';
+import RequestDetailClient from './request-details-form';
 
 export default async function RequestPage({
   params,

@@ -1,92 +1,55 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { MapPin } from 'lucide-react';
-
-type RequestDetails = {
-  hospital: string;
-  address: string;
-  bloodGroup: string;
-  quantity: string;
-  urgency: 'Critical' | 'High' | 'Medium';
-  notes: string;
-};
-
-const requestData: Record<string, RequestDetails> = {
-  '1': {
-    hospital: 'Nawaloka Hospital',
-    address: 'Deshamanya H. K. Dharmadasa Mawatha, Colombo 02',
-    bloodGroup: 'O+',
-    quantity: '2 units',
-    urgency: 'Critical',
-    notes:
-      'Needed for emergency surgery scheduled at 6:00 AM. Please arrive ASAP.',
-  },
-  '2': {
-    hospital: 'Asiri Central Hospital',
-    address: 'Norris Canal Road, Colombo 10',
-    bloodGroup: 'B+',
-    quantity: '1 unit',
-    urgency: 'High',
-    notes: 'For a patient in the ICU. Preferred within 4 hours.',
-  },
-  '3': {
-    hospital: 'Lanka Hospitals',
-    address: 'Narahenpita Road, Colombo 05',
-    bloodGroup: 'A-',
-    quantity: '3 units',
-    urgency: 'Medium',
-    notes: 'Elective surgery tomorrow morning. Advance planning.',
-  },
-};
+import { getDonationRequest, RequestStatus } from '../data';
 
 export default function RequestDetailClient({ id }: { id: string }) {
-  const req = requestData[id] ?? requestData['1'];
-  const [status, setStatus] = useState<'Pending' | 'Accepted' | 'Declined'>(
-    'Pending',
-  );
+  // Use the updated function from data.ts
+  const req = getDonationRequest(id);
 
-  // Mapped to Clinical Precision tokens
-  const statusStyles = {
-    Pending: 'bg-secondary text-secondary-foreground border border-border',
-    Accepted:
+  // Initialize state with the actual status from the database
+  const [status, setStatus] = useState<RequestStatus>(req?.status || 'pending');
+
+  // Handle null state gracefully
+  if (!req) {
+    return (
+      <div className="p-8 max-w-4xl mx-auto font-sans text-center text-muted-foreground">
+        Request record not found.
+      </div>
+    );
+  }
+
+  // Mapped to Clinical Precision tokens (Updated to match lowercase types)
+  const statusStyles: Record<string, string> = {
+    pending: 'bg-secondary text-secondary-foreground border border-border',
+    accepted:
       'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20',
-    Declined: 'bg-destructive/15 text-destructive border border-destructive/20',
+    completed:
+      'bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/20',
+    declined: 'bg-destructive/15 text-destructive border border-destructive/20',
   };
 
-  const urgencyColors = {
-    Critical: 'bg-destructive/15 text-destructive border border-destructive/20',
-    High: 'bg-orange-500/15 text-orange-600 dark:text-orange-400 border border-orange-500/20',
-    Medium: 'bg-secondary text-secondary-foreground border border-border',
+  const urgencyColors: Record<string, string> = {
+    critical: 'bg-destructive/15 text-destructive border border-destructive/20',
+    high: 'bg-orange-500/15 text-orange-600 dark:text-orange-400 border border-orange-500/20',
+    normal: 'bg-secondary text-secondary-foreground border border-border',
   };
 
   return (
     <div className="p-8 max-w-4xl mx-auto font-sans">
-      {/* Breadcrumbs */}
-      <div className="mb-6 flex items-center gap-2">
-        <Link
-          href="/donor/dashboard"
-          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          Dashboard
-        </Link>
-        <span className="text-border">/</span>
-        <span className="text-sm text-foreground">Request Detail</span>
-      </div>
-
       {/* Clinical Card Wrapper */}
       <div className="bg-card border border-border rounded-lg overflow-hidden shadow-sm">
         {/* Header */}
         <div className="p-6 border-b border-border flex items-start justify-between bg-card">
           <div>
             <h1 className="font-semibold text-xl text-card-foreground mb-1">
-              {req.hospital}
+              {req.hospitalName}
             </h1>
             <p className="text-sm text-muted-foreground">{req.address}</p>
           </div>
           <span
-            className={`text-xs font-medium px-2.5 py-1 rounded-sm ${statusStyles[status]}`}
+            className={`text-xs font-medium px-2.5 py-1 rounded-sm capitalize ${statusStyles[status]}`}
           >
             {status}
           </span>
@@ -126,7 +89,7 @@ export default function RequestDetailClient({ id }: { id: string }) {
               Urgency
             </div>
             <span
-              className={`inline-block text-xs font-medium px-2.5 py-1 rounded-sm ${urgencyColors[req.urgency]}`}
+              className={`inline-block text-xs font-medium px-2.5 py-1 rounded-sm capitalize ${urgencyColors[req.urgency]}`}
             >
               {req.urgency}
             </span>
@@ -143,16 +106,16 @@ export default function RequestDetailClient({ id }: { id: string }) {
 
         {/* Action Bar */}
         <div className="px-6 pb-6 pt-2 flex items-center gap-3 bg-card">
-          {status === 'Pending' ? (
+          {status === 'pending' ? (
             <>
               <button
-                onClick={() => setStatus('Accepted')}
+                onClick={() => setStatus('accepted')}
                 className="bg-primary text-primary-foreground font-medium text-sm px-6 py-2.5 rounded-md hover:bg-red-700 transition-colors focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
               >
                 Accept Request
               </button>
               <button
-                onClick={() => setStatus('Declined')}
+                onClick={() => setStatus('declined')}
                 className="bg-transparent border border-border text-foreground font-medium text-sm px-6 py-2.5 rounded-md hover:bg-secondary transition-colors"
               >
                 Decline
@@ -160,7 +123,7 @@ export default function RequestDetailClient({ id }: { id: string }) {
             </>
           ) : (
             <button
-              onClick={() => setStatus('Pending')}
+              onClick={() => setStatus('pending')}
               className="text-xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-4"
             >
               Undo response

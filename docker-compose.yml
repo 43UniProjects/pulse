@@ -6,7 +6,9 @@ services:
     env_file:
       - .env.local
     environment:
-      - NEXT_TELEMETRY_DISABLED
+      - NEXT_TELEMETRY_DISABLED=1
+      - MONGO_DATABASE_HOST=database
+      - MONGO_DATABASE_PORT=27017     
     secrets:
       - db_username
       - db_password
