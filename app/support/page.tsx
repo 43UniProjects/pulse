@@ -7,15 +7,15 @@ import {
   ShieldCheck,
   ArrowRight,
 } from 'lucide-react';
-import Header from '@/components/Header';
+
 import Footer from '@/components/Footer';
+import Header from '@/components/Header';
 
 export default function SupportPage() {
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col font-sans">
+    <>
       <Header />
-
-      <main className="flex-1">
+      <div className="w-full flex-1 flex flex-col">
         {/* Header Section */}
         <section className="border-b border-border bg-card/20 py-16 lg:py-24">
           <div className="max-w-4xl mx-auto px-6 text-center">
@@ -136,9 +136,8 @@ export default function SupportPage() {
             </Link>
           </div>
         </section>
-      </main>
-
+      </div>
       <Footer />
-    </div>
+    </>
   );
 }

@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
 import LoginForm from './login-form';
+import Footer from '@/components/Footer';
+import Header from '@/components/Header';
 
 export const metadata: Metadata = {
   title: 'Login',
@@ -10,10 +10,9 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col font-sans">
+    <>
       <Header />
-
-      <main className="flex-1 flex items-center justify-center p-6 relative">
+      <main className="flex-1 flex items-center justify-center p-6 relative w-full">
         {/* Telemetry grid background */}
         <div className="absolute inset-0 z-0 bg-[linear-gradient(to_right,var(--color-border)_1px,transparent_1px),linear-gradient(to_bottom,var(--color-border)_1px,transparent_1px)] bg-[size:3rem_3rem] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,#000_20%,transparent_100%)] opacity-20 pointer-events-none" />
 
@@ -21,8 +20,7 @@ export default function LoginPage() {
           <LoginForm />
         </div>
       </main>
-
       <Footer />
-    </div>
+    </>
   );
 }

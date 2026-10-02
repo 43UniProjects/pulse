@@ -1,11 +1,15 @@
-export default function DonorLayout({
-  children,
+import RequestDetailClient from './request-details-form';
+
+export default async function RequestDetailsPage({
+  params,
 }: {
-  children: React.ReactNode;
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = await params;
+
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <main className="flex-1">{children}</main>
+    <div className="w-full">
+      <RequestDetailClient id={id} />
     </div>
   );
 }

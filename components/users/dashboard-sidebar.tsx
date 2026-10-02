@@ -27,7 +27,7 @@ export default function DashboardSidebar({
     <aside className="w-64 bg-card border-r border-border flex flex-col shrink-0 h-full">
       {/* Role Indicator */}
       <div className="px-5 py-4 border-b border-border">
-        <span className="text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider">
+        <span className="text-xs font-sans font-semibold text-muted-foreground uppercase tracking-wider">
           {roleLabel}
         </span>
       </div>
@@ -58,7 +58,7 @@ export default function DashboardSidebar({
       {/* User Footer */}
       <div className="p-4 border-t border-border bg-background">
         <div className="text-xs font-mono text-muted-foreground mb-1 uppercase tracking-widest">
-          Active Session
+          Logged in as
         </div>
         <div className="text-sm font-semibold text-foreground truncate mb-3">
           {userName}
@@ -68,7 +68,7 @@ export default function DashboardSidebar({
           className="flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
         >
           <LogOut className="w-4 h-4" />
-          Terminate Session
+          Logout
         </Link>
       </div>
     </aside>

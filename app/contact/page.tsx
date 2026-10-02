@@ -1,13 +1,13 @@
 import { Phone, Mail, MapPin, Clock } from 'lucide-react';
-import Header from '@/components/Header';
+
 import Footer from '@/components/Footer';
+import Header from '@/components/Header';
 
 export default function ContactPage() {
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col font-sans">
+    <>
       <Header />
-
-      <main className="flex-1">
+      <div className="flex-1 w-full flex flex-col">
         <section className="py-16 lg:py-24 max-w-7xl mx-auto px-6">
           <div className="mb-12">
             <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight text-foreground mb-4">
@@ -180,9 +180,8 @@ export default function ContactPage() {
             </div>
           </div>
         </section>
-      </main>
-
+      </div>
       <Footer />
-    </div>
+    </>
   );
 }
