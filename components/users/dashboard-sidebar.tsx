@@ -27,7 +27,7 @@ export default function DashboardSidebar({
     <aside className="w-64 bg-card border-r border-border flex flex-col shrink-0 h-full">
       {/* Role Indicator */}
       <div className="px-5 py-4 border-b border-border">
-        <span className="text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider">
+        <span className="text-xs font-sans font-semibold text-muted-foreground uppercase tracking-wider">
           {roleLabel}
         </span>
       </div>
