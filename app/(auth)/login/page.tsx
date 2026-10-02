@@ -4,7 +4,7 @@ import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 
 export const metadata: Metadata = {
-  title: 'Authentication',
+  title: 'Login',
   description: 'Login to the Pulse Emergency Blood Network',
 };
 
