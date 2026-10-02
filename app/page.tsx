@@ -2,9 +2,13 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Zap, MapPin, ShieldCheck, ArrowRight, Activity } from 'lucide-react';
 
+import Footer from '@/components/Footer';
+import Header from '@/components/Header';
+
 export default function HomePage() {
   return (
     <>
+      <Header />
       {/* Hero Section */}
       <section className="relative overflow-hidden min-h-[calc(100vh-4rem)] flex items-center justify-center border-b border-border py-12">
         {/* Replaced hardcoded red-950 with primary/10 for theme adaptability */}
@@ -218,6 +222,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      <Footer />
     </>
   );
 }

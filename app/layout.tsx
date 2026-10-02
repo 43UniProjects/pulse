@@ -27,9 +27,6 @@ export const metadata: Metadata = {
   },
 };
 
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html
@@ -39,9 +36,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     >
       <body className="min-h-screen bg-background text-foreground flex flex-col font-sans selection:bg-primary/30 selection:text-primary-foreground">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <Header />
           <main className="flex-1 flex flex-col">{children}</main>
-          <Footer />
         </ThemeProvider>
       </body>
     </html>
