@@ -17,11 +17,9 @@ export default function LoginForm() {
           <Activity className="w-5 h-5 text-primary" />
         </div>
         <h1 className="font-semibold tracking-tight text-2xl text-foreground mb-1">
-          System Authentication
+          Login
         </h1>
-        <p className="text-sm text-muted-foreground">
-          Enter your credentials to access Pulse
-        </p>
+        <p className="text-sm text-muted-foreground">Sign in to your account</p>
       </div>
 
       <form action={formAction} className="flex flex-col gap-5">
@@ -31,7 +29,7 @@ export default function LoginForm() {
         {/* Role Selector */}
         <div>
           <label className="text-xs font-mono uppercase tracking-widest text-muted-foreground block mb-2">
-            Access Level
+            Account Type
           </label>
           <div className="flex p-1 gap-1 bg-secondary border border-border rounded-lg">
             {(['donor', 'hospital', 'admin'] as const).map((r) => (
@@ -93,10 +91,10 @@ export default function LoginForm() {
           {isPending ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Authenticating...
+              Logging in...
             </>
           ) : (
-            'Initialize Session'
+            'Login'
           )}
         </button>
       </form>

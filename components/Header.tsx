@@ -5,6 +5,9 @@ import Link from 'next/link';
 import { useTheme } from 'next-themes';
 import { Sun, Moon } from 'lucide-react';
 
+import MobileMenu from '@/components/navbar/MobileMenu';
+import { NAV_LINKS } from '@/components/navbar/navConfig';
+
 export default function Header() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -17,7 +20,7 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 w-full flex flex-col">
       {/* Top Bar: System Status & Utility Links */}
-      <div className="bg-secondary/40 border-b border-border py-1.5 w-full">
+      <div className="bg-secondary/80 backdrop-blur-md border-b border-border py-1.5 w-full">
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between text-xs font-medium text-muted-foreground">
           {/* Tagline: Hidden on mobile to prevent layout breaking */}
           <div className="hidden sm:flex items-center gap-2">
@@ -58,7 +61,7 @@ export default function Header() {
       </div>
 
       {/* Main Header */}
-      <div className="border-b border-border bg-background/80 backdrop-blur-md">
+      <div className="relative border-b border-border bg-background/80 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
             <span className="font-semibold tracking-tight text-lg text-foreground">
@@ -66,26 +69,29 @@ export default function Header() {
             </span>
           </Link>
 
-          <nav className="flex items-center gap-4 sm:gap-6">
-            <Link
-              href="/"
-              className="text-sm font-medium text-foreground hover:text-primary transition-colors hidden sm:block"
-            >
-              Home
-            </Link>
-            <Link
-              href="/login"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors hidden sm:block"
-            >
-              Login
-            </Link>
+          <nav aria-label="Main" className="flex items-center gap-4 sm:gap-6">
+            {/* Desktop links, generated from the shared config */}
+            <ul className="hidden sm:flex items-center gap-6">
+              {NAV_LINKS.map(({ label, href }) => (
+                <li key={href}>
+                  <Link
+                    href={href}
+                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
 
             <Link
               href="/register"
-              className="inline-flex items-center justify-center h-9 px-4 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
+              className="hidden sm:inline-flex items-center justify-center h-9 px-4 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
             >
               Register
             </Link>
+
+            <MobileMenu />
           </nav>
         </div>
       </div>

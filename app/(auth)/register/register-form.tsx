@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useActionState } from 'react';
+import { useState, useEffect, useActionState, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
@@ -14,7 +14,7 @@ import { registerAccount } from './actions';
 
 const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
-export default function RegisterForm() {
+function RegisterFormContent() {
   const searchParams = useSearchParams();
 
   // Initialize states
@@ -50,9 +50,7 @@ export default function RegisterForm() {
       },
       (error) => {
         console.error('Location error:', error);
-        alert(
-          'Failed to acquire satellite lock. Please enter location manually.',
-        );
+        alert('Failed to get location. Please enter it manually.');
         setIsLocating(false);
       },
       { enableHighAccuracy: true },
@@ -66,16 +64,16 @@ export default function RegisterForm() {
           <Activity className="w-5 h-5 text-primary" />
         </div>
         <h1 className="font-semibold tracking-tight text-2xl text-foreground mb-1">
-          Network Registration
+          Register
         </h1>
         <p className="text-sm text-muted-foreground">
-          Initialize your profile on the Pulse network
+          Create your account on Pulse
         </p>
       </div>
 
       <div className="mb-8">
         <label className="text-xs font-mono uppercase tracking-widest text-muted-foreground block mb-2 text-center">
-          Entity Type
+          Account Type
         </label>
         <div className="flex p-1 gap-1 bg-secondary border border-border rounded-lg">
           <button
@@ -270,16 +268,28 @@ export default function RegisterForm() {
 
       <div className="mt-8 pt-6 border-t border-border text-center">
         <p className="text-sm text-muted-foreground">
-          Already integrated?{' '}
+          Already have an account?{' '}
           <Link
             href="/login"
             className="text-foreground font-medium hover:text-primary transition-colors hover:underline underline-offset-4"
           >
-            Authenticate here
+            Login here
           </Link>
         </p>
       </div>
     </div>
+  );
+}
+
+export default function RegisterForm() {
+  return (
+    <Suspense
+      fallback={
+        <div className="w-full max-w-lg h-[600px] bg-card border border-border rounded-xl animate-pulse shadow-sm" />
+      }
+    >
+      <RegisterFormContent />
+    </Suspense>
   );
 }
 
@@ -344,7 +354,7 @@ function LocationField({
           onClick={onLocate}
           disabled={isLocating}
           className="shrink-0 flex items-center justify-center w-10 h-10 rounded-md border border-border bg-secondary text-muted-foreground hover:text-primary hover:border-primary transition-all focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary disabled:opacity-50"
-          title="Acquire Live Coordinates"
+          title="Get current location"
         >
           {isLocating ? (
             <Loader2 className="w-4 h-4 animate-spin text-primary" />
