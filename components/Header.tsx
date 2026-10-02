@@ -6,7 +6,7 @@ import { useTheme } from 'next-themes';
 import { Sun, Moon } from 'lucide-react';
 
 import MobileMenu from '@/components/navbar/MobileMenu';
-import { NAV_LINKS } from '@/components/navbar/navConfig';
+import { NAV_LINKS } from '@/types/common.type';
 
 export default function Header() {
   const { theme, setTheme } = useTheme();
@@ -27,7 +27,7 @@ export default function Header() {
             Real-Time Emergency Blood Network
           </div>
 
-          <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
+          <div className="flex items-center gap-4 w-full sm:w-auto sm:justify-end">
             {/* Theme Switcher: Reduced padding to p-1.5 to fit the thin top bar */}
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
@@ -76,22 +76,20 @@ export default function Header() {
                 <li key={href}>
                   <Link
                     href={href}
-                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                    className={
+                      label === NAV_LINKS[2].label
+                        ? 'hidden sm:inline-flex items-center justify-center h-9 px-4 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background'
+                        : 'text-sm font-medium text-muted-foreground hover:text-foreground transition-colors'
+                    }
                   >
                     {label}
                   </Link>
                 </li>
               ))}
             </ul>
-
-            <Link
-              href="/register"
-              className="hidden sm:inline-flex items-center justify-center h-9 px-4 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
-            >
-              Register
-            </Link>
-
-            <MobileMenu />
+            <div className="sm:hidden">
+              <MobileMenu />
+            </div>
           </nav>
         </div>
       </div>
