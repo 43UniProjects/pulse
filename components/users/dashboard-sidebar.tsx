@@ -58,7 +58,7 @@ export default function DashboardSidebar({
       {/* User Footer */}
       <div className="p-4 border-t border-border bg-background">
         <div className="text-xs font-mono text-muted-foreground mb-1 uppercase tracking-widest">
-          Active Session
+          Logged in as
         </div>
         <div className="text-sm font-semibold text-foreground truncate mb-3">
           {userName}
@@ -68,7 +68,7 @@ export default function DashboardSidebar({
           className="flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
         >
           <LogOut className="w-4 h-4" />
-          Terminate Session
+          Logout
         </Link>
       </div>
     </aside>
