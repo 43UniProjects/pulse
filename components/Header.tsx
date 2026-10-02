@@ -17,7 +17,7 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 w-full flex flex-col">
       {/* Top Bar: System Status & Utility Links */}
-      <div className="bg-secondary/40 border-b border-border py-1.5 w-full">
+      <div className="bg-background/80 backdrop-blur-md border-b border-border py-1.5 w-full">
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between text-xs font-medium text-muted-foreground">
           {/* Tagline: Hidden on mobile to prevent layout breaking */}
           <div className="hidden sm:flex items-center gap-2">
@@ -57,8 +57,8 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Main Header */}
-      <div className="border-b border-border bg-background/80 backdrop-blur-md">
+      {/* Navigation Bar */}
+      <div className="border-b border-border bg-background/50 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
             <span className="font-semibold tracking-tight text-lg text-foreground">
