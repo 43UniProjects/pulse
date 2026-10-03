@@ -1,4 +1,3 @@
-import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import DashboardSidebar from '@/components/users/dashboard-sidebar';
 import { Menu } from 'lucide-react';
@@ -20,8 +19,9 @@ export default function HospitalLayout({
     <div className="min-h-screen flex flex-col bg-background font-sans">
       <Header />
 
-      <div className="flex-1 flex flex-col w-full max-w-7xl mx-auto">
-        <div className="px-6 pt-6 pb-2">
+      <div className="flex-1 flex flex-col md:flex-row w-full">
+        {/* Mobile Hamburger Menu */}
+        <div className="px-6 pt-6 pb-2 md:hidden">
           <Sheet>
             <SheetTrigger
               render={
@@ -48,12 +48,22 @@ export default function HospitalLayout({
             </SheetContent>
           </Sheet>
         </div>
-        <main className="flex-1 bg-background px-4 pb-4 md:px-8 md:pb-8 lg:px-12 w-full">
+
+        {/* Desktop Fixed Sidebar */}
+        <div className="hidden md:block shrink-0 w-64">
+          <div className="fixed left-0 top-[94px] bottom-0 w-64 border-r border-border bg-background overflow-y-auto overflow-x-hidden">
+            <DashboardSidebar
+              roleLabel="Clinical Facility"
+              userName="Nawaloka Hospital"
+              links={HOSPITAL_LINKS}
+            />
+          </div>
+        </div>
+
+        <main className="flex-1 bg-background px-4 pb-4 md:p-8 lg:px-12 w-full">
           {children}
         </main>
       </div>
-
-      <Footer />
     </div>
   );
 }
