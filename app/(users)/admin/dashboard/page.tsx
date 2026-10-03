@@ -44,10 +44,10 @@ export default function AdminDashboard() {
   return (
     <div className="p-8">
       <div className="mb-6 glass rounded-xl border px-5 py-4 shadow-sm">
-        <h1 className="font-display font-bold text-2xl text-black mb-1">
+        <h1 className="font-display font-bold text-2xl text-foreground mb-1">
           Admin Dashboard
         </h1>
-        <p className="text-sm text-gray-500">Pulse network overview</p>
+        <p className="text-muted-foreground">Pulse network overview</p>
       </div>
 
       {/* Stats */}
@@ -55,18 +55,18 @@ export default function AdminDashboard() {
         {stats.map((s) => (
           <div
             key={s.label}
-            className={`glass border rounded-xl p-5 shadow-sm transition-shadow hover:shadow-md ${s.urgent ? 'border-orange-200' : ''}`}
+            className={`glass border rounded-xl p-5 shadow-sm transition-shadow hover:shadow-md ${s.urgent ? 'border-orange-500' : ''}`}
           >
-            <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
               {s.label}
             </div>
             <div
-              className={`font-display font-bold text-3xl mb-1 ${s.urgent ? 'text-orange-600' : 'text-black'}`}
+              className={`font-display font-bold text-3xl mb-1 ${s.urgent ? 'text-orange-600' : 'text-foreground'}`}
             >
               {s.value}
             </div>
             <div
-              className={`text-xs ${s.urgent ? 'text-orange-500' : 'text-gray-400'}`}
+              className={`text-xs ${s.urgent ? 'text-orange-500' : 'text-muted-foreground'}`}
             >
               {s.change}
             </div>
@@ -84,26 +84,26 @@ export default function AdminDashboard() {
         </Link>
         <Link
           href="/admin/manage-users"
-          className="border border-gray-200 text-gray-700 font-medium text-sm px-4 py-2 rounded hover:bg-gray-50 transition-colors shadow-sm hover:shadow-md"
+          className="border border-border text-muted-foreground font-medium text-sm px-4 py-2 rounded hover:bg-card transition-colors shadow-sm hover:shadow-md"
         >
           Manage Users
         </Link>
       </div>
 
       {/* Activity */}
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-        <div className="px-5 py-3 border-b border-gray-100">
-          <h2 className="font-display font-semibold text-sm text-gray-500 uppercase tracking-wider">
+      <div className="bg-card border border-border rounded-lg overflow-hidden">
+        <div className="px-5 py-3 border-b border-border">
+          <h2 className="font-display font-semibold text-sm text-muted-foreground uppercase tracking-wider">
             Recent Activity
           </h2>
         </div>
-        <div className="divide-y divide-gray-50">
+        <div className="divide-y divide-border">
           {activity.map((a, i) => (
             <div key={i} className="px-5 py-3.5 flex items-start gap-4">
-              <div className="text-xs text-gray-400 whitespace-nowrap mt-0.5 w-16 shrink-0">
+              <div className="text-xs text-muted-foreground whitespace-nowrap mt-0.5 w-16 shrink-0">
                 {a.time}
               </div>
-              <div className="text-sm text-gray-700">{a.text}</div>
+              <div className="text-sm text-muted-foreground">{a.text}</div>
             </div>
           ))}
         </div>

@@ -61,8 +61,9 @@ const initialUsers = [
 ];
 
 const statusStyles: Record<string, string> = {
-  Active: 'bg-green-100 text-green-700',
-  Suspended: 'bg-red-100 text-red-600',
+  Active:
+    'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
+  Suspended: 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400',
 };
 
 export default function ManageUsers() {
@@ -91,10 +92,10 @@ export default function ManageUsers() {
   return (
     <div className="p-8">
       <div className="mb-6 glass rounded-xl border px-5 py-4 shadow-sm">
-        <h1 className="font-display font-bold text-2xl text-black mb-1">
+        <h1 className="font-display font-bold text-2xl text-foreground mb-1">
           Manage Users
         </h1>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted-foreground">
           {users.length} users on the platform
         </p>
       </div>
@@ -106,12 +107,12 @@ export default function ManageUsers() {
           placeholder="Search by name or email..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="border border-gray-200 rounded px-3 py-2 text-sm outline-none focus:border-gray-400 transition-colors w-64"
+          className="border border-border rounded px-3 py-2 text-sm outline-none focus:border-border transition-colors w-64"
         />
         <select
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value)}
-          className="border border-gray-200 rounded px-3 py-2 text-sm outline-none focus:border-gray-400 transition-colors bg-white"
+          className="border border-border rounded px-3 py-2 text-sm outline-none focus:border-border transition-colors bg-background"
         >
           <option>All</option>
           <option>Donor</option>
@@ -119,24 +120,24 @@ export default function ManageUsers() {
         </select>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+      <div className="bg-card border border-border rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100 text-left bg-gray-50">
-                <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              <tr className="border-b border-border text-left bg-muted/50">
+                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Name
                 </th>
-                <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Role
                 </th>
-                <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Email
                 </th>
-                <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -146,7 +147,7 @@ export default function ManageUsers() {
                 <tr>
                   <td
                     colSpan={5}
-                    className="px-5 py-8 text-center text-gray-400 text-sm"
+                    className="px-5 py-8 text-center text-muted-foreground text-sm"
                   >
                     No users match your filters.
                   </td>
@@ -155,19 +156,21 @@ export default function ManageUsers() {
                 filtered.map((u, i) => (
                   <tr
                     key={u.id}
-                    className={`border-b border-gray-50 hover:bg-gray-50 transition-colors ${i === filtered.length - 1 ? 'border-0' : ''}`}
+                    className={`border-b border-border hover:bg-muted/50 transition-colors ${i === filtered.length - 1 ? 'border-0' : ''}`}
                   >
-                    <td className="px-5 py-3.5 font-medium text-black">
+                    <td className="px-5 py-3.5 font-medium text-foreground">
                       {u.name}
                     </td>
                     <td className="px-5 py-3.5">
                       <span
-                        className={`text-xs font-medium px-2 py-0.5 rounded-full ${u.role === 'Donor' ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600'}`}
+                        className={`text-xs font-medium px-2 py-0.5 rounded-full ${u.role === 'Donor' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400'}`}
                       >
                         {u.role}
                       </span>
                     </td>
-                    <td className="px-5 py-3.5 text-gray-500">{u.email}</td>
+                    <td className="px-5 py-3.5 text-muted-foreground">
+                      {u.email}
+                    </td>
                     <td className="px-5 py-3.5">
                       <span
                         className={`text-xs font-medium px-2 py-0.5 rounded-full ${statusStyles[u.status]}`}
@@ -180,8 +183,8 @@ export default function ManageUsers() {
                         onClick={() => toggleStatus(u.id)}
                         className={`text-xs font-medium px-2.5 py-1 rounded border transition-colors ${
                           u.status === 'Active'
-                            ? 'border-red-200 text-red-600 hover:bg-red-50'
-                            : 'border-green-200 text-green-600 hover:bg-green-50'
+                            ? 'border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 bg-transparent dark:bg-red-950/20 hover:bg-red-50 dark:hover:bg-red-900/40'
+                            : 'border-green-200 dark:border-green-900/50 text-green-600 dark:text-green-400 bg-transparent dark:bg-green-950/20 hover:bg-green-50 dark:hover:bg-green-900/40'
                         }`}
                       >
                         {u.status === 'Active' ? 'Suspend' : 'Reactivate'}

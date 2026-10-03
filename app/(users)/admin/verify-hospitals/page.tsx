@@ -72,9 +72,11 @@ const initialHospitals: Hospital[] = [
 ];
 
 const statusStyles: Record<HospitalStatus, string> = {
-  Pending: 'bg-yellow-50 text-yellow-700',
-  Approved: 'bg-green-100 text-green-700',
-  Rejected: 'bg-red-100 text-red-600',
+  Pending:
+    'bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400',
+  Approved:
+    'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
+  Rejected: 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400',
 };
 
 export default function VerifyHospitals() {
@@ -87,36 +89,36 @@ export default function VerifyHospitals() {
   return (
     <div className="p-8">
       <div className="mb-6 glass rounded-xl border px-5 py-4 shadow-sm">
-        <h1 className="font-display font-bold text-2xl text-black mb-1">
+        <h1 className="font-display font-bold text-2xl text-foreground mb-1">
           Verify Hospitals
         </h1>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted-foreground">
           {hospitals.filter((h) => h.status === 'Pending').length} pending
           verifications
         </p>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+      <div className="bg-card border border-border rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100 text-left bg-gray-50">
-                <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              <tr className="border-b border-border text-left bg-muted/50">
+                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Hospital Name
                 </th>
-                <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Reg. Number
                 </th>
-                <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Email
                 </th>
-                <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Date Applied
                 </th>
-                <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -125,16 +127,20 @@ export default function VerifyHospitals() {
               {hospitals.map((h, i) => (
                 <tr
                   key={h.id}
-                  className={`border-b border-gray-50 hover:bg-gray-50 transition-colors ${i === hospitals.length - 1 ? 'border-0' : ''}`}
+                  className={`border-b border-border hover:bg-muted/50 transition-colors ${i === hospitals.length - 1 ? 'border-0' : ''}`}
                 >
-                  <td className="px-5 py-3.5 font-medium text-black">
+                  <td className="px-5 py-3.5 font-medium text-foreground">
                     {h.name}
                   </td>
-                  <td className="px-5 py-3.5 text-gray-500 font-mono text-xs">
+                  <td className="px-5 py-3.5 text-muted-foreground font-mono text-xs">
                     {h.regNo}
                   </td>
-                  <td className="px-5 py-3.5 text-gray-500">{h.email}</td>
-                  <td className="px-5 py-3.5 text-gray-500">{h.date}</td>
+                  <td className="px-5 py-3.5 text-muted-foreground">
+                    {h.email}
+                  </td>
+                  <td className="px-5 py-3.5 text-muted-foreground">
+                    {h.date}
+                  </td>
                   <td className="px-5 py-3.5">
                     <span
                       className={`text-xs font-medium px-2 py-0.5 rounded-full ${statusStyles[h.status]}`}
@@ -153,7 +159,7 @@ export default function VerifyHospitals() {
                         </button>
                         <button
                           onClick={() => update(h.id, 'Rejected')}
-                          className="text-xs font-medium bg-white text-red-600 border border-red-200 px-2.5 py-1 rounded hover:bg-red-50 transition-colors shadow-sm hover:shadow-md"
+                          className="text-xs font-medium bg-background dark:bg-red-950/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50 px-2.5 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/40 transition-colors shadow-sm hover:shadow-md"
                         >
                           Reject
                         </button>
@@ -161,7 +167,7 @@ export default function VerifyHospitals() {
                     ) : (
                       <button
                         onClick={() => update(h.id, 'Pending')}
-                        className="text-xs text-gray-400 hover:text-gray-600 underline transition-colors"
+                        className="text-xs text-muted-foreground hover:text-foreground underline transition-colors"
                       >
                         Undo
                       </button>
