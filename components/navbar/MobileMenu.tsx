@@ -23,7 +23,7 @@ export default function MobileMenu() {
             <button
               type="button"
               aria-label="Toggle navigation menu"
-              className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
+              className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
           }
         >

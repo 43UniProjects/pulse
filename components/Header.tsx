@@ -20,7 +20,7 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 w-full flex flex-col shadow-sm">
       {/* Top Bar: System Status & Utility Links */}
-      <div className="bg-secondary/80 backdrop-blur-md border-b border-border py-1.5 w-full">
+      <div className="bg-background/80 backdrop-blur-md border-b border-border py-1.5 w-full">
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between text-xs font-medium text-muted-foreground">
           {/* Tagline: Hidden on mobile to prevent layout breaking */}
           <div className="hidden sm:flex items-center gap-2">
@@ -61,7 +61,7 @@ export default function Header() {
       </div>
 
       {/* Main Header */}
-      <div className="relative border-b border-border bg-background/80 backdrop-blur-md">
+      <div className="relative border-b border-border bg-secondary/90 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
             <span className="font-semibold tracking-tight text-lg text-foreground">
