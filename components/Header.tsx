@@ -27,7 +27,7 @@ export default function Header() {
             Real-Time Emergency Blood Network
           </div>
 
-          <div className="flex items-center gap-4 w-full sm:w-auto sm:justify-end">
+          <div className="flex items-center justify-end gap-4 w-full sm:w-auto">
             {/* Theme Switcher: Reduced padding to p-1.5 to fit the thin top bar */}
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
