@@ -18,12 +18,16 @@ export default function AdminLayout({
       <Header />
 
       <div className="flex-1 flex flex-col md:flex-row w-full max-w-350 mx-auto">
-        <div className="shrink-0 md:w-64 md:sticky md:top-16 md:h-[calc(100vh-4rem)] z-10 bg-background">
-          <DashboardSidebar
-            roleLabel="System Administrator"
-            userName="Admin User"
-            links={ADMIN_LINKS}
-          />
+        {}
+        <div className="shrink-0 md:w-64 relative">
+          {}
+          <div className="md:fixed md:w-64 md:top-[105px] md:bottom-0 z-10 bg-background overflow-y-auto">
+            <DashboardSidebar
+              roleLabel="System Administrator"
+              userName="Admin User"
+              links={ADMIN_LINKS}
+            />
+          </div>
         </div>
 
         <main className="flex-1 bg-background p-4 md:p-8 lg:px-12 w-full">

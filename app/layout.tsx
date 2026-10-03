@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import type { ReactNode } from 'react';
 import { ThemeProvider } from 'next-themes';
 import './globals.css';
+import { Suspense } from 'react';
 import BloodRain from '@/components/BloodRain';
 
 const geistSans = Geist({
@@ -39,7 +40,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <main className="flex-1 flex flex-col">{children}</main>
         </ThemeProvider>
-        <BloodRain rain={1} />
+
+        <Suspense fallback={<div>Loading...</div>}>
+          <BloodRain rain={1} />
+        </Suspense>
       </body>
     </html>
   );
