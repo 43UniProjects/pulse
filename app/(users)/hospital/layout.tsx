@@ -7,11 +7,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 const HOSPITAL_LINKS = [
   { name: 'Dashboard', href: '/hospital/dashboard' },
   { name: 'Post Request', href: '/hospital/post-request' },
-  {
-    name: 'Request Tracking',
-    href: '/hospital/tracking/1',
-    matchPath: '/hospital/tracking',
-  },
+  { name: 'Request Tracking', href: '/hospital/tracking' },
   { name: 'Registered Donors', href: '/hospital/donors' },
 ];
 

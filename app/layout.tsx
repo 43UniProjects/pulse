@@ -3,7 +3,8 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import type { ReactNode } from 'react';
 import { ThemeProvider } from 'next-themes';
 import './globals.css';
-
+import { Suspense } from 'react';
+import Loading from './loading';
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],

@@ -6,9 +6,9 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 const DONOR_LINKS = [
   { name: 'Dashboard', href: '/donor/dashboard' },
-  { name: 'Donations', href: '/donor/requests' },
-  { name: 'Profile', href: '/donor/profile' },
-  { name: 'Settings', href: '/donor/profile/settings' },
+  { name: 'Donation History', href: '/donor/history' },
+  { name: 'Active Requests', href: '/donor/requests' },
+  { name: 'Health Profile', href: '/donor/profile' },
 ];
 
 export default function DonorLayout({

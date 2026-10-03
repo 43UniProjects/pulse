@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Menu } from 'lucide-react';
-import { NAV_LINKS } from './navConfig';
 import {
   Sheet,
   SheetContent,
@@ -12,55 +11,46 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 
+import { NAV_LINKS } from '@/types/common.type';
+
 export default function MobileMenu() {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="sm:hidden">
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetTrigger
-          render={
-            <button
-              type="button"
-              aria-label="Toggle navigation menu"
-              className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            />
-          }
-        >
-          <Menu className="w-5 h-5" />
-        </SheetTrigger>
-        <SheetContent side="right" className="w-[300px] sm:w-[400px]">
-          <SheetHeader>
-            <SheetTitle className="text-left font-semibold tracking-tight text-2xl text-foreground">
-              Pulse
-            </SheetTitle>
-          </SheetHeader>
-          <div className="flex flex-col mt-8 px-4">
-            <ul className="flex flex-col gap-6">
-              {NAV_LINKS.map(({ label, href }) => (
-                <li key={href}>
-                  <Link
-                    href={href}
-                    onClick={() => setOpen(false)}
-                    className="block text-lg font-medium text-muted-foreground hover:text-foreground transition-all"
-                  >
-                    {label}
-                  </Link>
-                </li>
-              ))}
-              <li>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger
+        aria-label="Toggle navigation menu"
+        className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
+      >
+        <Menu className="w-6 h-6" />
+      </SheetTrigger>
+
+      <SheetContent
+        side="right"
+        className="w-75 sm:w-100 p-0 border-l border-border"
+      >
+        <SheetHeader className="p-6 border-b border-border/50 text-left">
+          <SheetTitle className="font-bold tracking-tight text-2xl text-foreground flex items-center">
+            Pulse
+          </SheetTitle>
+        </SheetHeader>
+
+        <nav className="flex flex-col p-4">
+          <ul className="flex flex-col gap-2">
+            {NAV_LINKS.map(({ label, href }) => (
+              <li key={href}>
                 <Link
-                  href="/register"
+                  href={href}
                   onClick={() => setOpen(false)}
-                  className="block text-lg font-medium text-muted-foreground hover:text-foreground transition-all"
+                  className="block px-4 py-3 rounded-lg text-lg font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-all active:scale-[0.98]"
                 >
-                  Register
+                  {label}
                 </Link>
               </li>
-            </ul>
-          </div>
-        </SheetContent>
-      </Sheet>
-    </div>
+            ))}
+          </ul>
+        </nav>
+      </SheetContent>
+    </Sheet>
   );
 }
