@@ -5,8 +5,6 @@ import { ThemeProvider } from 'next-themes';
 import './globals.css';
 import { Suspense } from 'react';
 import Loading from './loading';
-import BloodRain from '@/components/BloodRain';
-
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
@@ -41,10 +39,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <main className="flex-1 flex flex-col">{children}</main>
         </ThemeProvider>
-
-        <Suspense fallback={<Loading />}>
-          <BloodRain rain={1} />
-        </Suspense>
       </body>
     </html>
   );
