@@ -94,24 +94,24 @@ export default function RegisteredDonors() {
   return (
     <div className="p-8">
       <div className="mb-6 glass rounded-xl border px-5 py-4 shadow-sm">
-        <h1 className="font-display font-bold text-2xl text-black mb-1">
+        <h1 className="font-display font-bold text-2xl text-foreground mb-1">
           Registered Donors
         </h1>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted-foreground">
           {donors.length} donors registered — {pending} awaiting health
           verification
         </p>
       </div>
 
       {/* Note */}
-      <div className="border border-gray-200 bg-white rounded-lg p-4 flex items-start gap-3 mb-5">
+      <div className="border border-border bg-muted/20 rounded-lg p-4 flex items-start gap-3 mb-5">
         <span className="text-red-600 text-lg leading-6">ⓘ</span>
-        <p className="text-sm text-gray-500 leading-relaxed">
+        <p className="text-sm text-muted-foreground leading-relaxed">
           Donors receive SMS alerts once registered, but their health status
           must be verified here before they can donate. Mark a donor{' '}
-          <span className="font-medium text-gray-700">Verified</span> after
+          <span className="font-medium text-foreground">Verified</span> after
           their screening is complete, or set them back to{' '}
-          <span className="font-medium text-gray-700">Unverified</span> if
+          <span className="font-medium text-foreground">Unverified</span> if
           needed.
         </p>
       </div>
@@ -123,12 +123,12 @@ export default function RegisteredDonors() {
           placeholder="Search by name or blood group..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="border border-gray-200 rounded px-3 py-2 text-sm outline-none focus:border-gray-400 transition-colors w-64"
+          className="border border-border rounded px-3 py-2 text-sm outline-none focus:border-border transition-colors w-64 bg-background"
         />
         <select
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          className="border border-gray-200 rounded px-3 py-2 text-sm outline-none focus:border-gray-400 transition-colors bg-white"
+          className="border border-border rounded px-3 py-2 text-sm outline-none focus:border-border transition-colors bg-background"
         >
           <option>All</option>
           <option>Verified</option>
@@ -136,30 +136,30 @@ export default function RegisteredDonors() {
         </select>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+      <div className="bg-card border border-border rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100 text-left bg-gray-50">
-                <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              <tr className="border-b border-border text-left bg-muted/50">
+                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Donor Name
                 </th>
-                <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Blood Group
                 </th>
-                <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Phone
                 </th>
-                <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Location
                 </th>
-                <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Registered
                 </th>
-                <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -178,24 +178,28 @@ export default function RegisteredDonors() {
                 filtered.map((d, i) => (
                   <tr
                     key={d.id}
-                    className={`border-b border-gray-50 hover:bg-gray-50 transition-colors ${i === filtered.length - 1 ? 'border-0' : ''}`}
+                    className={`border-b border-border hover:bg-muted/50 transition-colors ${i === filtered.length - 1 ? 'border-0' : ''}`}
                   >
-                    <td className="px-5 py-3.5 font-medium text-black">
+                    <td className="px-5 py-3.5 font-medium text-foreground">
                       {d.name}
                     </td>
                     <td className="px-5 py-3.5">
-                      <span className="text-xs font-semibold bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
+                      <span className="text-xs font-semibold bg-muted text-foreground px-2 py-0.5 rounded">
                         {d.bloodGroup}
                       </span>
                     </td>
-                    <td className="px-5 py-3.5 text-gray-500">{d.phone}</td>
-                    <td className="px-5 py-3.5 text-gray-500">{d.address}</td>
-                    <td className="px-5 py-3.5 text-gray-500">
+                    <td className="px-5 py-3.5 text-muted-foreground">
+                      {d.phone}
+                    </td>
+                    <td className="px-5 py-3.5 text-muted-foreground">
+                      {d.address}
+                    </td>
+                    <td className="px-5 py-3.5 text-muted-foreground">
                       {d.registered}
                     </td>
                     <td className="px-5 py-3.5">
                       <span
-                        className={`text-xs font-medium px-2 py-0.5 rounded-full inline-flex items-center gap-1 ${d.verified ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}
+                        className={`text-xs font-medium px-2 py-0.5 rounded-full inline-flex items-center gap-1 ${d.verified ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-gray-100 dark:bg-gray-900/30 text-gray-500 dark:text-gray-400'}`}
                       >
                         <span aria-hidden>{d.verified ? '✓' : '○'}</span>{' '}
                         {d.verified ? 'Verified' : 'Unverified'}
@@ -206,8 +210,8 @@ export default function RegisteredDonors() {
                         onClick={() => toggleVerified(d.id)}
                         className={`text-xs font-medium px-2.5 py-1 rounded border transition-colors ${
                           d.verified
-                            ? 'border-gray-200 text-gray-600 hover:bg-gray-50'
-                            : 'border-green-200 text-green-600 hover:bg-green-50'
+                            ? 'border-border text-muted-foreground hover:bg-muted/50 bg-transparent'
+                            : 'border-green-200 dark:border-green-900/50 text-green-600 dark:text-green-400 bg-transparent dark:bg-green-950/20 hover:bg-green-50 dark:hover:bg-green-900/40'
                         }`}
                       >
                         {d.verified ? 'Mark Unverified' : 'Mark Verified'}
