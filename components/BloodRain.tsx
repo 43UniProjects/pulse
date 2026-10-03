@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { usePathname } from 'next/navigation';
 
 type BloodRainProps = {
   /** Drops per second falling from the top of the screen. */
@@ -63,6 +64,40 @@ export default function BloodRain({
   className = '',
 }: BloodRainProps) {
   const ref = useRef<HTMLCanvasElement>(null);
+  const pathname = usePathname();
+  const islogin =
+    pathname?.includes('/donor') ||
+    pathname?.includes('/hospital') ||
+    pathname?.includes('/admin');
+
+  const [isIdle, setIsIdle] = useState(false);
+
+  useEffect(() => {
+    if (!islogin) return;
+    let timeoutId: NodeJS.Timeout;
+
+    const resetTimer = () => {
+      clearTimeout(timeoutId);
+      setIsIdle(false);
+      timeoutId = setTimeout(() => {
+        setIsIdle(true);
+      }, 5000);
+    };
+    resetTimer();
+
+    window.addEventListener('mousemove', resetTimer);
+    window.addEventListener('keydown', resetTimer);
+    window.addEventListener('scroll', resetTimer);
+    window.addEventListener('touchstart', resetTimer);
+
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('mousemove', resetTimer);
+      window.removeEventListener('keydown', resetTimer);
+      window.removeEventListener('scroll', resetTimer);
+      window.removeEventListener('touchstart', resetTimer);
+    };
+  }, [islogin]);
 
   useEffect(() => {
     const canvas = ref.current;
@@ -354,10 +389,12 @@ export default function BloodRain({
     };
   }, [rain, maxPool]);
 
+  const isVisible = !islogin || isIdle;
+
   return (
     <div
       aria-hidden="true"
-      className={`fixed inset-0 z-0 pointer-events-none ${className}`}
+      className={`fixed inset-0 z-0 pointer-events-none transition-opacity duration-1000 ${isVisible ? 'opacity-100' : 'opacity-0'} ${className}`}
     >
       <canvas ref={ref} className="block h-full w-full" />
     </div>
