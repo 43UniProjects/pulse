@@ -1,3 +1,7 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import Header from '@/components/Header';
 import DashboardSidebar from '@/components/users/dashboard-sidebar';
 import { Menu } from 'lucide-react';
@@ -15,6 +19,15 @@ export default function DonorLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const pathname = usePathname();
+
+  // Close the side bar when changing the url
+  useEffect(() => {
+    // eslint-disable-next-line
+    setIsOpen(false);
+  }, [pathname]);
+
   return (
     <div className="min-h-screen flex flex-col bg-background font-sans">
       <Header />
@@ -22,7 +35,7 @@ export default function DonorLayout({
       <div className="flex-1 flex flex-col md:flex-row w-full">
         {/* Mobile Hamburger Menu */}
         <div className="px-6 pt-6 pb-2 md:hidden">
-          <Sheet>
+          <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger
               render={
                 <button
