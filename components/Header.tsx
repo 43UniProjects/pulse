@@ -1,5 +1,6 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTheme } from 'next-themes';
@@ -10,6 +11,11 @@ import { NAV_LINKS } from '@/types/common.type';
 
 export default function Header() {
   const { theme, setTheme } = useTheme();
+  const pathname = usePathname();
+  const isLoggedIn =
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/hospital') ||
+    pathname.startsWith('/donor');
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -72,7 +78,9 @@ export default function Header() {
           <nav aria-label="Main" className="flex items-center gap-4 sm:gap-6">
             {/* Desktop links, generated from the shared config */}
             <ul className="hidden sm:flex items-center gap-6">
-              {NAV_LINKS.map(({ label, href }) => (
+              {NAV_LINKS.filter((link) =>
+                isLoggedIn ? link.label === 'Home' : true,
+              ).map(({ label, href }) => (
                 <li key={href}>
                   <Link
                     href={href}
