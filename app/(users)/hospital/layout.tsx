@@ -22,19 +22,14 @@ export default function HospitalLayout({
     <div className="min-h-screen flex flex-col bg-background font-sans">
       <Header />
 
-      {/* Constrained layout container to prevent wide-screen separation */}
-      <div className="flex-1 flex flex-col md:flex-row w-full max-w-350 mx-auto">
-        {/* Sticky sidebar wrapper: locks height to viewport and pins bottom session card */}
-        <div className="shrink-0 md:w-64 md:sticky md:top-16 md:h-[calc(100vh-4rem)] z-10 bg-background">
-          <DashboardSidebar
-            roleLabel="Clinical Facility"
-            userName="Nawaloka Hospital"
-            links={HOSPITAL_LINKS}
-          />
-        </div>
+      <div className="flex-1 flex flex-col md:flex-row w-full">
+        <DashboardSidebar
+          roleLabel="Clinical Facility"
+          userName="Nawaloka Hospital"
+          links={HOSPITAL_LINKS}
+        />
 
-        {/* Main content pane with natural scrolling */}
-        <main className="flex-1 bg-background p-4 md:p-8 lg:px-12 w-full">
+        <main className="flex-1 bg-background px-4 pb-4 md:p-8 lg:px-12 w-full">
           {children}
         </main>
       </div>

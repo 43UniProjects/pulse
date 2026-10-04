@@ -18,16 +18,14 @@ export default function DonorLayout({
     <div className="min-h-screen flex flex-col bg-background font-sans">
       <Header />
 
-      <div className="flex-1 flex flex-col md:flex-row w-full max-w-350 mx-auto">
-        <div className="shrink-0 md:w-64 md:sticky md:top-16 md:h-[calc(100vh-4rem)] z-10 bg-background">
-          <DashboardSidebar
-            roleLabel="Registered Donor"
-            userName="Kamal Perera"
-            links={DONOR_LINKS}
-          />
-        </div>
+      <div className="flex-1 flex flex-col md:flex-row w-full">
+        <DashboardSidebar
+          roleLabel="Registered Donor"
+          userName="Kamal Perera"
+          links={DONOR_LINKS}
+        />
 
-        <main className="flex-1 bg-background p-4 md:p-8 lg:px-12 w-full">
+        <main className="flex-1 bg-background px-4 pb-4 md:p-8 lg:px-12 w-full">
           {children}
         </main>
       </div>

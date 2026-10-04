@@ -1,13 +1,15 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LogOut } from 'lucide-react';
+import { LogOut, LayoutDashboard } from 'lucide-react';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 type NavLink = {
   name: string;
   href: string;
-  matchPath?: string; // Used for dynamic routes (e.g., /tracking/1)
+  matchPath?: string;
 };
 
 interface SidebarProps {
@@ -16,11 +18,12 @@ interface SidebarProps {
   links: NavLink[];
 }
 
-export default function DashboardSidebar({
+function SidebarContent({
   roleLabel,
   userName,
   links,
-}: SidebarProps) {
+  onNavigate,
+}: SidebarProps & { onNavigate?: () => void }) {
   const pathname = usePathname();
 
   return (
@@ -43,6 +46,7 @@ export default function DashboardSidebar({
             <Link
               key={link.name}
               href={link.href}
+              onClick={onNavigate}
               className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-all ${
                 isActive
                   ? 'bg-primary/10 text-primary border border-primary/20 shadow-sm'
@@ -65,6 +69,7 @@ export default function DashboardSidebar({
         </div>
         <Link
           href="/login"
+          onClick={onNavigate}
           className="flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
         >
           <LogOut className="w-4 h-4" />
@@ -72,5 +77,41 @@ export default function DashboardSidebar({
         </Link>
       </div>
     </aside>
+  );
+}
+
+export default function DashboardSidebar(props: SidebarProps) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  return (
+    <>
+      <div className="px-4 pt-4 pb-2 md:hidden w-full">
+        <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+          <SheetTrigger className="flex items-center gap-2 p-2 -ml-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+            <LayoutDashboard className="w-5 h-5" />
+            <span className="text-base font-medium">Dashboard Menu</span>
+          </SheetTrigger>
+
+          <SheetContent
+            side="left"
+            className="p-0 w-fit max-w-none! border-none top-23.5! bottom-0! h-[calc(100dvh-94px)]! [&>button]:hidden bg-transparent shadow-none"
+          >
+            <div className="h-full w-fit bg-inherit">
+              <SidebarContent
+                {...props}
+                onNavigate={() => setIsMobileMenuOpen(false)}
+              />
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
+
+      {/* DESKTOP VIEW: Fixed Sidebar */}
+      <div className="hidden md:block shrink-0 w-64">
+        <div className="fixed left-0 top-23.5 bottom-0 w-64 border-r border-border bg-background overflow-y-auto overflow-x-hidden">
+          <SidebarContent {...props} />
+        </div>
+      </div>
+    </>
   );
 }
