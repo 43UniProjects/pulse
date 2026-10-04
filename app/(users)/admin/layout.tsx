@@ -27,12 +27,12 @@ export default function AdminLayout({
                 <button
                   type="button"
                   aria-label="Toggle dashboard menu"
-                  className="p-2 -ml-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring inline-flex items-center gap-2"
+                  className="p-2 -ml-3 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring inline-flex items-center gap-2"
                 />
               }
             >
-              <Menu className="w-5 h-5" />
-              <span className="text-sm font-medium">Menu</span>
+              <Menu className="w-10 h-5" style={{ transform: 'scaleX(1.7)' }} />
+              <span className="text-base font-medium">Menu</span>
             </SheetTrigger>
             <SheetContent
               side="left"

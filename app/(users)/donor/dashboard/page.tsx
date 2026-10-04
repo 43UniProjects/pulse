@@ -63,7 +63,7 @@ export default async function DonorDashboard() {
         {/* Left Column: Status & Alerts */}
         <div className="space-y-6 lg:col-span-1">
           {/* SMS alerts banner */}
-          <div className="bg-secondary/50 border border-border rounded-xl p-5 shadow-sm flex items-start gap-4">
+          <div className="bg-card border border-border rounded-xl p-5 shadow-sm flex items-start gap-4">
             <div className="p-2 bg-primary/10 rounded-lg text-primary shrink-0 mt-0.5">
               <MessageSquare className="w-5 h-5" />
             </div>
