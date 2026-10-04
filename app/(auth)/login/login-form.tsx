@@ -2,8 +2,8 @@
 
 import { useState, useActionState, useEffect } from 'react';
 import Link from 'next/link';
-import { Activity, Loader2, AlertCircle } from 'lucide-react';
-import { toast, Toaster } from 'sonner';
+import { Activity, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { authenticateUser } from './actions';
 import { loginSchema, userRoleEnum } from './login.schema';
 import { z } from 'zod';
@@ -60,20 +60,6 @@ export default function LoginForm() {
 
   return (
     <div className="w-full max-w-lg bg-card border border-border rounded-xl p-8 shadow-sm relative">
-      {/* Toast notification placed cleanly below the sticky header on both desktop and mobile */}
-      <Toaster
-        richColors
-        position="top-right"
-        offset="120px"
-        mobileOffset={{ top: '120px' }}
-        closeButton
-        toastOptions={{
-          style: {
-            zIndex: 99999,
-          },
-        }}
-      />
-
       <div className="mb-8 text-center flex flex-col items-center">
         <div className="w-10 h-10 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center mb-4">
           <Activity className="w-5 h-5 text-primary" />
@@ -120,13 +106,20 @@ export default function LoginForm() {
         </div>
 
         <div className="space-y-2">
-          <label className="text-xs font-medium text-foreground block">
+          <label
+            htmlFor="email"
+            className="text-xs font-medium text-foreground block"
+          >
             Email Address
           </label>
           <input
+            id="email"
             name="email"
             type="email"
+            autoComplete="email"
             placeholder="you@example.com"
+            aria-invalid={!!clientErrors.email}
+            aria-describedby={clientErrors.email ? 'email-error' : undefined}
             onChange={() => {
               if (clientErrors.email) {
                 setClientErrors((prev) => ({ ...prev, email: undefined }));
@@ -139,20 +132,29 @@ export default function LoginForm() {
             }`}
           />
           {clientErrors.email && (
-            <p className="text-xs text-red-500 font-medium">
+            <p id="email-error" className="text-xs text-red-500 font-medium">
               {clientErrors.email}
             </p>
           )}
         </div>
 
         <div className="space-y-2">
-          <label className="text-xs font-medium text-foreground block">
+          <label
+            htmlFor="password"
+            className="text-xs font-medium text-foreground block"
+          >
             Password
           </label>
           <input
+            id="password"
             name="password"
             type="password"
+            autoComplete="current-password"
             placeholder="••••••••"
+            aria-invalid={!!clientErrors.password}
+            aria-describedby={
+              clientErrors.password ? 'password-error' : undefined
+            }
             onChange={() => {
               if (clientErrors.password) {
                 setClientErrors((prev) => ({ ...prev, password: undefined }));
@@ -165,19 +167,11 @@ export default function LoginForm() {
             }`}
           />
           {clientErrors.password && (
-            <p className="text-xs text-red-500 font-medium">
+            <p id="password-error" className="text-xs text-red-500 font-medium">
               {clientErrors.password}
             </p>
           )}
         </div>
-
-        {/* Error Banner */}
-        {state?.error && (
-          <div className="flex items-start gap-2 p-3 text-sm text-red-600 bg-red-50 border border-red-100 rounded-md dark:bg-red-950/40 dark:border-red-900/50 dark:text-red-400">
-            <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-            <p>{state.error}</p>
-          </div>
-        )}
 
         <button
           type="submit"

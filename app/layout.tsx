@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import type { ReactNode } from 'react';
 import { ThemeProvider } from 'next-themes';
+import { Toaster } from 'sonner';
 import './globals.css';
 import { Suspense } from 'react';
 import Loading from './loading';
@@ -38,6 +39,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className="min-h-screen bg-background text-foreground flex flex-col font-sans selection:bg-primary/30 selection:text-primary-foreground">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <main className="flex-1 flex flex-col">{children}</main>
+          <Toaster
+            richColors
+            position="top-right"
+            offset="120px"
+            mobileOffset={{ top: '120px' }}
+            closeButton
+          />
         </ThemeProvider>
       </body>
     </html>

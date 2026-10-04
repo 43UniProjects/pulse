@@ -2,6 +2,7 @@
 
 import { redirect } from 'next/navigation';
 import { findUserByCredentials, UserRole } from './data';
+import { loginSchema } from './login.schema';
 
 export interface ActionState {
   error?: string;
@@ -11,13 +12,21 @@ export async function authenticateUser(
   prevState: ActionState | null,
   formData: FormData,
 ): Promise<ActionState | null> {
-  const email = formData.get('email')?.toString();
-  const password = formData.get('password')?.toString();
-  const role = formData.get('role')?.toString() as UserRole;
+  const validationResult = loginSchema.safeParse({
+    role: formData.get('role'),
+    email: formData.get('email'),
+    password: formData.get('password'),
+  });
 
-  if (!email || !password || !role) {
-    return { error: 'All fields are required to initialize session.' };
+  if (!validationResult.success) {
+    return {
+      error:
+        validationResult.error.issues[0]?.message ||
+        'All fields are required to initialize session.',
+    };
   }
+
+  const { email, password, role } = validationResult.data;
 
   try {
     const user = await findUserByCredentials(email, role);
