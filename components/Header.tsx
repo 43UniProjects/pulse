@@ -18,7 +18,7 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-50 w-full flex flex-col">
+    <header className="sticky top-0 z-50 w-full flex flex-col shadow-sm">
       {/* Top Bar: System Status & Utility Links */}
       <div className="bg-background/80 backdrop-blur-md border-b border-border py-1.5 w-full">
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between text-xs font-medium text-muted-foreground">
@@ -27,11 +27,11 @@ export default function Header() {
             Real-Time Emergency Blood Network
           </div>
 
-          <div className="flex items-center gap-4 w-full sm:w-auto sm:justify-end">
+          <div className="flex items-center justify-end gap-4 w-full sm:w-auto">
             {/* Theme Switcher: Reduced padding to p-1.5 to fit the thin top bar */}
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="p-1.5 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 focus:ring-offset-background"
+              className="p-1.5 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
               aria-label="Toggle Theme"
             >
               {mounted ? (

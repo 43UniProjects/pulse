@@ -153,20 +153,20 @@ export default function DonorRequestsPage() {
 function UrgencyBadge({ level }: { level?: string }) {
   if (level === 'critical') {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-red-100 text-red-700 text-[10px] font-bold uppercase tracking-widest border border-red-200">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-[10px] font-bold uppercase tracking-widest border border-red-200 dark:border-red-900/50">
         <AlertCircle className="w-3 h-3" /> Critical
       </span>
     );
   }
   if (level === 'high') {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-orange-100 text-orange-700 text-[10px] font-bold uppercase tracking-widest border border-orange-200">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 text-[10px] font-bold uppercase tracking-widest border border-orange-200 dark:border-orange-900/50">
         <Activity className="w-3 h-3" /> High
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-blue-100 text-blue-700 text-[10px] font-bold uppercase tracking-widest border border-blue-200">
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-[10px] font-bold uppercase tracking-widest border border-blue-200 dark:border-blue-900/50">
       <Droplet className="w-3 h-3" /> Routine
     </span>
   );
@@ -176,9 +176,11 @@ function StatusBadge({ status }: { status?: string }) {
   const safeStatus = (status || 'pending').toLowerCase();
 
   const styles: Record<string, string> = {
-    pending: 'bg-yellow-100/50 text-yellow-700 border-yellow-200',
+    pending:
+      'bg-yellow-100/50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-900/50',
     accepted: 'bg-primary/10 text-primary border-primary/20',
-    completed: 'bg-green-100/50 text-green-700 border-green-200',
+    completed:
+      'bg-green-100/50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900/50',
     declined: 'bg-secondary text-muted-foreground border-border',
   };
 
