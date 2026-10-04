@@ -23,6 +23,7 @@ export async function connectToDatabase() {
 
   if (!cached.promise) {
     const uri = getMongoUri();
+    console.log('Connecting to MongoDB with URI:', uri);
 
     cached.promise = mongoose
       .connect(uri, {

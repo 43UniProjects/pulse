@@ -1,3 +1,5 @@
+import { connectToDatabase } from '@/lib/db/connect';
+import { Faq, IFaq } from '@/lib/models/faq.model';
 import Link from 'next/link';
 import {
   Search,
@@ -8,10 +10,16 @@ import {
   ArrowRight,
 } from 'lucide-react';
 
+import { connection } from 'next/server';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 
-export default function SupportPage() {
+export const instant = false;
+
+export default async function SupportPage() {
+  await connection();
+  await connectToDatabase();
+  const faqs = await Faq.find({}).lean();
   return (
     <>
       <Header />
@@ -86,38 +94,25 @@ export default function SupportPage() {
             Frequently Asked Questions
           </h2>
           <div className="space-y-4">
-            <div className="p-6 rounded-lg border border-border bg-card">
-              <h4 className="font-medium text-foreground mb-2">
-                How does the 4-month eligibility rule work?
-              </h4>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Our system strictly enforces a 4-month waiting period between
-                donations for your health and safety. The rule engine
-                automatically temporarily suspends your account from receiving
-                emergency broadcasts until this period safely elapses.
-              </p>
-            </div>
-            <div className="p-6 rounded-lg border border-border bg-card">
-              <h4 className="font-medium text-foreground mb-2">
-                What happens if I miss a WebSocket emergency alert?
-              </h4>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Emergency broadcasts are sent to multiple eligible donors in the
-                optimal 5&ndash;20km radius. If you miss an alert, the system
-                automatically cascades the request to the next nearest available
-                donor to ensure the hospital&apos;s needs are met instantly.
-              </p>
-            </div>
-            <div className="p-6 rounded-lg border border-border bg-card">
-              <h4 className="font-medium text-foreground mb-2">
-                How do hospitals verify my identity?
-              </h4>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Upon accepting a request, you will receive a secure QR
-                credential on your dashboard. Present this at the hospital
-                reception for instant verification against their system.
-              </p>
-            </div>
+            {faqs.length === 0 ? (
+              <div className="text-muted-foreground text-center p-8 bg-card border border-border rounded-lg">
+                No FAQs available at the moment.
+              </div>
+            ) : (
+              faqs.map((faq: IFaq) => (
+                <div
+                  key={faq._id.toString()}
+                  className="p-6 rounded-lg border border-border bg-card"
+                >
+                  <h4 className="font-medium text-foreground mb-2">
+                    {faq.question}
+                  </h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {faq.answer}
+                  </p>
+                </div>
+              ))
+            )}
           </div>
 
           <div className="mt-12 p-8 rounded-lg bg-secondary border border-border text-center">
