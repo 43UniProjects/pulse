@@ -13,6 +13,10 @@ type UserRole = z.infer<typeof userRoleEnum>;
 export default function LoginForm() {
   const [role, setRole] = useState<UserRole>('donor');
   const [state, formAction, isPending] = useActionState(authenticateUser, null);
+  const [clientErrors, setClientErrors] = useState<{
+    email?: string;
+    password?: string;
+  }>({});
 
   // Trigger Sonner toast for server-side errors
   useEffect(() => {
@@ -34,17 +38,42 @@ export default function LoginForm() {
 
     if (!validationResult.success) {
       e.preventDefault();
+
+      const errors: { email?: string; password?: string } = {};
+      for (const issue of validationResult.error.issues) {
+        const field = issue.path[0] as 'email' | 'password';
+        if (field && !errors[field]) {
+          errors[field] = issue.message;
+        }
+      }
+      setClientErrors(errors);
+
       const firstErrorMessage =
         validationResult.error.issues[0]?.message ||
         'Please check your inputs.';
       toast.error(firstErrorMessage);
       return;
     }
+
+    setClientErrors({});
   };
 
   return (
-    <div className="w-full max-w-lg bg-card border border-border rounded-xl p-8 shadow-sm">
-      <Toaster richColors position="top-right" />
+    <div className="w-full max-w-lg bg-card border border-border rounded-xl p-8 shadow-sm relative">
+      {/* Toast notification placed cleanly below the sticky header on both desktop and mobile */}
+      <Toaster
+        richColors
+        position="top-right"
+        offset="120px"
+        mobileOffset={{ top: '120px' }}
+        closeButton
+        toastOptions={{
+          style: {
+            zIndex: 99999,
+          },
+        }}
+      />
+
       <div className="mb-8 text-center flex flex-col items-center">
         <div className="w-10 h-10 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center mb-4">
           <Activity className="w-5 h-5 text-primary" />
@@ -74,7 +103,10 @@ export default function LoginForm() {
               <button
                 key={r}
                 type="button"
-                onClick={() => setRole(r)}
+                onClick={() => {
+                  setRole(r);
+                  setClientErrors({});
+                }}
                 className={`flex-1 text-xs font-medium py-2 rounded-md transition-all capitalize ${
                   role === r
                     ? 'bg-background text-foreground shadow-sm border border-border/50'
@@ -95,8 +127,22 @@ export default function LoginForm() {
             name="email"
             type="email"
             placeholder="you@example.com"
-            className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
+            onChange={() => {
+              if (clientErrors.email) {
+                setClientErrors((prev) => ({ ...prev, email: undefined }));
+              }
+            }}
+            className={`w-full h-10 px-3 rounded-md border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all ${
+              clientErrors.email
+                ? 'border-red-500 ring-1 ring-red-500'
+                : 'border-border'
+            }`}
           />
+          {clientErrors.email && (
+            <p className="text-xs text-red-500 font-medium">
+              {clientErrors.email}
+            </p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -107,8 +153,22 @@ export default function LoginForm() {
             name="password"
             type="password"
             placeholder="••••••••"
-            className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
+            onChange={() => {
+              if (clientErrors.password) {
+                setClientErrors((prev) => ({ ...prev, password: undefined }));
+              }
+            }}
+            className={`w-full h-10 px-3 rounded-md border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all ${
+              clientErrors.password
+                ? 'border-red-500 ring-1 ring-red-500'
+                : 'border-border'
+            }`}
           />
+          {clientErrors.password && (
+            <p className="text-xs text-red-500 font-medium">
+              {clientErrors.password}
+            </p>
+          )}
         </div>
 
         {/* Error Banner */}
