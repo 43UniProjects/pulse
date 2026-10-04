@@ -59,7 +59,6 @@ export default function LoginForm() {
             required
             placeholder="you@example.com"
             className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
-            disabled={isPending}
           />
         </div>
 
