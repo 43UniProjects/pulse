@@ -125,62 +125,110 @@ export default function RequestTrackingClient({ id }: { id: string }) {
             Matched Donors
           </h2>
         </div>
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-border text-left bg-muted/50">
-              <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Donor Name
-              </th>
-              <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Verification
-              </th>
-              <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Distance
-              </th>
-              <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Status
-              </th>
-              <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Contact
-              </th>
-            </tr>
-          </thead>
-          <tbody>
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border text-left bg-muted/50">
+                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Donor Name
+                </th>
+                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Verification
+                </th>
+                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Distance
+                </th>
+                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Contact
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {donors.map((d, i) => (
+                <tr
+                  key={i}
+                  className={`border-b border-border hover:bg-muted/50 transition-colors ${i === donors.length - 1 ? 'border-0' : ''}`}
+                >
+                  <td className="px-5 py-3.5 font-medium text-foreground">
+                    {d.name}
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <span
+                      className={`text-xs font-medium px-2 py-0.5 rounded-full inline-flex items-center gap-1 ${d.verified ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-gray-100 dark:bg-gray-900/30 text-gray-500 dark:text-gray-400'}`}
+                    >
+                      <span aria-hidden>{d.verified ? '✓' : '○'}</span>{' '}
+                      {d.verified ? 'Verified' : 'Unverified'}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3.5 text-muted-foreground">
+                    {d.distance}
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <span
+                      className={`text-xs font-medium px-2 py-0.5 rounded-full ${statusStyles[d.status]}`}
+                    >
+                      {d.status}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <button className="text-xs font-medium text-foreground border border-border px-3 py-1 rounded bg-transparent hover:bg-muted/50 transition-colors shadow-sm hover:shadow-md">
+                      {d.phone}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {/* MOBILE CARD VIEW */}
+        <div className="block md:hidden">
+          <div className="flex flex-col divide-y divide-border">
             {donors.map((d, i) => (
-              <tr
+              <div
                 key={i}
-                className={`border-b border-border hover:bg-muted/50 transition-colors ${i === donors.length - 1 ? 'border-0' : ''}`}
+                className="p-4 flex flex-col gap-3 hover:bg-muted/30 transition-colors"
               >
-                <td className="px-5 py-3.5 font-medium text-foreground">
-                  {d.name}
-                </td>
-                <td className="px-5 py-3.5">
+                {/* Donor Name and Status */}
+                <div className="flex justify-between items-start gap-2">
+                  <div>
+                    <h3 className="font-semibold text-foreground">{d.name}</h3>
+                    <div className="mt-1.5">
+                      <span
+                        className={`text-xs font-medium px-2 py-0.5 rounded-full inline-flex items-center gap-1 ${d.verified ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-gray-100 dark:bg-gray-900/30 text-gray-500 dark:text-gray-400'}`}
+                      >
+                        <span aria-hidden>{d.verified ? '✓' : '○'}</span>{' '}
+                        {d.verified ? 'Verified' : 'Unverified'}
+                      </span>
+                    </div>
+                  </div>
                   <span
-                    className={`text-xs font-medium px-2 py-0.5 rounded-full inline-flex items-center gap-1 ${d.verified ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-gray-100 dark:bg-gray-900/30 text-gray-500 dark:text-gray-400'}`}
-                  >
-                    <span aria-hidden>{d.verified ? '✓' : '○'}</span>{' '}
-                    {d.verified ? 'Verified' : 'Unverified'}
-                  </span>
-                </td>
-                <td className="px-5 py-3.5 text-muted-foreground">
-                  {d.distance}
-                </td>
-                <td className="px-5 py-3.5">
-                  <span
-                    className={`text-xs font-medium px-2 py-0.5 rounded-full ${statusStyles[d.status]}`}
+                    className={`shrink-0 text-xs font-medium px-2 py-0.5 rounded-full ${statusStyles[d.status]}`}
                   >
                     {d.status}
                   </span>
-                </td>
-                <td className="px-5 py-3.5">
-                  <button className="text-xs font-medium text-foreground border border-border px-3 py-1 rounded bg-transparent hover:bg-muted/50 transition-colors shadow-sm hover:shadow-md">
-                    {d.phone}
+                </div>
+
+                {/* Distance */}
+                <div className="text-sm mt-1">
+                  <span className="text-muted-foreground mr-2">Distance:</span>
+                  <span className="text-foreground font-medium">
+                    {d.distance}
+                  </span>
+                </div>
+
+                {/* Contact Action*/}
+                <div className="pt-3 mt-1 border-t border-border/50">
+                  <button className="w-full text-xs font-medium text-foreground border border-border px-4 py-2.5 rounded-md bg-background hover:bg-muted/50 transition-colors shadow-sm">
+                    📞 {d.phone}
                   </button>
-                </td>
-              </tr>
+                </div>
+              </div>
             ))}
-          </tbody>
-        </table>
+          </div>
+        </div>
       </div>
     </div>
   );
