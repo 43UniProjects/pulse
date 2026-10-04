@@ -1,17 +1,50 @@
 'use client';
 
-import { useState, useActionState } from 'react';
+import { useState, useActionState, useEffect } from 'react';
 import Link from 'next/link';
 import { Activity, Loader2, AlertCircle } from 'lucide-react';
+import { toast, Toaster } from 'sonner';
 import { authenticateUser } from './actions';
+import { loginSchema, userRoleEnum } from './login.schema';
+import { z } from 'zod';
+
+type UserRole = z.infer<typeof userRoleEnum>;
 
 export default function LoginForm() {
-  const [role, setRole] = useState<'donor' | 'hospital' | 'admin'>('donor');
-
+  const [role, setRole] = useState<UserRole>('donor');
   const [state, formAction, isPending] = useActionState(authenticateUser, null);
+
+  // Trigger Sonner toast for server-side errors
+  useEffect(() => {
+    if (state?.error) {
+      toast.error(state.error);
+    }
+  }, [state?.error]);
+
+  // Client-side form validation before submitting to server action
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+
+    const validationResult = loginSchema.safeParse({
+      role,
+      email: formData.get('email'),
+      password: formData.get('password'),
+    });
+
+    if (!validationResult.success) {
+      e.preventDefault();
+      const firstErrorMessage =
+        validationResult.error.issues[0]?.message ||
+        'Please check your inputs.';
+      toast.error(firstErrorMessage);
+      return;
+    }
+  };
 
   return (
     <div className="w-full max-w-lg bg-card border border-border rounded-xl p-8 shadow-sm">
+      <Toaster richColors position="top-right" />
       <div className="mb-8 text-center flex flex-col items-center">
         <div className="w-10 h-10 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center mb-4">
           <Activity className="w-5 h-5 text-primary" />
@@ -22,7 +55,12 @@ export default function LoginForm() {
         <p className="text-sm text-muted-foreground">Sign in to your account</p>
       </div>
 
-      <form action={formAction} className="flex flex-col gap-5">
+      <form
+        action={formAction}
+        onSubmit={handleSubmit}
+        noValidate
+        className="flex flex-col gap-5"
+      >
         {/* Hidden input to pass the role state into FormData */}
         <input type="hidden" name="role" value={role} />
 
@@ -56,7 +94,6 @@ export default function LoginForm() {
           <input
             name="email"
             type="email"
-            required
             placeholder="you@example.com"
             className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
           />
@@ -69,7 +106,6 @@ export default function LoginForm() {
           <input
             name="password"
             type="password"
-            required
             placeholder="••••••••"
             className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
           />
@@ -77,7 +113,7 @@ export default function LoginForm() {
 
         {/* Error Banner */}
         {state?.error && (
-          <div className="flex items-start gap-2 p-3 text-sm text-red-600 bg-red-50 border border-red-100 rounded-md">
+          <div className="flex items-start gap-2 p-3 text-sm text-red-600 bg-red-50 border border-red-100 rounded-md dark:bg-red-950/40 dark:border-red-900/50 dark:text-red-400">
             <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
             <p>{state.error}</p>
           </div>
