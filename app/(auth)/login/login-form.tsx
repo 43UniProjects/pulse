@@ -11,7 +11,7 @@ export default function LoginForm() {
   const [state, formAction, isPending] = useActionState(authenticateUser, null);
 
   return (
-    <div className="w-full max-w-sm bg-card border border-border rounded-xl p-8 shadow-sm">
+    <div className="w-full max-w-lg bg-card border border-border rounded-xl p-8 shadow-sm">
       <div className="mb-8 text-center flex flex-col items-center">
         <div className="w-10 h-10 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center mb-4">
           <Activity className="w-5 h-5 text-primary" />

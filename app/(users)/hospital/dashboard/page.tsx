@@ -40,9 +40,10 @@ const requests = [
 ];
 
 const statusStyles: Record<string, string> = {
-  Active: 'bg-green-100 text-green-700',
-  Fulfilled: 'bg-blue-100 text-blue-700',
-  Expired: 'bg-gray-100 text-gray-500',
+  Active:
+    'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
+  Fulfilled: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
+  Expired: 'bg-gray-100 dark:bg-gray-900/30 text-gray-500 dark:text-gray-400',
 };
 
 import { Metadata } from 'next';
@@ -54,10 +55,10 @@ export default function HospitalDashboard() {
     <div className="p-8">
       <div className="flex items-center justify-between mb-6 glass rounded-xl border px-5 py-4 shadow-sm">
         <div>
-          <h1 className="font-display font-bold text-2xl text-black mb-1">
+          <h1 className="font-display font-bold text-2xl text-foreground mb-1">
             Hospital Dashboard
           </h1>
-          <p className="text-sm text-gray-500">Nawaloka Hospital</p>
+          <p className="text-sm text-muted-foreground">Nawaloka Hospital</p>
         </div>
         <Link
           href="/hospital/post-request"
@@ -67,32 +68,32 @@ export default function HospitalDashboard() {
         </Link>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-        <div className="px-5 py-3 border-b border-gray-100">
-          <h2 className="font-display font-semibold text-sm text-gray-500 uppercase tracking-wider">
+      <div className="bg-card border border-border rounded-lg overflow-hidden">
+        <div className="px-5 py-3 border-b border-border">
+          <h2 className="font-display font-semibold text-sm text-muted-foreground uppercase tracking-wider">
             All Blood Requests
           </h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100 text-left">
-                <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              <tr className="border-b border-border text-left bg-muted/50">
+                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Blood Group
                 </th>
-                <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Quantity
                 </th>
-                <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Radius
                 </th>
-                <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Date Posted
                 </th>
-                <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Responses
                 </th>
                 <th className="px-5 py-3"></th>
@@ -102,15 +103,19 @@ export default function HospitalDashboard() {
               {requests.map((r, i) => (
                 <tr
                   key={r.id}
-                  className={`border-b border-gray-50 hover:bg-gray-50 transition-colors ${i === requests.length - 1 ? 'border-0' : ''}`}
+                  className={`border-b border-border hover:bg-muted/50 transition-colors ${i === requests.length - 1 ? 'border-0' : ''}`}
                 >
                   <td className="px-5 py-3.5">
-                    <span className="font-semibold text-black">
+                    <span className="font-semibold text-foreground">
                       {r.bloodGroup}
                     </span>
                   </td>
-                  <td className="px-5 py-3.5 text-gray-600">{r.quantity}</td>
-                  <td className="px-5 py-3.5 text-gray-600">{r.radius}</td>
+                  <td className="px-5 py-3.5 text-muted-foreground">
+                    {r.quantity}
+                  </td>
+                  <td className="px-5 py-3.5 text-muted-foreground">
+                    {r.radius}
+                  </td>
                   <td className="px-5 py-3.5">
                     <span
                       className={`text-xs font-medium px-2 py-0.5 rounded-full ${statusStyles[r.status]}`}
@@ -118,8 +123,12 @@ export default function HospitalDashboard() {
                       {r.status}
                     </span>
                   </td>
-                  <td className="px-5 py-3.5 text-gray-500">{r.date}</td>
-                  <td className="px-5 py-3.5 text-gray-600">{r.responses}</td>
+                  <td className="px-5 py-3.5 text-muted-foreground">
+                    {r.date}
+                  </td>
+                  <td className="px-5 py-3.5 text-muted-foreground">
+                    {r.responses}
+                  </td>
                   <td className="px-5 py-3.5">
                     <Link
                       href={`/hospital/tracking/${r.id}`}
