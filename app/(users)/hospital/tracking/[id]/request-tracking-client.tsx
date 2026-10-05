@@ -45,10 +45,9 @@ const donors: Array<Donor> = [
 ];
 
 const statusStyles: Record<string, string> = {
-  Notified: 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400',
-  Accepted:
-    'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
-  Declined: 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400',
+  Notified: 'bg-muted text-muted-foreground',
+  Accepted: 'bg-primary/10 text-primary',
+  Declined: 'bg-destructive/10 text-destructive',
 };
 
 export default function RequestTrackingClient({ id }: { id: string }) {
@@ -102,14 +101,14 @@ export default function RequestTrackingClient({ id }: { id: string }) {
             Fulfillment Progress
           </div>
           <span
-            className={`text-xs font-semibold px-2 py-0.5 rounded-full ${pct >= 100 ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400'}`}
+            className={`text-xs font-semibold px-2 py-0.5 rounded-full ${pct >= 100 ? 'bg-primary/10 text-primary' : 'bg-secondary text-secondary-foreground'}`}
           >
             {pct >= 100 ? 'Fulfilled' : 'In Progress'}
           </span>
         </div>
         <div className="h-2 bg-muted rounded-full overflow-hidden mb-1">
           <div
-            className="h-full bg-red-500 rounded-full transition-all duration-700"
+            className="h-full bg-primary rounded-full transition-all duration-700"
             style={{ width: `${Math.min(pct, 100)}%` }}
           />
         </div>
@@ -156,7 +155,7 @@ export default function RequestTrackingClient({ id }: { id: string }) {
                 </td>
                 <td className="px-5 py-3.5">
                   <span
-                    className={`text-xs font-medium px-2 py-0.5 rounded-full inline-flex items-center gap-1 ${d.verified ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-gray-100 dark:bg-gray-900/30 text-gray-500 dark:text-gray-400'}`}
+                    className={`text-xs font-medium px-2 py-0.5 rounded-full inline-flex items-center gap-1 ${d.verified ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}
                   >
                     <span aria-hidden>{d.verified ? '✓' : '○'}</span>{' '}
                     {d.verified ? 'Verified' : 'Unverified'}
