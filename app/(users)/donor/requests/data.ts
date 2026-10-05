@@ -1,15 +1,3 @@
-/**@abstract
- *
- * getDonationHistory(donorId) >> getDonor(donotId).history
- *
- * getDonationRequests(donorId)
- *
- * getDonationRequest(requestId)
- *
- * getDonor(donotId)
- *
- */
-
 // ---------------------------------------------------------
 // Types
 // ---------------------------------------------------------
