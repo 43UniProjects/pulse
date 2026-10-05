@@ -11,8 +11,8 @@ import {
 } from 'lucide-react';
 
 import { connection } from 'next/server';
-import Footer from '@/components/Footer';
-import Header from '@/components/Header';
+import Footer from '@/components/footer';
+import Header from '@/components/header/main';
 
 export const instant = false;
 

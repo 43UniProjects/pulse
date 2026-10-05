@@ -1,4 +1,6 @@
 import { IGeoPoint } from './common.type';
+import { UserEntity } from './user.type';
+import { AdminEntity } from './admin.type';
 
 export const HOSPITAL_TYPE = [
   'government_hospital',
@@ -6,12 +8,13 @@ export const HOSPITAL_TYPE = [
   'blood_bank',
   'clinic',
 ] as const;
+
 export const VERIFICATION_STATUS = [
   'pending',
   'verified',
   'rejected',
   'suspended',
-];
+] as const;
 
 export type FacilityType = (typeof HOSPITAL_TYPE)[number];
 export type VerificationStatus = (typeof VERIFICATION_STATUS)[number];
@@ -24,22 +27,20 @@ export interface HospitalCoordinator {
 }
 
 export interface HospitalEntity {
-  _id?: string;
-  userId: string; // Reference to base Auth user
-  name: string; // e.g., "Nawaloka Hospital"
-  licenseNumber: string; // Healthcare regulatory / registration ID
+  _id: string | UserEntity;
+  name: string;
   facilityType: FacilityType;
   verificationStatus: VerificationStatus;
-  verifiedAt?: string | null;
-  verifiedBy?: string | null; // Admin ID who approved facility
-  address: string; // Human-readable street address
+  verifiedAt?: Date | null;
+  verifiedBy?: string | AdminEntity | null;
+  address: string;
   city: string;
-  location: IGeoPoint; // Unified GeoJSON Point
-  hotline: string; // Primary emergency desk phone
+  location: IGeoPoint;
+  hotline: string;
   email: string;
   website?: string;
-  coordinator: HospitalCoordinator; // Assigned point of contact for blood bank coordination
-  activeRequestsCount?: number; // Running counter for active emergencies
-  createdAt: string;
-  updatedAt: string;
+  coordinator: HospitalCoordinator;
+  activeRequestsCount?: number;
+  createdAt?: Date;
+  updatedAt?: Date;
 }

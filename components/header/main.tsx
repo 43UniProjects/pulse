@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useTheme } from 'next-themes';
 import { Sun, Moon } from 'lucide-react';
 
-import MobileMenu from '@/components/navbar/MobileMenu';
+import MobileMenu from './mobile-menu';
 import { NAV_LINKS } from '@/types/common.type';
 
 export default function Header() {
