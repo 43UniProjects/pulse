@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Menu } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 import {
   Sheet,
   SheetContent,
@@ -14,6 +15,12 @@ import {
 import { NAV_LINKS } from '@/types/common.type';
 
 export default function MobileMenu() {
+  const pathname = usePathname();
+  const isLoggedIn =
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/hospital') ||
+    pathname.startsWith('/donor');
+
   const [open, setOpen] = useState(false);
 
   return (
@@ -37,7 +44,9 @@ export default function MobileMenu() {
 
         <nav className="flex flex-col p-4">
           <ul className="flex flex-col gap-2">
-            {NAV_LINKS.map(({ label, href }) => (
+            {NAV_LINKS.filter((link) =>
+              isLoggedIn ? link.label === 'Home' : true,
+            ).map(({ label, href }) => (
               <li key={href}>
                 <Link
                   href={href}

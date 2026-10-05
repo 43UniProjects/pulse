@@ -74,7 +74,7 @@ export default function HospitalDashboard() {
             All Blood Requests
           </h2>
         </div>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto hidden md:block">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border text-left bg-muted/50">
@@ -141,6 +141,58 @@ export default function HospitalDashboard() {
               ))}
             </tbody>
           </table>
+        </div>
+        {/* MOBILE CARD VIEW */}
+        <div className="block md:hidden">
+          <div className="flex flex-col divide-y divide-border">
+            {requests.map((r) => (
+              <div
+                key={r.id}
+                className="p-4 flex flex-col gap-3 hover:bg-muted/30 transition-colors"
+              >
+                {/* Blood Group, Quantity and Status */}
+                <div className="flex justify-between items-start gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-foreground text-lg">
+                      {r.bloodGroup}
+                    </span>
+                    <span className="text-xs font-medium text-muted-foreground bg-secondary px-2 py-1 rounded-md">
+                      {r.quantity}
+                    </span>
+                  </div>
+                  <span
+                    className={`shrink-0 text-xs font-medium px-2 py-0.5 rounded-full ${statusStyles[r.status]}`}
+                  >
+                    {r.status}
+                  </span>
+                </div>
+
+                {/* Details Grid */}
+                <div className="grid grid-cols-2 gap-2 text-sm mt-1">
+                  <div className="text-muted-foreground">Radius:</div>
+                  <div className="text-foreground">{r.radius}</div>
+
+                  <div className="text-muted-foreground">Date Posted:</div>
+                  <div className="text-foreground">{r.date}</div>
+
+                  <div className="text-muted-foreground">Responses:</div>
+                  <div className="text-foreground font-medium">
+                    {r.responses}
+                  </div>
+                </div>
+
+                {/* Actions (Track Button) */}
+                <div className="pt-3 mt-1 border-t border-border/50 flex justify-end">
+                  <Link
+                    href={`/hospital/tracking/${r.id}`}
+                    className="text-xs font-medium bg-red-600 text-white px-4 py-2 w-full text-center rounded hover:bg-red-700 transition-colors shadow-sm"
+                  >
+                    Track Request
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
