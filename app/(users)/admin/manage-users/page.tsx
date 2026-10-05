@@ -121,7 +121,7 @@ export default function ManageUsers() {
       </div>
 
       <div className="bg-card border border-border rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto hidden md:block">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border text-left bg-muted/50">
@@ -195,6 +195,66 @@ export default function ManageUsers() {
               )}
             </tbody>
           </table>
+        </div>
+        {/* MOBILE CARD VIEW */}
+        <div className="block md:hidden">
+          {filtered.length === 0 ? (
+            <div className="p-8 text-center text-muted-foreground text-sm">
+              No users match your filters.
+            </div>
+          ) : (
+            <div className="flex flex-col divide-y divide-border">
+              {filtered.map((u) => (
+                <div
+                  key={u.id}
+                  className="p-4 flex flex-col gap-3 hover:bg-muted/30 transition-colors"
+                >
+                  {/* Name and Status */}
+                  <div className="flex justify-between items-start gap-2">
+                    <div>
+                      <h3 className="font-semibold text-foreground">
+                        {u.name}
+                      </h3>
+                      <div className="mt-1.5">
+                        <span
+                          className={`text-xs font-medium px-2 py-0.5 rounded-full ${u.role === 'Donor' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400'}`}
+                        >
+                          {u.role}
+                        </span>
+                      </div>
+                    </div>
+                    <span
+                      className={`shrink-0 text-xs font-medium px-2 py-0.5 rounded-full ${statusStyles[u.status]}`}
+                    >
+                      {u.status}
+                    </span>
+                  </div>
+
+                  {/* Email */}
+                  <div className="text-sm mt-1">
+                    <span className="text-muted-foreground mr-2">Email:</span>
+                    <span className="text-foreground">{u.email}</span>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="pt-3 mt-1 border-t border-border/50 flex justify-end">
+                    <button
+                      onClick={() => toggleStatus(u.id)}
+                      className={`text-xs font-medium px-4 py-2 w-full sm:w-auto rounded border transition-colors shadow-sm ${
+                        u.status === 'Active'
+                          ? 'border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 bg-transparent dark:bg-red-950/20 hover:bg-red-50 dark:hover:bg-red-900/40'
+                          : 'border-green-200 dark:border-green-900/50 text-green-600 dark:text-green-400 bg-transparent dark:bg-green-950/20 hover:bg-green-50 dark:hover:bg-green-900/40'
+                      }`}
+                    >
+                      {u.status === 'Active'
+                        ? 'Suspend User'
+                        : 'Reactivate User'}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
