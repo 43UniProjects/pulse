@@ -11,6 +11,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { registerAccount } from './actions';
+import GenericFallback from '@/components/fallback';
 
 const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
@@ -283,11 +284,7 @@ function RegisterFormContent() {
 
 export default function RegisterForm() {
   return (
-    <Suspense
-      fallback={
-        <div className="w-full max-w-lg h-[600px] bg-card border border-border rounded-xl animate-pulse shadow-sm" />
-      }
-    >
+    <Suspense fallback={<GenericFallback />}>
       <RegisterFormContent />
     </Suspense>
   );

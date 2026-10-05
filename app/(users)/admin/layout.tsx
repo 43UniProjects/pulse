@@ -1,4 +1,4 @@
-import Header from '@/components/Header';
+import Header from '@/components/header/main';
 import DashboardSidebar from '@/components/users/dashboard-sidebar';
 
 const ADMIN_LINKS = [

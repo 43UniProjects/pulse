@@ -1,8 +1,15 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
-import { HospitalEntity } from '@/types/hospital.type';
+import {
+  HospitalEntity,
+  HOSPITAL_TYPE,
+  VERIFICATION_STATUS,
+} from '@/types/hospital.type';
 
 export interface IHospitalDocument
-  extends Omit<HospitalEntity, '_id'>, Document {}
+  extends Omit<HospitalEntity, '_id' | 'verifiedBy'>, Document {
+  _id: mongoose.Types.ObjectId;
+  verifiedBy?: mongoose.Types.ObjectId | null;
+}
 
 const CoordinatorSchema = new Schema(
   {
@@ -16,22 +23,29 @@ const CoordinatorSchema = new Schema(
 
 const HospitalSchema = new Schema<IHospitalDocument>(
   {
-    userId: { type: String, required: true, unique: true, index: true },
+    _id: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
     name: { type: String, required: true, trim: true },
-    licenseNumber: { type: String, required: true, unique: true, trim: true },
     facilityType: {
       type: String,
-      enum: ['government_hospital', 'private_hospital', 'blood_bank', 'clinic'],
+      enum: HOSPITAL_TYPE,
       default: 'private_hospital',
     },
     verificationStatus: {
       type: String,
-      enum: ['pending', 'verified', 'rejected', 'suspended'],
+      enum: VERIFICATION_STATUS,
       default: 'pending',
       index: true,
     },
     verifiedAt: { type: Date, default: null },
-    verifiedBy: { type: Schema.Types.ObjectId, ref: 'Admin', default: null },
+    verifiedBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'Admin',
+      default: null,
+    },
     address: { type: String, required: true },
     city: { type: String, required: true, index: true },
     location: {
@@ -41,21 +55,21 @@ const HospitalSchema = new Schema<IHospitalDocument>(
         default: 'Point',
       },
       coordinates: {
-        type: [Number], // [longitude, latitude]
+        type: [Number],
         required: true,
       },
     },
     hotline: { type: String, required: true },
-    email: { type: String, required: true, unique: true, lowercase: true },
+    email: { type: String, required: true, lowercase: true },
     website: { type: String, trim: true },
     coordinator: { type: CoordinatorSchema, required: true },
+    activeRequestsCount: { type: Number, default: 0 },
   },
   {
     timestamps: true,
   },
 );
 
-// Critical for geospatial queries ($near, $geoWithin) matching hospitals with donors
 HospitalSchema.index({ location: '2dsphere' });
 HospitalSchema.index({ verificationStatus: 1, city: 1 });
 

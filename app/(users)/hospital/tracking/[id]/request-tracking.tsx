@@ -1,3 +1,5 @@
+'use client';
+
 type Donor = {
   name: string;
   distance: string;
