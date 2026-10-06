@@ -4,28 +4,20 @@ import { BLOOD_GROUPS } from '@/types/common.type';
 import { DonorEntity } from '@/types/donor.type';
 
 export interface IDonorDocument
-  extends
-    Omit<
-      DonorEntity,
-      '_id' | 'userId' | 'history' | 'dateOfBirth' | 'lastDonationDate'
-    >,
-    Document {
-  userId: mongoose.Types.ObjectId;
+  extends Omit<DonorEntity, '_id' | 'history'>, Document {
+  _id: mongoose.Types.ObjectId;
   history: mongoose.Types.ObjectId[];
-  dateOfBirth: Date;
-  lastDonationDate: Date | null;
 }
 
 const DonorSchema = new Schema<IDonorDocument>(
   {
-    userId: {
+    _id: {
       type: Schema.Types.ObjectId,
       ref: 'User',
       required: true,
-      unique: true,
     },
     fullName: { type: String, required: true, trim: true },
-    email: { type: String, required: true, unique: true, lowercase: true },
+    email: { type: String, required: true, lowercase: true },
     phone: { type: String, required: true },
     bloodGroup: {
       type: String,
@@ -35,29 +27,29 @@ const DonorSchema = new Schema<IDonorDocument>(
     },
     dateOfBirth: { type: Date, required: true },
     address: { type: String, required: true },
-
     location: {
       type: PointSchema,
       required: true,
     },
-
     radiusPreferenceKm: { type: Number, default: 10 },
     lastDonationDate: { type: Date, default: null },
     isEligible: { type: Boolean, default: true, index: true },
     isAvailable: { type: Boolean, default: true },
     liveLocationSync: { type: Boolean, default: false },
-
     smsAlertsEnabled: { type: Boolean, default: true },
     emailAlertsEnabled: { type: Boolean, default: false },
-
-    history: [{ type: Schema.Types.ObjectId, ref: 'DonationRequest' }],
+    history: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'DonationRequest',
+      },
+    ],
   },
   {
     timestamps: true,
   },
 );
 
-// Critical for high-performance location-based emergency matching
 DonorSchema.index({ location: '2dsphere' });
 DonorSchema.index({ bloodGroup: 1, isEligible: 1, isAvailable: 1 });
 

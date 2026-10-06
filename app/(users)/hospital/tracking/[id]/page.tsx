@@ -1,4 +1,6 @@
-import RequestTrackingClient from './request-tracking-client';
+import { Suspense } from 'react';
+import RequestTrackingClient from './request-tracking';
+import GenericFallback from '@/components/fallback';
 
 export default async function RequestTracking({
   params,
@@ -6,5 +8,9 @@ export default async function RequestTracking({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  return <RequestTrackingClient id={id} />;
+  return (
+    <Suspense fallback={<GenericFallback />}>
+      <RequestTrackingClient id={id} />
+    </Suspense>
+  );
 }

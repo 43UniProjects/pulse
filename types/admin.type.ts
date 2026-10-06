@@ -1,17 +1,26 @@
-export type AdminRole = 'superadmin' | 'clinical_verifier' | 'support';
-export type AdminStatus = 'active' | 'suspended' | 'deactivated';
+import { UserEntity } from './user.type';
+
+export const ADMIN_ROLES = [
+  'superadmin',
+  'clinical_verifier',
+  'support',
+] as const;
+export const ADMIN_STATUS = ['active', 'suspended', 'deactivated'] as const;
+
+export type AdminRole = (typeof ADMIN_ROLES)[number];
+export type AdminStatus = (typeof ADMIN_STATUS)[number];
 
 export interface AdminEntity {
-  _id?: string;
-  userId: string; // Reference to base Auth user
+  _id: string | UserEntity; // Shared Primary Key
+
   fullName: string;
   email: string;
   phone?: string;
-  role: AdminRole; // Granular administrative permissions
+  role: AdminRole;
   status: AdminStatus;
-  department?: string; // e.g., "Clinical Verification Board"
-  lastLoginAt?: string;
-  actionsLogged?: number; // Count or counter for audit tracking
-  createdAt: string;
-  updatedAt: string;
+  department?: string;
+  lastLoginAt?: Date | null;
+  actionsLogged?: number;
+  createdAt?: Date;
+  updatedAt?: Date;
 }

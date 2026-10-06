@@ -99,7 +99,7 @@ export default function VerifyHospitals() {
       </div>
 
       <div className="bg-card border border-border rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto hidden md:block">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border text-left bg-muted/50">
@@ -177,6 +177,68 @@ export default function VerifyHospitals() {
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* MOBILE CARD VIEW */}
+        <div className="block md:hidden">
+          <div className="flex flex-col divide-y divide-border">
+            {hospitals.map((h) => (
+              <div
+                key={h.id}
+                className="p-4 flex flex-col gap-3 hover:bg-muted/30 transition-colors"
+              >
+                {/* Name, Reg No and Status */}
+                <div className="flex justify-between items-start gap-2">
+                  <div>
+                    <h3 className="font-semibold text-foreground">{h.name}</h3>
+                    <p className="text-xs font-mono text-muted-foreground mt-1">
+                      Reg: {h.regNo}
+                    </p>
+                  </div>
+                  <span
+                    className={`shrink-0 text-xs font-medium px-2 py-0.5 rounded-full ${statusStyles[h.status]}`}
+                  >
+                    {h.status}
+                  </span>
+                </div>
+
+                {/* Details Grid */}
+                <div className="grid grid-cols-2 gap-2 text-sm mt-1">
+                  <div className="text-muted-foreground">Email:</div>
+                  <div className="text-foreground truncate">{h.email}</div>
+                  <div className="text-muted-foreground">Date:</div>
+                  <div className="text-foreground">{h.date}</div>
+                </div>
+
+                {/* Actions (Buttons) */}
+                <div className="pt-3 mt-1 border-t border-border/50 flex justify-end">
+                  {h.status === 'Pending' ? (
+                    <div className="flex gap-2 w-full sm:w-auto">
+                      <button
+                        onClick={() => update(h.id, 'Approved')}
+                        className="flex-1 sm:flex-none text-xs font-medium bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors shadow-sm"
+                      >
+                        Approve
+                      </button>
+                      <button
+                        onClick={() => update(h.id, 'Rejected')}
+                        className="flex-1 sm:flex-none text-xs font-medium bg-background text-red-600 border border-red-200 px-4 py-2 rounded hover:bg-red-50 transition-colors shadow-sm"
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => update(h.id, 'Pending')}
+                      className="text-xs text-muted-foreground hover:text-foreground underline transition-colors py-1"
+                    >
+                      Undo Action
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

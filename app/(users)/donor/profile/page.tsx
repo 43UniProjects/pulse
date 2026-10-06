@@ -120,7 +120,7 @@ export default async function DonorProfilePage() {
                 <p className="text-xs font-medium text-muted-foreground mb-1">
                   Account Status
                 </p>
-                <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                <p className="text-sm font-medium text-primary flex items-center gap-1.5">
                   <ShieldCheck className="w-4 h-4" />
                   Verified
                 </p>
@@ -134,14 +134,14 @@ export default async function DonorProfilePage() {
           {/* Eligibility Card */}
           <div className="bg-card border border-border rounded-xl p-6 shadow-sm relative overflow-hidden">
             {/* Green accent line */}
-            <div className="absolute top-0 left-0 right-0 h-1.5 bg-emerald-500" />
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-primary" />
 
             <h3 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground mb-4 mt-1">
               Clinical Status
             </h3>
 
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+              <div className="p-2.5 rounded-full bg-primary/10 text-primary">
                 <Activity className="w-5 h-5" />
               </div>
               <div>

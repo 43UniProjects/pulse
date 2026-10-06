@@ -137,7 +137,7 @@ export default function RegisteredDonors() {
       </div>
 
       <div className="bg-card border border-border rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto hidden md:block">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border text-left bg-muted/50">
@@ -222,6 +222,67 @@ export default function RegisteredDonors() {
               )}
             </tbody>
           </table>
+        </div>
+        {/* MOBILE CARD VIEW */}
+        <div className="block md:hidden">
+          {filtered.length === 0 ? (
+            <div className="p-8 text-center text-muted-foreground text-sm">
+              No donors match your filters.
+            </div>
+          ) : (
+            <div className="flex flex-col divide-y divide-border">
+              {filtered.map((d) => (
+                <div
+                  key={d.id}
+                  className="p-4 flex flex-col gap-3 hover:bg-muted/30 transition-colors"
+                >
+                  {/* Name, Blood Group, Location and Verification */}
+                  <div className="flex justify-between items-start gap-2">
+                    <div>
+                      <h3 className="font-semibold text-foreground flex items-center gap-2">
+                        {d.name}
+                        <span className="text-xs font-bold bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 px-2 py-0.5 rounded-full">
+                          {d.bloodGroup}
+                        </span>
+                      </h3>
+                      <div className="text-sm text-muted-foreground mt-1.5 flex items-center gap-1">
+                        📍 {d.address}
+                      </div>
+                    </div>
+                    <span
+                      className={`shrink-0 text-xs font-medium px-2 py-0.5 rounded-full inline-flex items-center gap-1 ${d.verified ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-gray-100 dark:bg-gray-900/30 text-gray-500 dark:text-gray-400'}`}
+                    >
+                      <span aria-hidden>{d.verified ? '✓' : '○'}</span>{' '}
+                      {d.verified ? 'Verified' : 'Unverified'}
+                    </span>
+                  </div>
+
+                  {/* Details Grid */}
+                  <div className="grid grid-cols-2 gap-2 text-sm mt-1">
+                    <div className="text-muted-foreground">Phone:</div>
+                    <div className="text-foreground">{d.phone}</div>
+
+                    <div className="text-muted-foreground">Registered:</div>
+                    <div className="text-foreground">{d.registered}</div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="pt-3 mt-1 border-t border-border/50 flex justify-end">
+                    <button
+                      onClick={() => toggleVerified(d.id)}
+                      className={`text-xs font-medium px-4 py-2 w-full sm:w-auto rounded border transition-colors shadow-sm ${
+                        d.verified
+                          ? 'border-border text-muted-foreground hover:bg-muted/50 bg-transparent'
+                          : 'border-green-200 dark:border-green-900/50 text-green-600 dark:text-green-400 bg-transparent dark:bg-green-950/20 hover:bg-green-50 dark:hover:bg-green-900/40'
+                      }`}
+                    >
+                      {d.verified ? 'Mark Unverified' : 'Mark Verified'}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
