@@ -3,6 +3,8 @@
 import { redirect } from 'next/navigation';
 import { createAccount, AccountRole } from './data';
 
+import { registerSchema } from '@/lib/validators/auth.schema';
+
 export interface RegisterActionState {
   error?: string;
 }
@@ -11,26 +13,33 @@ export async function registerAccount(
   prevState: RegisterActionState | null,
   formData: FormData,
 ): Promise<RegisterActionState | null> {
-  // Extract state-driven fields (requires hidden inputs in the form)
-  const role = formData.get('role')?.toString() as AccountRole;
-  const location = formData.get('location')?.toString();
-  const email = formData.get('email')?.toString();
-  const password = formData.get('password')?.toString();
+  const payload = Object.fromEntries(formData.entries());
 
-  if (!role || !email || !password) {
-    return { error: 'Please fill out all required fields.' };
+  const validation = registerSchema.safeParse({
+    role:
+      payload.role === 'donor'
+        ? 'Donor'
+        : payload.role === 'hospital'
+          ? 'Hospital'
+          : undefined,
+    email: payload.email,
+    password: payload.password,
+    confirmPassword: payload.confirmPassword,
+  });
+
+  if (!validation.success) {
+    return { error: validation.error.issues[0].message };
   }
 
-  if (!location) {
-    return { error: 'Please acquire or enter your location coordinates.' };
-  }
+  // Extract the validated and formatted data
+  const { role, email, password } = validation.data;
+
+  // Format role back to lowercase for internal mock storage
+  const formattedRole = role.toLowerCase() as AccountRole;
 
   try {
-    // Convert the entire FormData map into a plain object for the database payload
-    const payload = Object.fromEntries(formData.entries());
-
     // Call the mock database (or your real Express backend)
-    await createAccount(role, payload);
+    await createAccount(formattedRole, { email, password });
 
     // ==========================================================
     // BACKEND INTEGRATION NOTE:
@@ -48,10 +57,6 @@ export async function registerAccount(
     };
   }
 
-  // Redirect to the appropriate dashboard on success
-  if (role === 'donor') {
-    redirect('/donor/dashboard');
-  } else {
-    redirect('/hospital/dashboard');
-  }
+  // Redirect to the verify-email step on success
+  redirect('/verify-email');
 }

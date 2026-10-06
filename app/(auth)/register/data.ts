@@ -1,30 +1,13 @@
 export type AccountRole = 'donor' | 'hospital';
 
-export interface DonorProfile {
+export interface BaseUser {
   id: string;
-  role: 'donor';
-  fullName: string;
-  dob: string;
+  role: AccountRole;
   email: string;
-  bloodGroup: string;
-  phone: string;
-  location: string;
-}
-
-export interface HospitalProfile {
-  id: string;
-  role: 'hospital';
-  hospitalName: string;
-  registrationNumber: string;
-  contactPerson: string;
-  email: string;
-  dispatchPhone: string;
-  location: string;
 }
 
 // In-memory mock database stores
-const MOCK_DONORS: DonorProfile[] = [];
-const MOCK_HOSPITALS: HospitalProfile[] = [];
+const MOCK_USERS: BaseUser[] = [];
 
 export async function createAccount(
   role: AccountRole,
@@ -35,22 +18,22 @@ export async function createAccount(
   await new Promise((resolve) => setTimeout(resolve, 800));
 
   // Simulate an email uniqueness check
-  const isEmailTaken =
-    MOCK_DONORS.some((d) => d.email === data.email) ||
-    MOCK_HOSPITALS.some((h) => h.email === data.email);
+  const isEmailTaken = MOCK_USERS.some((u) => u.email === data.email);
 
   if (isEmailTaken) {
     throw new Error('An account with this email already exists.');
   }
 
-  // Save to the respective mock collection
+  // Save to the mock collection with a hashed password (mocked with base64 for now)
   const newId = `usr_${Math.random().toString(36).substring(2, 9)}`;
+  const hashedPassword = btoa(data.password || ''); // Mock hashing
 
-  if (role === 'donor') {
-    MOCK_DONORS.push({ id: newId, role: 'donor', ...data });
-  } else {
-    MOCK_HOSPITALS.push({ id: newId, role: 'hospital', ...data });
-  }
+  MOCK_USERS.push({
+    id: newId,
+    role,
+    email: data.email,
+    password: hashedPassword,
+  } as BaseUser);
 
   console.log(`[Mock DB] Created new ${role}:`, data.email);
 }
