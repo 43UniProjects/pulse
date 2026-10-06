@@ -1,11 +1,10 @@
-import Header from '@/components/Header';
+import Header from '@/components/header/main';
 import DashboardSidebar from '@/components/users/dashboard-sidebar';
 import { Menu } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 const DONOR_LINKS = [
   { name: 'Dashboard', href: '/donor/dashboard' },
-  { name: 'Donation History', href: '/donor/history' },
   { name: 'Active Requests', href: '/donor/requests' },
   { name: 'Health Profile', href: '/donor/profile' },
 ];

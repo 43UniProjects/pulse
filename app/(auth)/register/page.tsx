@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import RegisterForm from './register-form';
-import Footer from '@/components/Footer';
-import Header from '@/components/Header';
+import Footer from '@/components/footer';
+import Header from '@/components/header/main';
 
 export const metadata: Metadata = {
   title: 'Register',
