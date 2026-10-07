@@ -10,6 +10,7 @@ export interface UserEntity {
 
   role: UserRole;
   isActive: boolean;
+  password?: string;
 
   createdAt?: Date;
   updatedAt?: Date;
