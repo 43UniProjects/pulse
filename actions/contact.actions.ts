@@ -56,13 +56,13 @@ export async function submitContactMessage(
       contactData.senderRole = user.role;
 
       // Target Audience Routing
-      if (user.role === 'Admin') {
-        contactData.targetAudience = 'developer';
-      } else if (user.role === 'Donor' || user.role === 'Hospital') {
-        contactData.targetAudience = 'admin';
-      } else {
-        contactData.targetAudience = 'developer'; // Fallback
-      }
+      const roleTargetMap: Record<string, string> = {
+        Admin: 'developer',
+        Donor: 'admin',
+        Hospital: 'admin',
+      };
+
+      contactData.targetAudience = roleTargetMap[user.role] || 'developer';
 
       // We don't validate name/email from form if logged in
       const validatedFields = ContactFormSchema.pick({
