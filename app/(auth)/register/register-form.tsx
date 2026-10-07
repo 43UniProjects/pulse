@@ -4,18 +4,11 @@ import { useState, useEffect, useActionState, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
-import {
-  Activity,
-  MessageSquare,
-  LocateFixed,
-  Loader2,
-  AlertCircle,
-} from 'lucide-react';
+import { Activity, Loader2, AlertCircle } from 'lucide-react';
 import GenericFallback from '@/components/fallback';
 
 import { registerAccount } from './actions';
 
-import { BLOOD_GROUPS } from '@/types/common.type';
 import { ACCOUNT_TYPE, AccountType } from './types';
 
 function RegisterFormContent() {
@@ -23,8 +16,7 @@ function RegisterFormContent() {
 
   // Initialize states
   const [tab, setTab] = useState<AccountType>(ACCOUNT_TYPE[0]);
-  const [location, setLocation] = useState('');
-  const [isLocating, setIsLocating] = useState(false);
+  const [clientError, setClientError] = useState<string | null>(null);
 
   // Wire up the Server Action
   const [state, formAction, isPending] = useActionState(registerAccount, null);
