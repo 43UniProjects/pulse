@@ -5,6 +5,7 @@ const ADMIN_LINKS = [
   { name: 'Dashboard', href: '/admin/dashboard' },
   { name: 'Verify Hospitals', href: '/admin/verify-hospitals' },
   { name: 'Manage Users', href: '/admin/manage-users' },
+  { name: 'Profile', href: '/admin/profile' },
 ];
 
 export default function AdminLayout({
