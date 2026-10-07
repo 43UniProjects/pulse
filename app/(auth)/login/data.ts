@@ -1,4 +1,6 @@
 import { UserRole } from '@/types/user.type';
+import { connectToDatabase } from '@/lib/db/connect';
+import { User } from '@/lib/models/user.model';
 
 export interface UserProfile {
   _id: string;
@@ -7,30 +9,31 @@ export interface UserProfile {
   name: string;
 }
 
-// In-memory mock database store
-const MOCK_USERS: UserProfile[] = [
-  {
-    _id: 'usr_1',
-    email: 'donor@example.lk',
-    role: 'donor',
-    name: 'Kamal Perera',
-  },
-  {
-    _id: 'usr_2',
-    email: 'hospital@nawaloka.lk',
-    role: 'hospital',
-    name: 'Nawaloka Hospital',
-  },
-  { _id: 'usr_3', email: 'admin@pulse.lk', role: 'admin', name: 'Super Admin' },
-];
-
 export async function findUserByCredentials(
   email: string,
+  passwordInput: string,
   role: UserRole,
 ): Promise<UserProfile | null> {
-  const user = MOCK_USERS.find(
-    (u) => u.email.toLowerCase() === email.toLowerCase() && u.role === role,
-  );
+  await connectToDatabase();
 
-  return user || null;
+  const user = await User.findOne({
+    email: email.toLowerCase(),
+    role: role,
+  }).lean();
+
+  if (!user) {
+    return null;
+  }
+
+  // Basic string comparison (update to bcrypt.compare when hashing is implemented!)
+  if (user.password !== passwordInput) {
+    return null;
+  }
+
+  return {
+    _id: user._id.toString(),
+    email: user.email,
+    role: user.role,
+    name: user.name || '',
+  };
 }

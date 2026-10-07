@@ -21,7 +21,7 @@ export async function authenticateUser(
   }
 
   try {
-    const user = await findUserByCredentials(email, role);
+    const user = await findUserByCredentials(email, password, role);
 
     if (!user) {
       return { error: 'Invalid credentials or incorrect access level.' };

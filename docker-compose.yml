@@ -24,7 +24,7 @@ services:
     container_name: database-container
     command: ["--quiet"]
     ports:
-      - "27017:27017"
+      - "27018:27017"
     environment:
       - MONGO_INITDB_ROOT_USERNAME_FILE=/run/secrets/db_username
       - MONGO_INITDB_ROOT_PASSWORD_FILE=/run/secrets/db_password

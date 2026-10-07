@@ -36,6 +36,10 @@ const UserSchema = new Schema<IUserDocument>(
       type: Boolean,
       default: false,
     },
+    password: {
+      type: String,
+      required: true,
+    },
   },
   {
     timestamps: true,
