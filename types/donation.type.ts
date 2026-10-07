@@ -1,20 +1,31 @@
 import { BloodGroup } from './common.type';
 
-export type DonationStatus =
-  'scheduled' | 'completed' | 'verified' | 'rejected';
+export const DONATION_STATUS = [
+  'pending',
+  'accepted',
+  'completed',
+  'declined',
+  'expired',
+] as const;
+
+export type DonationStatus = (typeof DONATION_STATUS)[number];
+
+export const SCREENING_STATUS = ['negative', 'positive', 'pending'] as const;
+
+export type ScreeningStatus = (typeof SCREENING_STATUS)[number];
 
 export interface ScreeningResults {
-  hiv: 'negative' | 'positive' | 'pending';
-  hepatitisB: 'negative' | 'positive' | 'pending';
-  hepatitisC: 'negative' | 'positive' | 'pending';
-  syphilis: 'negative' | 'positive' | 'pending';
+  hiv: ScreeningStatus;
+  hepatitisB: ScreeningStatus;
+  hepatitisC: ScreeningStatus;
+  syphilis: ScreeningStatus;
   hemoglobinLevel?: string; // e.g., "14.2 g/dL"
 }
 
 export interface DonationEntity {
   _id?: string;
-  donationId: string; // Human-readable reference (e.g., DON-5092)
-  requestId?: string | null; // Linked Emergency Request ID (if applicable)
+  donationId: string;
+  requestId?: string | null;
   donorId: string; // Reference to the Donor user
   hospitalId: string; // Reference to the Hospital facility
   bloodGroup: BloodGroup;
