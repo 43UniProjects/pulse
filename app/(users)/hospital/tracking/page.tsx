@@ -41,7 +41,7 @@ const mockDonationRequests: MockTrackingRequest[] = [
   {
     _id: 'req_001',
     bloodGroup: 'O-',
-    urgency: 'critical',
+    urgency: REQUEST_URGENCY_LEVEL[0],
     requiredUnits: 5,
     fulfilledUnits: 2,
     createdAt: new Date(Date.now() - 1000 * 60 * 30),
@@ -67,7 +67,7 @@ const mockDonationRequests: MockTrackingRequest[] = [
   {
     _id: 'req_002',
     bloodGroup: 'A+',
-    urgency: 'high',
+    urgency: REQUEST_URGENCY_LEVEL[1],
     requiredUnits: 3,
     fulfilledUnits: 0,
     createdAt: new Date(Date.now() - 1000 * 60 * 120),
