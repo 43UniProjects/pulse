@@ -1,4 +1,20 @@
 import { Metadata } from 'next';
+
+import {
+  User,
+  MapPin,
+  Droplet,
+  ShieldCheck,
+  Clock,
+  Activity,
+  Phone,
+  Mail,
+  Edit3,
+} from 'lucide-react';
+import { getDonorProfile, getDonationHistory } from '../requests/data';
+import { DONATION_STATUS } from '@/types/donation.type';
+import Link from 'next/link';
+
 import { DonorEntity } from '@/types/donor.type';
 import DonorProfileClient from './donor-profile-client';
 
@@ -32,6 +48,10 @@ export default async function DonorProfilePage() {
     createdAt: new Date('2023-01-01'),
     updatedAt: new Date('2024-01-01'),
   };
+
+  // Calculate age safely
+  const dob = new Date(donor.dateOfBirth);
+  const age = new Date().getFullYear() - dob.getFullYear();
 
   return (
     <div className="max-w-5xl mx-auto w-full space-y-6">
