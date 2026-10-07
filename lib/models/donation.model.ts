@@ -1,6 +1,10 @@
 import mongoose, { Schema, Document, Model, Types } from 'mongoose';
 import { BLOOD_GROUPS } from '@/types/common.type';
-import { DonationEntity } from '@/types/donation.type';
+import {
+  DONATION_STATUS,
+  DonationEntity,
+  SCREENING_STATUS,
+} from '@/types/donation.type';
 
 export type DonationStatus =
   'scheduled' | 'completed' | 'verified' | 'rejected';
@@ -37,23 +41,23 @@ const ScreeningResultsSchema = new Schema<ScreeningResults>(
   {
     hiv: {
       type: String,
-      enum: ['negative', 'positive', 'pending'],
-      default: 'pending',
+      enum: SCREENING_STATUS,
+      default: SCREENING_STATUS[0],
     },
     hepatitisB: {
       type: String,
-      enum: ['negative', 'positive', 'pending'],
-      default: 'pending',
+      enum: SCREENING_STATUS,
+      default: SCREENING_STATUS[0],
     },
     hepatitisC: {
       type: String,
-      enum: ['negative', 'positive', 'pending'],
-      default: 'pending',
+      enum: SCREENING_STATUS,
+      default: SCREENING_STATUS[0],
     },
     syphilis: {
       type: String,
-      enum: ['negative', 'positive', 'pending'],
-      default: 'pending',
+      enum: SCREENING_STATUS,
+      default: SCREENING_STATUS[0],
     },
     hemoglobinLevel: { type: String, trim: true },
   },
@@ -94,8 +98,8 @@ const DonationSchema = new Schema<IDonationDocument>(
     },
     status: {
       type: String,
-      enum: ['scheduled', 'completed', 'verified', 'rejected'],
-      default: 'scheduled',
+      enum: DONATION_STATUS,
+      default: DONATION_STATUS[0],
       index: true,
     },
     donationDate: { type: Date, required: true, default: Date.now },

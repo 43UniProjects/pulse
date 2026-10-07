@@ -15,7 +15,6 @@ export type Units = number;
 
 export interface DonationRequestEntity {
   _id?: string; // MongoDB ObjectId string
-  requestId: string; // Human-readable reference ID (e.g., REQ-8023)
   hospitalId: string; // Reference to the posting Hospital entity/user
   hospitalName: string; // Name of the medical institution
   address: string; // Physical street address of the hospital
