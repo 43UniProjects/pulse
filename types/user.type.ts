@@ -1,4 +1,4 @@
-export const USER_ROLES = ['Admin', 'Donor', 'Hospital'] as const;
+export const USER_ROLES = ['admin', 'donor', 'hospital'] as const;
 export type UserRole = (typeof USER_ROLES)[number];
 
 export interface UserEntity {

@@ -20,7 +20,7 @@ const UserSchema = new Schema<IUserDocument>(
     },
     emailVerified: {
       type: Date,
-      default: null,
+      default: false,
     },
     image: {
       type: String,
@@ -34,7 +34,7 @@ const UserSchema = new Schema<IUserDocument>(
     },
     isActive: {
       type: Boolean,
-      default: true,
+      default: false,
     },
   },
   {

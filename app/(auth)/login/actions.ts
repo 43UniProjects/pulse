@@ -1,7 +1,8 @@
 'use server';
 
 import { redirect } from 'next/navigation';
-import { findUserByCredentials, UserRole } from './data';
+import { findUserByCredentials } from './data';
+import { UserRole } from '@/types/user.type';
 
 export interface ActionState {
   error?: string;
