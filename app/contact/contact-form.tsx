@@ -29,9 +29,8 @@ export default function ContactForm({ userRole }: ContactFormProps) {
 
   useEffect(() => {
     if (state.success) {
-      // trigger a toast here
       alert('Message sent successfully!');
-      // Reset form could be handled here or via form ref
+      // A standard reset ref or logic can be added here
     } else if (state.message && !state.success && !state.errors) {
       alert(state.message);
     }

@@ -1,19 +1,25 @@
+import { Suspense } from 'react';
 import { Phone, Mail, MapPin, Clock } from 'lucide-react';
 import { getServerSession } from 'next-auth';
 
 import Footer from '@/components/footer';
 import Header from '@/components/header/main';
+import GenericFallback from '@/components/fallback';
 import ContactForm from './contact-form';
 import { USER_ROLE, UserEntity } from '@/types/user.type';
 
-export default async function ContactPage() {
+async function ContactFormWrapper() {
   const session = await getServerSession();
 
-  //  if session.user then session.user.role; or 'guest'
+  // Safely extract the role from the session, fallback to 'guest'
   const userRole = session?.user
     ? (session.user as UserEntity).role
     : USER_ROLE[3]; // 'guest'
 
+  return <ContactForm userRole={userRole} />;
+}
+
+export default function ContactPage() {
   return (
     <>
       <Header />
@@ -99,8 +105,12 @@ export default async function ContactPage() {
               </div>
             </div>
 
-            {/* Contact Form */}
-            <ContactForm userRole={userRole} />
+            {/* Contact Form with Suspense Boundary */}
+            <div className="w-full">
+              <Suspense fallback={<GenericFallback />}>
+                <ContactFormWrapper />
+              </Suspense>
+            </div>
           </div>
         </section>
       </div>
