@@ -2,18 +2,16 @@ import mongoose, { Schema, Document, Model, Types } from 'mongoose';
 import { BLOOD_GROUPS } from '@/types/common.type';
 import {
   DONATION_STATUS,
-  DonationEntity,
   SCREENING_STATUS,
+  DonationEntity,
+  ScreeningStatus,
 } from '@/types/donation.type';
 
-export type DonationStatus =
-  'scheduled' | 'completed' | 'verified' | 'rejected';
-
 export interface ScreeningResults {
-  hiv: 'negative' | 'positive' | 'pending';
-  hepatitisB: 'negative' | 'positive' | 'pending';
-  hepatitisC: 'negative' | 'positive' | 'pending';
-  syphilis: 'negative' | 'positive' | 'pending';
+  hiv: ScreeningStatus;
+  hepatitisB: ScreeningStatus;
+  hepatitisC: ScreeningStatus;
+  syphilis: ScreeningStatus;
   hemoglobinLevel?: string;
 }
 
