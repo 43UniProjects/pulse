@@ -11,22 +11,20 @@ import {
   AlertCircle,
   FileBox,
 } from 'lucide-react';
+import { getDonationRequests, getDonationHistory } from './data';
 import {
-  getDonationRequests,
-  getDonationHistory,
-  RequestDetails,
-} from './data';
+  DonationRequestEntity,
+  REQUEST_URGENCY_LEVEL,
+} from '@/types/donor-request.type';
+import { DonationEntity } from '@/types/donation.type';
 
 export default function DonorRequestsPage() {
   // UI State for toggling between active requests and history
   const [tab, setTab] = useState<'active' | 'history'>('active');
 
-  // Fetch data for mock donor ID "1" and convert dictionaries to arrays
-  const activeRequests = Object.values(getDonationRequests('1'));
-  const historyRequests = Object.values(getDonationHistory('1'));
-
-  // Determine which list to render based on the active tab
-  const currentList = tab === 'active' ? activeRequests : historyRequests;
+  // Fetch data for mock donor ID "donor_1"
+  const activeRequests = Object.values(getDonationRequests());
+  const historyRequests = getDonationHistory('donor_1');
 
   return (
     <div className="max-w-4xl mx-auto w-full space-y-6">
@@ -79,68 +77,104 @@ export default function DonorRequestsPage() {
 
       {/* Requests List */}
       <div className="flex flex-col gap-3">
-        {currentList.length === 0 ? (
-          <div className="text-center py-12 bg-card border border-border rounded-xl">
-            <FileBox className="w-10 h-10 text-muted-foreground mx-auto mb-3 opacity-50" />
-            <p className="text-muted-foreground text-sm">
-              {tab === 'active'
-                ? 'No active blood requests in your area.'
-                : 'No requests found in your history.'}
-            </p>
-          </div>
+        {tab === 'active' ? (
+          activeRequests.length === 0 ? (
+            <EmptyState message="No active blood requests in your area." />
+          ) : (
+            activeRequests.map((request: DonationRequestEntity) => (
+              <Link
+                key={request._id}
+                href={`/donor/requests/${request._id}`}
+                className="group block bg-card border border-border rounded-xl p-4 md:p-5 hover:border-primary/50 hover:shadow-sm transition-all relative overflow-hidden"
+              >
+                {request.urgency === REQUEST_URGENCY_LEVEL[0] && (
+                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-red-600" />
+                )}
+
+                <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
+                  <div className="hidden md:flex shrink-0 w-12 h-12 rounded-full bg-secondary border border-border items-center justify-center">
+                    <span className="font-bold text-foreground">
+                      {request.bloodGroup}
+                    </span>
+                  </div>
+
+                  <div className="flex-1 space-y-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <UrgencyBadge level={request.urgency} />
+                      <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">
+                        {request._id}
+                      </span>
+                    </div>
+                    <h3 className="font-medium text-foreground text-lg group-hover:text-primary transition-colors">
+                      {request.hospitalName}
+                    </h3>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      <span className="flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5" />
+                        {request.distance || 'Nearby'}
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5" />
+                        {request.timePosted || 'Recent'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between md:flex-col md:items-end gap-3 md:gap-2 shrink-0 border-t border-border md:border-t-0 pt-3 md:pt-0 mt-3 md:mt-0">
+                    <StatusBadge status={request.status} />
+                    <div className="flex items-center text-xs font-medium text-primary md:opacity-0 group-hover:opacity-100 transition-opacity">
+                      View Details
+                      <ChevronRight className="w-4 h-4 ml-1" />
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))
+          )
+        ) : historyRequests.length === 0 ? (
+          <EmptyState message="No requests found in your history." />
         ) : (
-          currentList.map((request: RequestDetails) => (
-            <Link
-              key={request.id}
-              href={`/donor/requests/${request.id}`}
+          historyRequests.map((donation: DonationEntity) => (
+            <div
+              key={donation._id}
               className="group block bg-card border border-border rounded-xl p-4 md:p-5 hover:border-primary/50 hover:shadow-sm transition-all relative overflow-hidden"
             >
-              {/* Red accent bar for critical requests */}
-              {request.urgency === 'critical' && (
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-red-600" />
-              )}
-
               <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
-                {/* Blood Group Avatar */}
                 <div className="hidden md:flex shrink-0 w-12 h-12 rounded-full bg-secondary border border-border items-center justify-center">
                   <span className="font-bold text-foreground">
-                    {request.bloodGroup}
+                    {donation.bloodGroup}
                   </span>
                 </div>
 
-                {/* Main Info */}
                 <div className="flex-1 space-y-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <UrgencyBadge level={request.urgency} />
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-[10px] font-bold uppercase tracking-widest border border-green-200 dark:border-green-900/50">
+                      Physical Donation
+                    </span>
                     <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">
-                      {request.id}
+                      {donation.donationId}
                     </span>
                   </div>
-                  <h3 className="font-medium text-foreground text-lg group-hover:text-primary transition-colors">
-                    {request.hospitalName}
+                  <h3 className="font-medium text-foreground text-lg transition-colors">
+                    Donation Completed
                   </h3>
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <span className="flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5" />
-                      {request.distance || 'Nearby'}
+                      <Clock className="w-3.5 h-3.5" />
+                      {new Date(donation.donationDate).toLocaleDateString()}
                     </span>
                     <span className="flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5" />
-                      {request.timePosted || 'Recent'}
+                      <Droplet className="w-3.5 h-3.5" />
+                      {donation.units} Unit(s)
                     </span>
                   </div>
                 </div>
 
-                {/* Status & Action */}
                 <div className="flex items-center justify-between md:flex-col md:items-end gap-3 md:gap-2 shrink-0 border-t border-border md:border-t-0 pt-3 md:pt-0 mt-3 md:mt-0">
-                  <StatusBadge status={request.status} />
-                  <div className="flex items-center text-xs font-medium text-primary md:opacity-0 group-hover:opacity-100 transition-opacity">
-                    View Details
-                    <ChevronRight className="w-4 h-4 ml-1" />
-                  </div>
+                  <StatusBadge status={donation.status} />
                 </div>
               </div>
-            </Link>
+            </div>
           ))
         )}
       </div>
@@ -148,17 +182,26 @@ export default function DonorRequestsPage() {
   );
 }
 
-// --- Helper Components for Badges ---
+// --- Helper Components ---
+
+function EmptyState({ message }: { message: string }) {
+  return (
+    <div className="text-center py-12 bg-card border border-border rounded-xl">
+      <FileBox className="w-10 h-10 text-muted-foreground mx-auto mb-3 opacity-50" />
+      <p className="text-muted-foreground text-sm">{message}</p>
+    </div>
+  );
+}
 
 function UrgencyBadge({ level }: { level?: string }) {
-  if (level === 'critical') {
+  if (level === REQUEST_URGENCY_LEVEL[0]) {
     return (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-[10px] font-bold uppercase tracking-widest border border-red-200 dark:border-red-900/50">
         <AlertCircle className="w-3 h-3" /> Critical
       </span>
     );
   }
-  if (level === 'high') {
+  if (level === REQUEST_URGENCY_LEVEL[1]) {
     return (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 text-[10px] font-bold uppercase tracking-widest border border-orange-200 dark:border-orange-900/50">
         <Activity className="w-3 h-3" /> High
