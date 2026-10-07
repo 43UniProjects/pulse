@@ -1,15 +1,17 @@
 import mongoose, { Schema, Document, Model, Types } from 'mongoose';
 import { BLOOD_GROUPS } from '@/types/common.type';
-import { DonationEntity } from '@/types/donation.type';
-
-export type DonationStatus =
-  'scheduled' | 'completed' | 'verified' | 'rejected';
+import {
+  DONATION_STATUS,
+  SCREENING_STATUS,
+  DonationEntity,
+  ScreeningStatus,
+} from '@/types/donation.type';
 
 export interface ScreeningResults {
-  hiv: 'negative' | 'positive' | 'pending';
-  hepatitisB: 'negative' | 'positive' | 'pending';
-  hepatitisC: 'negative' | 'positive' | 'pending';
-  syphilis: 'negative' | 'positive' | 'pending';
+  hiv: ScreeningStatus;
+  hepatitisB: ScreeningStatus;
+  hepatitisC: ScreeningStatus;
+  syphilis: ScreeningStatus;
   hemoglobinLevel?: string;
 }
 
@@ -37,23 +39,23 @@ const ScreeningResultsSchema = new Schema<ScreeningResults>(
   {
     hiv: {
       type: String,
-      enum: ['negative', 'positive', 'pending'],
-      default: 'pending',
+      enum: SCREENING_STATUS,
+      default: SCREENING_STATUS[0],
     },
     hepatitisB: {
       type: String,
-      enum: ['negative', 'positive', 'pending'],
-      default: 'pending',
+      enum: SCREENING_STATUS,
+      default: SCREENING_STATUS[0],
     },
     hepatitisC: {
       type: String,
-      enum: ['negative', 'positive', 'pending'],
-      default: 'pending',
+      enum: SCREENING_STATUS,
+      default: SCREENING_STATUS[0],
     },
     syphilis: {
       type: String,
-      enum: ['negative', 'positive', 'pending'],
-      default: 'pending',
+      enum: SCREENING_STATUS,
+      default: SCREENING_STATUS[0],
     },
     hemoglobinLevel: { type: String, trim: true },
   },
@@ -94,8 +96,8 @@ const DonationSchema = new Schema<IDonationDocument>(
     },
     status: {
       type: String,
-      enum: ['scheduled', 'completed', 'verified', 'rejected'],
-      default: 'scheduled',
+      enum: DONATION_STATUS,
+      default: DONATION_STATUS[0],
       index: true,
     },
     donationDate: { type: Date, required: true, default: Date.now },

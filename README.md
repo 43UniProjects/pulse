@@ -84,9 +84,7 @@ bun install
 3. Set up Environment Variables by creating a `.env.local` file (you can rename `example.env`):
 
 ```bash
-NEXT_PUBLIC_API_URL=http://localhost:3000/api
-MONGODB_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret
+MONGODB_URI=mongodb://<user>:<pass>@localhost:27018/pulse_db?authSource=admin
 
 ```
 

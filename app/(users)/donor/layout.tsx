@@ -3,7 +3,7 @@ import DashboardSidebar from '@/components/users/dashboard-sidebar';
 
 const DONOR_LINKS = [
   { name: 'Dashboard', href: '/donor/dashboard' },
-  { name: 'Donation Requests', href: '/donor/requests' },
+  { name: 'Active Requests', href: '/donor/requests' },
   { name: 'Profile', href: '/donor/profile' },
 ];
 
