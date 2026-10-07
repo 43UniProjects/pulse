@@ -4,11 +4,15 @@ import { getServerSession } from 'next-auth';
 import Footer from '@/components/footer';
 import Header from '@/components/header/main';
 import ContactForm from './contact-form';
+import { USER_ROLE, UserEntity } from '@/types/user.type';
 
 export default async function ContactPage() {
   const session = await getServerSession();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const userRole = session?.user ? (session.user as any).role : 'Guest';
+
+  //  if session.user then session.user.role; or 'guest'
+  const userRole = session?.user
+    ? (session.user as UserEntity).role
+    : USER_ROLE[3]; // 'guest'
 
   return (
     <>
