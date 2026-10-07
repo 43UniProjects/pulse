@@ -22,7 +22,5 @@ const ADMINS_DB: Record<string, AdminEntity> = {
 export async function getAdminProfile(
   adminId: string,
 ): Promise<AdminEntity | null> {
-  // Simulate network latency
-  await new Promise((resolve) => setTimeout(resolve, 300));
   return ADMINS_DB[adminId] || null;
 }

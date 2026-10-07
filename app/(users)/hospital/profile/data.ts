@@ -34,7 +34,5 @@ const HOSPITALS_DB: Record<string, HospitalEntity> = {
 export async function getHospitalProfile(
   hospitalId: string,
 ): Promise<HospitalEntity | null> {
-  // Simulate network latency
-  await new Promise((resolve) => setTimeout(resolve, 300));
   return HOSPITALS_DB[hospitalId] || null;
 }
