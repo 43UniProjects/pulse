@@ -42,7 +42,7 @@ export function getMongoUri(): string {
 
   // Default to the Docker service name 'mongodb:27017'
   const host = process.env.MONGO_DATABASE_HOST || 'mongodb';
-  const port = process.env.MONGO_DATABASE_PORT || '27017';
+  const port = process.env.MONGO_DATABASE_PORT || '27018';
   const dbName = process.env.MONGO_DATABASE_NAME || 'pulse_db';
 
   if (!user.value || !pass.value) {
