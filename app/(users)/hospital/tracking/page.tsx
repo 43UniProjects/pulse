@@ -33,11 +33,11 @@ interface MockTrackingRequest {
   requiredUnits: number;
   fulfilledUnits: number;
   createdAt: Date;
-  respondingDonors: MockRespondingDonor[];
+  donationResponses: MockRespondingDonor[];
 }
 
 // --- 2. Mock Data Initialization ---
-const mockRequests: MockTrackingRequest[] = [
+const mockDonationRequests: MockTrackingRequest[] = [
   {
     _id: 'req_001',
     bloodGroup: 'O-',
@@ -45,7 +45,7 @@ const mockRequests: MockTrackingRequest[] = [
     requiredUnits: 5,
     fulfilledUnits: 2,
     createdAt: new Date(Date.now() - 1000 * 60 * 30),
-    respondingDonors: [
+    donationResponses: [
       {
         _id: 'don_1',
         name: 'Kamal Perera',
@@ -71,7 +71,7 @@ const mockRequests: MockTrackingRequest[] = [
     requiredUnits: 3,
     fulfilledUnits: 0,
     createdAt: new Date(Date.now() - 1000 * 60 * 120),
-    respondingDonors: [
+    donationResponses: [
       {
         _id: 'don_3',
         name: 'Suresh Silva',
@@ -87,7 +87,7 @@ const mockRequests: MockTrackingRequest[] = [
 // --- 3. Component UI ---
 export default function HospitalTrackingPage() {
   const [selectedRequest, setSelectedRequest] = useState<MockTrackingRequest>(
-    mockRequests[0],
+    mockDonationRequests[0],
   );
 
   return (
@@ -105,7 +105,7 @@ export default function HospitalTrackingPage() {
         {/* Uses the primary brand color with opacity for the background */}
         <div className="flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-md font-medium border border-primary/20">
           <Activity className="w-5 h-5 animate-pulse" />
-          <span>{mockRequests.length} Active Requests</span>
+          <span>{mockDonationRequests.length} Active Requests</span>
         </div>
       </div>
 
@@ -116,12 +116,12 @@ export default function HospitalTrackingPage() {
             Active Requests
           </h2>
           <div className="space-y-3">
-            {mockRequests.map((req) => (
+            {mockDonationRequests.map((donationRequest) => (
               <button
-                key={req._id}
-                onClick={() => setSelectedRequest(req)}
+                key={donationRequest._id}
+                onClick={() => setSelectedRequest(donationRequest)}
                 className={`w-full text-left p-4 rounded-lg border transition-all ${
-                  selectedRequest._id === req._id
+                  selectedRequest._id === donationRequest._id
                     ? 'border-primary bg-primary/5 shadow-sm'
                     : 'border-border bg-card hover:border-primary/50'
                 }`}
@@ -129,23 +129,28 @@ export default function HospitalTrackingPage() {
                 <div className="flex justify-between items-start mb-2">
                   <div className="flex items-center gap-2 text-foreground">
                     <Droplet className="w-5 h-5 text-primary" />
-                    <span className="font-bold text-lg">{req.bloodGroup}</span>
+                    <span className="font-bold text-lg">
+                      {donationRequest.bloodGroup}
+                    </span>
                   </div>
                   <span
                     className={`text-xs font-bold px-2 py-1 rounded-sm uppercase ${
-                      req.urgency === 'critical'
+                      donationRequest.urgency === 'critical'
                         ? 'bg-destructive/10 text-destructive'
                         : 'bg-orange-500/10 text-orange-600 dark:text-orange-400'
                     }`}
                   >
-                    {req.urgency}
+                    {donationRequest.urgency}
                   </span>
                 </div>
                 <div className="text-sm text-muted-foreground flex justify-between font-tabular">
                   <span>
-                    Units: {req.fulfilledUnits} / {req.requiredUnits}
+                    Units: {donationRequest.fulfilledUnits} /{' '}
+                    {donationRequest.requiredUnits}
                   </span>
-                  <span>{req.respondingDonors.length} Responding</span>
+                  <span>
+                    {donationRequest.donationResponses.length} Responding
+                  </span>
                 </div>
               </button>
             ))}
@@ -189,32 +194,32 @@ export default function HospitalTrackingPage() {
                 Live Donor Status
               </h4>
 
-              {selectedRequest.respondingDonors.length === 0 ? (
+              {selectedRequest.donationResponses.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">
                   Waiting for donors to accept this request...
                 </p>
               ) : (
                 <div className="space-y-4">
-                  {selectedRequest.respondingDonors.map((donor) => (
+                  {selectedRequest.donationResponses.map((donationResponse) => (
                     <div
-                      key={donor._id}
+                      key={donationResponse._id}
                       className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 rounded-md border border-border bg-secondary/20 gap-4"
                     >
                       <div>
                         <p className="font-semibold text-foreground">
-                          {donor.name}
+                          {donationResponse.name}
                         </p>
                         <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1 font-tabular">
-                          <Phone className="w-3 h-3" /> {donor.phone}
+                          <Phone className="w-3 h-3" /> {donationResponse.phone}
                         </p>
                       </div>
 
                       <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
                         {/* ETA Badge */}
-                        {donor.status === 'in_transit' ? (
+                        {donationResponse.status === 'pending' ? (
                           <div className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400 bg-blue-500/10 px-3 py-1 rounded-sm text-sm font-medium font-tabular">
                             <Clock className="w-4 h-4" />
-                            ETA: {donor.etaMins} mins
+                            ETA: {donationResponse.etaMins} mins
                           </div>
                         ) : (
                           <div className="flex items-center gap-1.5 text-green-600 dark:text-green-400 bg-green-500/10 px-3 py-1 rounded-sm text-sm font-medium">
