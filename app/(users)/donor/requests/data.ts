@@ -1,125 +1,106 @@
-// ---------------------------------------------------------
-// Types
-// ---------------------------------------------------------
-
-export interface DonorProfile {
-  id: string;
-  fullName: string;
-  bloodGroup: string;
-  phone: string;
-  location: string;
-  lastDonationDate: string;
-  isVerified: boolean;
-  verifiedBy: string;
-  verificationDate: string;
-  isAvailable: boolean;
-}
-
-export type RequestUrgency = 'critical' | 'high' | 'normal';
-export type RequestStatus = 'pending' | 'accepted' | 'completed' | 'declined';
-
-export interface RequestDetails {
-  id: string;
-  hospitalName: string;
-  address: string;
-  bloodGroup: string;
-  quantity: string;
-  urgency: RequestUrgency;
-  status: RequestStatus;
-  distance: string;
-  timePosted: string;
-  notes: string;
-}
-
-export interface Donor {
-  id: string;
-  fullName: string;
-  bloodGroup: string;
-  location: string;
-  history: string[]; // Array of Request IDs the donor has interacted with
-}
+import {
+  DonationRequestEntity,
+  REQUEST_URGENCY_LEVEL,
+  REQUEST_STATUS,
+} from '@/types/donor-request.type';
+import { DonorEntity } from '@/types/donor.type';
+import { DonationEntity, DONATION_STATUS } from '@/types/donation.type';
+import { BLOOD_GROUPS } from '@/types/common.type';
 
 // ---------------------------------------------------------
 // MOCK DATABASES
 // ---------------------------------------------------------
 
-const REQUESTS_DB: Record<string, RequestDetails> = {
-  // Pending Requests (Active in the network)
+// 1. Mocking Donation Requests (What hospitals post)
+const REQUESTS_DB: Record<string, DonationRequestEntity> = {
   'REQ-8023': {
-    id: 'REQ-8023',
+    _id: 'REQ-8023',
+    hospitalId: 'hosp_1',
     hospitalName: 'Nawaloka Hospital',
     address: 'Deshamanya H. K. Dharmadasa Mawatha, Colombo 02',
-    bloodGroup: 'O+',
-    quantity: '2 units',
-    urgency: 'critical',
-    status: 'pending',
+    location: { type: 'Point', coordinates: [79.8511, 6.9157] },
+    bloodGroup: BLOOD_GROUPS[6], // 'O+'
+    quantity: 2,
+    urgency: REQUEST_URGENCY_LEVEL[0], // 'critical'
+    status: REQUEST_STATUS[0], // 'pending'
+    radiusKm: 10,
     distance: '2.4 km',
     timePosted: '10 mins ago',
     notes:
       'Needed for emergency surgery scheduled at 6:00 AM. Please arrive ASAP.',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   'REQ-8040': {
-    id: 'REQ-8040',
+    _id: 'REQ-8040',
+    hospitalId: 'hosp_2',
     hospitalName: 'National Hospital of Sri Lanka',
     address: 'Regent Street, Colombo 10',
-    bloodGroup: 'O+',
-    quantity: '1 unit',
-    urgency: 'high',
-    status: 'pending',
+    location: { type: 'Point', coordinates: [79.8643, 6.9197] },
+    bloodGroup: BLOOD_GROUPS[6], // 'O+'
+    quantity: 1,
+    urgency: REQUEST_URGENCY_LEVEL[1], // 'high'
+    status: REQUEST_STATUS[0], // 'pending'
+    radiusKm: 15,
     distance: '3.1 km',
     timePosted: '1 hour ago',
     notes: 'Urgent requirement for accident & emergency trauma unit.',
-  },
-  // Historical Requests (Already accepted/completed by donors)
-  'REQ-8015': {
-    id: 'REQ-8015',
-    hospitalName: 'Asiri Central Hospital',
-    address: 'Norris Canal Road, Colombo 10',
-    bloodGroup: 'B+',
-    quantity: '1 unit',
-    urgency: 'high',
-    status: 'accepted',
-    distance: '4.1 km',
-    timePosted: '2 days ago',
-    notes: 'For a patient in the ICU. Preferred within 4 hours.',
-  },
-  'REQ-7992': {
-    id: 'REQ-7992',
-    hospitalName: 'Lanka Hospitals',
-    address: 'Narahenpita Road, Colombo 05',
-    bloodGroup: 'A-',
-    quantity: '3 units',
-    urgency: 'normal',
-    status: 'completed',
-    distance: '5.8 km',
-    timePosted: '4 months ago',
-    notes: 'Elective surgery tomorrow morning. Advance planning.',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
 };
 
-const DONORS_DB: Record<string, Donor> = {
-  '1': {
-    id: '1',
-    fullName: 'Kamal Perera',
-    bloodGroup: 'O+',
-    location: 'Colombo 05',
-    // Kamal's history links directly to the historical requests in REQUESTS_DB
-    history: ['REQ-8015', 'REQ-7992'],
+// 2. Mocking Completed Donations (For Donor History)
+const DONATIONS_DB: Record<string, DonationEntity> = {
+  'DON-1001': {
+    _id: 'DON-1001',
+    donationId: 'DON-1001',
+    requestId: 'REQ-8015',
+    donorId: 'donor_1',
+    hospitalId: 'hosp_3',
+    bloodGroup: BLOOD_GROUPS[6], // 'O+'
+    units: 1,
+    status: DONATION_STATUS[2], // 'completed'
+    donationDate: new Date('2026-03-12T10:00:00Z').toISOString(),
+    clinicalNotes: 'Smooth donation process.',
+    createdAt: new Date('2026-03-12T10:00:00Z').toISOString(),
+    updatedAt: new Date('2026-03-12T10:00:00Z').toISOString(),
+  },
+  'DON-1002': {
+    _id: 'DON-1002',
+    donationId: 'DON-1002',
+    requestId: 'REQ-7992',
+    donorId: 'donor_1',
+    hospitalId: 'hosp_4',
+    bloodGroup: BLOOD_GROUPS[6], // 'O+'
+    units: 1,
+    status: DONATION_STATUS[2], // 'completed'
+    donationDate: new Date('2025-11-10T14:30:00Z').toISOString(),
+    createdAt: new Date('2025-11-10T14:30:00Z').toISOString(),
+    updatedAt: new Date('2025-11-10T14:30:00Z').toISOString(),
   },
 };
 
-const DONOR_PROFILES: Record<string, DonorProfile> = {
-  '1': {
-    id: '1',
+// 3. Mocking the Donor Profiles
+const DONORS_DB: Record<string, DonorEntity> = {
+  donor_1: {
+    _id: 'donor_1',
     fullName: 'Kamal Perera',
-    bloodGroup: 'O+',
+    email: 'kamal@example.com',
     phone: '+94 77 123 4567',
-    location: 'Nugegoda, Colombo',
-    lastDonationDate: '12 March 2026',
-    isVerified: true,
-    verifiedBy: 'Nawaloka Hospital',
-    verificationDate: '18 Sep 2026',
+    bloodGroup: BLOOD_GROUPS[6], // 'O+'
+    dateOfBirth: new Date('1990-05-15'),
+    address: 'Nugegoda, Colombo',
+    location: { type: 'Point', coordinates: [79.8963, 6.8649] },
+    radiusPreferenceKm: 15,
+    lastDonationDate: new Date('2026-03-12T10:00:00Z'),
+    isEligible: true,
     isAvailable: true,
+    liveLocationSync: false,
+    smsAlertsEnabled: true,
+    emailAlertsEnabled: false,
+    // Filling the history with actual DonationEntity objects
+    history: [DONATIONS_DB['DON-1001'], DONATIONS_DB['DON-1002']],
   },
 };
 
@@ -128,47 +109,34 @@ const DONOR_PROFILES: Record<string, DonorProfile> = {
 // ---------------------------------------------------------
 
 /**
- * Retrieves a donor's profile and metadata.
+ * Retrieves a donor's profile.
  */
-export function getDonor(donorId: string): Donor | null {
+export function getDonorProfile(donorId: string): DonorEntity | null {
   return DONORS_DB[donorId] || null;
 }
 
 /**
- * Retrieves a donor's specific history -> getDonor(donorId).history
+ * Retrieves a donor's specific donation history.
  */
-export function getDonationHistory(
-  donorId: string,
-): Record<string, RequestDetails> {
-  const donor = getDonor(donorId);
+export function getDonationHistory(donorId: string): DonationEntity[] {
+  const donor = getDonorProfile(donorId);
 
-  if (!donor) return {};
+  if (!donor || !donor.history) return [];
 
-  const historyRecord: Record<string, RequestDetails> = {};
-
-  // Map the IDs from the donor's history array to the actual request objects
-  donor.history.forEach((reqId) => {
-    if (REQUESTS_DB[reqId]) {
-      historyRecord[reqId] = REQUESTS_DB[reqId];
-    }
-  });
-
-  return historyRecord;
+  // Since we directly populated history with DonationEntity objects in the mock, return it
+  return donor.history as DonationEntity[];
 }
 
 /**
- * Retrieves all active, pending requests in the network for a donor.
- * In a real backend, this would filter by donor.bloodGroup compatibility and geo-radius.
+ * Retrieves all active, pending requests in the network.
  */
-export function getDonationRequests(
-  donorId: string,
-): Record<string, RequestDetails> {
-  const activeRequests: Record<string, RequestDetails> = {};
+export function getDonationRequests(): Record<string, DonationRequestEntity> {
+  const activeRequests: Record<string, DonationRequestEntity> = {};
 
-  // Filter all requests in the DB for those that are still 'pending'
   Object.values(REQUESTS_DB).forEach((req) => {
     if (req.status === 'pending') {
-      activeRequests[req.id] = req;
+      // In a real app, you would use the `_id` of the document
+      activeRequests[req._id as string] = req;
     }
   });
 
@@ -178,13 +146,8 @@ export function getDonationRequests(
 /**
  * Retrieves a single specific blood request by its ID.
  */
-export function getDonationRequest(requestId: string): RequestDetails | null {
+export function getDonationRequest(
+  requestId: string,
+): DonationRequestEntity | null {
   return REQUESTS_DB[requestId] || null;
-}
-
-/**
- * Retrieves the donor's personal profile information.
- */
-export function getDonorProfile(donorId: string): DonorProfile | null {
-  return DONOR_PROFILES[donorId] || null;
 }

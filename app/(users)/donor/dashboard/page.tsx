@@ -10,11 +10,11 @@ import {
   AlertCircle,
   Droplet,
 } from 'lucide-react';
+import { getDonorProfile, getDonationRequests } from '../requests/data';
 import {
-  getDonor,
-  getDonationRequests,
-  RequestDetails,
-} from '../requests/data';
+  DonationRequestEntity,
+  REQUEST_URGENCY_LEVEL,
+} from '@/types/donor-request.type';
 
 export const metadata: Metadata = {
   title: 'Donor Dashboard | Pulse',
@@ -23,9 +23,9 @@ export const metadata: Metadata = {
 
 export default async function DonorDashboard() {
   // In a real application, you would get this ID from the authenticated session
-  const donorId = '1';
-  const donor = getDonor(donorId);
-  const activeRequests = Object.values(getDonationRequests(donorId));
+  const donorId = 'donor_1';
+  const donor = getDonorProfile(donorId);
+  const activeRequests = Object.values(getDonationRequests());
 
   if (!donor) {
     return (
@@ -74,7 +74,8 @@ export default async function DonorDashboard() {
               <div className="text-xs text-muted-foreground leading-relaxed">
                 We will text you the moment{' '}
                 <strong className="text-foreground">{donor.bloodGroup}</strong>{' '}
-                blood is needed within a 10km radius of {donor.location}.
+                blood is needed within a {donor.radiusPreferenceKm}km radius of{' '}
+                {donor.address}.
               </div>
             </div>
           </div>
@@ -94,10 +95,12 @@ export default async function DonorDashboard() {
               </div>
               <div>
                 <p className="text-lg font-semibold text-foreground">
-                  Eligible to Donate
+                  {donor.isEligible ? 'Eligible to Donate' : 'Not Eligible'}
                 </p>
                 <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
-                  Clearance active
+                  {donor.isEligible
+                    ? 'Clearance active'
+                    : 'Please check details'}
                 </p>
               </div>
             </div>
@@ -105,7 +108,11 @@ export default async function DonorDashboard() {
             <p className="text-xs text-muted-foreground flex items-start gap-2 pt-4 border-t border-border">
               <Clock className="w-4 h-4 shrink-0" />
               <span>
-                Your last donation was on 12 Mar 2026 — over 120 days ago.
+                Your last donation was on{' '}
+                {donor.lastDonationDate
+                  ? new Date(donor.lastDonationDate).toLocaleDateString()
+                  : 'Never'}
+                .
               </span>
             </p>
           </div>
@@ -131,14 +138,14 @@ export default async function DonorDashboard() {
                 No active emergencies in your area right now.
               </div>
             ) : (
-              activeRequests.map((request: RequestDetails) => (
+              activeRequests.map((request: DonationRequestEntity) => (
                 <Link
-                  key={request.id}
-                  href={`/donor/requests/${request.id}`}
+                  key={request._id}
+                  href={`/donor/requests/${request._id}`}
                   className="group block bg-card border border-border rounded-xl p-4 md:p-5 hover:border-primary/50 hover:shadow-sm transition-all relative overflow-hidden"
                 >
                   {/* Red accent bar for critical requests */}
-                  {request.urgency === 'critical' && (
+                  {request.urgency === REQUEST_URGENCY_LEVEL[0] && (
                     <div className="absolute left-0 top-0 bottom-0 w-1 bg-red-600" />
                   )}
 
@@ -147,7 +154,7 @@ export default async function DonorDashboard() {
                       <div className="flex items-center gap-2 mb-1">
                         <UrgencyBadge level={request.urgency} />
                         <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider hidden sm:inline-block">
-                          {request.id}
+                          {request._id}
                         </span>
                       </div>
                       <h3 className="font-medium text-foreground text-base group-hover:text-primary transition-colors">
@@ -159,7 +166,8 @@ export default async function DonorDashboard() {
                           {request.bloodGroup}
                         </span>
                         <span className="flex items-center gap-1 hidden sm:flex">
-                          <MapPin className="w-3 h-3" /> {request.distance} away
+                          <MapPin className="w-3 h-3" />{' '}
+                          {request.distance || 'Nearby'}
                         </span>
                         <span className="flex items-center gap-1">
                           <Clock className="w-3 h-3" /> {request.timePosted}
@@ -189,14 +197,14 @@ export default async function DonorDashboard() {
 // --- Helper Component ---
 
 function UrgencyBadge({ level }: { level?: string }) {
-  if (level === 'critical') {
+  if (level === REQUEST_URGENCY_LEVEL[0]) {
     return (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-[10px] font-bold uppercase tracking-widest border border-red-200 dark:border-red-900/50">
         <AlertCircle className="w-3 h-3" /> Critical
       </span>
     );
   }
-  if (level === 'high') {
+  if (level === REQUEST_URGENCY_LEVEL[1]) {
     return (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 text-[10px] font-bold uppercase tracking-widest border border-orange-200 dark:border-orange-900/50">
         <Activity className="w-3 h-3" /> High

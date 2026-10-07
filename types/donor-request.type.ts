@@ -6,6 +6,7 @@ export const REQUEST_STATUS = [
   'accepted',
   'completed',
   'declined',
+  'in_transit',
 ] as const;
 
 export type RequestUrgency = (typeof REQUEST_URGENCY_LEVEL)[number];

@@ -1,7 +1,23 @@
+import { Suspense } from 'react';
 import { Phone, Mail, MapPin, Clock } from 'lucide-react';
+import { getServerSession } from 'next-auth';
 
 import Footer from '@/components/footer';
 import Header from '@/components/header/main';
+import GenericFallback from '@/components/fallback';
+import ContactForm from './contact-form';
+import { USER_ROLE, UserEntity } from '@/types/user.type';
+
+async function ContactFormWrapper() {
+  const session = await getServerSession();
+
+  // Safely extract the role from the session, fallback to 'guest'
+  const userRole = session?.user
+    ? (session.user as UserEntity).role
+    : USER_ROLE[3]; // 'guest'
+
+  return <ContactForm userRole={userRole} />;
+}
 
 export default function ContactPage() {
   return (
@@ -89,94 +105,11 @@ export default function ContactPage() {
               </div>
             </div>
 
-            {/* Contact Form */}
-            <div className="bg-card border border-border rounded-xl p-6 sm:p-8 shadow-sm">
-              <h2 className="text-xl font-semibold text-foreground mb-6">
-                Send a Message
-              </h2>
-              <form className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label
-                      htmlFor="firstName"
-                      className="text-sm font-medium text-foreground"
-                    >
-                      First Name
-                    </label>
-                    <input
-                      id="firstName"
-                      type="text"
-                      className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label
-                      htmlFor="lastName"
-                      className="text-sm font-medium text-foreground"
-                    >
-                      Last Name
-                    </label>
-                    <input
-                      id="lastName"
-                      type="text"
-                      className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label
-                    htmlFor="email"
-                    className="text-sm font-medium text-foreground"
-                  >
-                    Email Address
-                  </label>
-                  <input
-                    id="email"
-                    type="email"
-                    className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label
-                    htmlFor="subject"
-                    className="text-sm font-medium text-foreground"
-                  >
-                    Subject
-                  </label>
-                  <select
-                    id="subject"
-                    className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all appearance-none"
-                  >
-                    <option>General Inquiry</option>
-                    <option>Hospital API Integration</option>
-                    <option>Donor Account Issue</option>
-                    <option>Report a Bug</option>
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <label
-                    htmlFor="message"
-                    className="text-sm font-medium text-foreground"
-                  >
-                    Message
-                  </label>
-                  <textarea
-                    id="message"
-                    rows={4}
-                    className="w-full p-3 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all resize-none"
-                  ></textarea>
-                </div>
-
-                <button
-                  type="button"
-                  className="w-full h-10 mt-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
-                >
-                  Send Message
-                </button>
-              </form>
+            {/* Contact Form with Suspense Boundary */}
+            <div className="w-full">
+              <Suspense fallback={<GenericFallback />}>
+                <ContactFormWrapper />
+              </Suspense>
             </div>
           </div>
         </section>

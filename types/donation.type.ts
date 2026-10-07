@@ -6,6 +6,7 @@ export const DONATION_STATUS = [
   'completed',
   'declined',
   'expired',
+  'in_transit',
 ] as const;
 
 export type DonationStatus = (typeof DONATION_STATUS)[number];
