@@ -10,7 +10,8 @@ import {
   Mail,
   Edit3,
 } from 'lucide-react';
-import { getDonor, getDonationHistory } from '../requests/data';
+import { getDonorProfile, getDonationHistory } from '../requests/data';
+import { DONATION_STATUS } from '@/types/donation.type';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
@@ -20,13 +21,13 @@ export const metadata: Metadata = {
 
 export default async function DonorProfilePage() {
   // In a real app, you would get the ID from the session/JWT cookie
-  const donorId = '1';
-  const donor = getDonor(donorId);
-  const history = Object.values(getDonationHistory(donorId));
+  const donorId = 'donor_1';
+  const donor = getDonorProfile(donorId);
+  const history = getDonationHistory(donorId);
 
   // Calculate stats based on history
   const completedDonations = history.filter(
-    (req) => req.status === 'completed',
+    (req) => req.status === DONATION_STATUS[2], // 'completed'
   ).length;
 
   if (!donor) {
@@ -36,6 +37,10 @@ export default async function DonorProfilePage() {
       </div>
     );
   }
+
+  // Calculate age safely
+  const dob = new Date(donor.dateOfBirth);
+  const age = new Date().getFullYear() - dob.getFullYear();
 
   return (
     <div className="max-w-5xl mx-auto w-full space-y-6 animate-in fade-in duration-500">
@@ -73,11 +78,11 @@ export default async function DonorProfilePage() {
               <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-muted-foreground mt-2">
                 <span className="flex items-center justify-center sm:justify-start gap-1.5">
                   <User className="w-4 h-4" /> ID: PLS-
-                  {donor.id.padStart(4, '0')}
+                  {(donor._id as string).replace('donor_', '').padStart(4, '0')}
                 </span>
                 <span className="hidden sm:inline">•</span>
                 <span className="flex items-center justify-center sm:justify-start gap-1.5">
-                  <MapPin className="w-4 h-4" /> {donor.location}
+                  <MapPin className="w-4 h-4" /> {donor.address}
                 </span>
               </div>
             </div>
@@ -95,8 +100,7 @@ export default async function DonorProfilePage() {
                 </p>
                 <p className="text-sm font-medium text-foreground flex items-center gap-2">
                   <Mail className="w-4 h-4 text-muted-foreground" />
-                  {/* Mocking email since it wasn't in our minimal Donor interface */}
-                  {donor.fullName.split(' ')[0].toLowerCase()}@example.com
+                  {donor.email}
                 </p>
               </div>
               <div>
@@ -105,7 +109,7 @@ export default async function DonorProfilePage() {
                 </p>
                 <p className="text-sm font-medium text-foreground flex items-center gap-2">
                   <Phone className="w-4 h-4 text-muted-foreground" />
-                  +94 77 123 4567
+                  {donor.phone}
                 </p>
               </div>
               <div>
@@ -113,16 +117,20 @@ export default async function DonorProfilePage() {
                   Date of Birth
                 </p>
                 <p className="text-sm font-medium text-foreground">
-                  14 May 1995 (29 years)
+                  {dob.toLocaleDateString()} ({age} years)
                 </p>
               </div>
               <div>
                 <p className="text-xs font-medium text-muted-foreground mb-1">
                   Account Status
                 </p>
-                <p className="text-sm font-medium text-primary flex items-center gap-1.5">
+                <p
+                  className={`text-sm font-medium flex items-center gap-1.5 ${donor.isEligible ? 'text-primary' : 'text-yellow-600'}`}
+                >
                   <ShieldCheck className="w-4 h-4" />
-                  Verified
+                  {donor.isEligible
+                    ? 'Verified & Active'
+                    : 'Pending Verification'}
                 </p>
               </div>
             </div>
@@ -133,23 +141,31 @@ export default async function DonorProfilePage() {
         <div className="space-y-6">
           {/* Eligibility Card */}
           <div className="bg-card border border-border rounded-xl p-6 shadow-sm relative overflow-hidden">
-            {/* Green accent line */}
-            <div className="absolute top-0 left-0 right-0 h-1.5 bg-primary" />
+            {/* Accent line based on eligibility */}
+            <div
+              className={`absolute top-0 left-0 right-0 h-1.5 ${donor.isEligible ? 'bg-primary' : 'bg-yellow-500'}`}
+            />
 
             <h3 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground mb-4 mt-1">
               Clinical Status
             </h3>
 
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2.5 rounded-full bg-primary/10 text-primary">
+              <div
+                className={`p-2.5 rounded-full ${donor.isEligible ? 'bg-primary/10 text-primary' : 'bg-yellow-500/10 text-yellow-600'}`}
+              >
                 <Activity className="w-5 h-5" />
               </div>
               <div>
                 <p className="text-lg font-semibold text-foreground">
-                  Eligible to Donate
+                  {donor.isEligible
+                    ? 'Eligible to Donate'
+                    : 'Currently Ineligible'}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  4-month waiting period cleared
+                  {donor.isEligible
+                    ? '4-month waiting period cleared'
+                    : 'Check clinical requirements'}
                 </p>
               </div>
             </div>

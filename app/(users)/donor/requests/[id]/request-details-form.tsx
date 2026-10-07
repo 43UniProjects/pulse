@@ -2,7 +2,8 @@
 
 import { useState, use } from 'react'; // 1. Import `use`
 import { MapPin } from 'lucide-react';
-import { getDonationRequest, RequestStatus } from '../data';
+import { getDonationRequest } from '../data';
+import { RequestStatus } from '@/types/donor-request.type';
 
 export default function RequestDetailClient({
   paramsPromise,
