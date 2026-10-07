@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import { Phone, Mail, MapPin, Clock } from 'lucide-react';
 import { getServerSession } from 'next-auth';
 
-import Footer from '@/components/footer';
+import Footer from '@/components/Footer';
 import Header from '@/components/header/main';
 import GenericFallback from '@/components/fallback';
 import ContactForm from './contact-form';

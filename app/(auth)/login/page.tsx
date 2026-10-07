@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import LoginForm from './login-form';
-import Footer from '@/components/footer';
+import Footer from '@/components/Footer';
 import Header from '@/components/header/main';
 
 export const metadata: Metadata = {

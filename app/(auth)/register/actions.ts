@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation';
 import { createAccount } from './data';
 import { AccountType, RegistrationPayload } from './types';
 
+import { registerSchema } from '@/lib/validators/auth.schema';
+
 export interface RegisterActionState {
   error?: string;
 }
@@ -12,20 +14,33 @@ export async function registerAccount(
   prevState: RegisterActionState | null,
   formData: FormData,
 ): Promise<RegisterActionState | null> {
-  const role = formData.get('role')?.toString() as AccountType;
-  const email = formData.get('email')?.toString();
-  const password = formData.get('password')?.toString();
+  const payload = Object.fromEntries(formData.entries());
 
-  if (!role || !email || !password) {
-    return { error: 'Please fill out all required fields.' };
+  const validation = registerSchema.safeParse({
+    role:
+      payload.role === 'donor'
+        ? 'Donor'
+        : payload.role === 'hospital'
+          ? 'Hospital'
+          : undefined,
+    email: payload.email,
+    password: payload.password,
+    confirmPassword: payload.confirmPassword,
+  });
+
+  if (!validation.success) {
+    return { error: validation.error.issues[0].message };
   }
 
-  try {
-    // Convert the entire FormData map into a plain object for the database payload
-    const payload = Object.fromEntries(formData.entries());
+  // Extract the validated and formatted data
+  const { role, email, password } = validation.data;
 
-    // Cast the payload to RegistrationPayload for type safety
-    const typedPayload = payload as unknown as RegistrationPayload;
+  // Format role back to lowercase for internal mock storage
+  const formattedRole = role.toLowerCase() as AccountRole;
+
+  try {
+    // Call the mock database (or your real Express backend)
+    await createAccount(formattedRole, { email, password });
 
     // Call the mock database with the typed payload
     await createAccount(typedPayload);
@@ -38,6 +53,6 @@ export async function registerAccount(
     };
   }
 
-  // Redirect to login page for email verification / authentication
-  redirect('/login');
+  // Redirect to the verify-email step on success
+  redirect('/verify-email');
 }

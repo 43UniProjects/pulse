@@ -2,7 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Zap, MapPin, ShieldCheck, ArrowRight, Activity } from 'lucide-react';
 
-import Footer from '@/components/footer';
+import Footer from '@/components/Footer';
 import Header from '@/components/header/main';
 
 export default function HomePage() {
