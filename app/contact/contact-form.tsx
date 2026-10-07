@@ -5,7 +5,7 @@ import { submitContactMessage } from '@/actions/contact.actions';
 import { UserRole } from '@/types/user.type';
 
 interface ContactFormProps {
-  userRole: UserRole | 'Guest';
+  userRole: UserRole;
 }
 
 const initialState = {
@@ -20,17 +20,17 @@ export default function ContactForm({ userRole }: ContactFormProps) {
     initialState,
   );
 
-  const isGuest = userRole === 'Guest';
+  const isGuest = userRole === 'guest';
+
   const formTitle =
-    userRole === 'Guest' || userRole === 'Admin'
+    userRole === 'guest' || userRole === 'admin'
       ? 'Contact Developers'
       : 'Contact Support';
 
   useEffect(() => {
     if (state.success) {
-      // In a real app, you'd trigger a toast here
       alert('Message sent successfully!');
-      // Reset form could be handled here or via form ref
+      // A standard reset ref or logic can be added here
     } else if (state.message && !state.success && !state.errors) {
       alert(state.message);
     }

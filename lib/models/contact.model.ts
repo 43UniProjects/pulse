@@ -4,7 +4,7 @@ import {
   CONTACT_STATUS,
   CONTACT_TARGET,
 } from '@/types/contact.type';
-import { USER_ROLES } from '@/types/user.type';
+import { USER_ROLE } from '@/types/user.type';
 
 export interface IContactDocument
   extends Omit<ContactEntity, '_id' | 'userId'>, Document {
@@ -21,7 +21,7 @@ const ContactSchema = new Schema<IContactDocument>(
     },
     senderRole: {
       type: String,
-      enum: [...USER_ROLES, 'Guest'],
+      enum: USER_ROLE,
       required: true,
     },
     targetAudience: {

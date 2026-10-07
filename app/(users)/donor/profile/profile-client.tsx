@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { DonorEntity } from '@/types/donor.type';
-import DonorProfileView from './donor-profile-view';
-import DonorProfileForm from './donor-profile-form';
+import DonorProfileView from './profile-view';
+import DonorProfileForm from './profile-form';
 
 export default function DonorProfileClient({
   initialData,

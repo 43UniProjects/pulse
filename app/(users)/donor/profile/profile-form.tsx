@@ -1,10 +1,8 @@
 'use client';
 
 import { useActionState, useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import {
   Bell,
-  Shield,
   Moon,
   Smartphone,
   Mail,
@@ -16,7 +14,6 @@ import {
   Radar,
   Navigation,
   Droplet,
-  Calendar,
 } from 'lucide-react';
 import { updateDonorProfile } from '@/actions/donor.actions';
 import { DonorEntity } from '@/types/donor.type';
@@ -31,7 +28,6 @@ export default function DonorProfileForm({
   onCancel: () => void;
   onSuccess: () => void;
 }) {
-  const router = useRouter();
   const [state, formAction, isPending] = useActionState(updateDonorProfile, {
     success: false,
     message: '',

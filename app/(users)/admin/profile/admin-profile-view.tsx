@@ -1,6 +1,5 @@
 import {
   User,
-  MapPin,
   Phone,
   Mail,
   Edit3,
@@ -8,7 +7,6 @@ import {
   Clock,
   Activity,
   Briefcase,
-  CalendarDays,
   CheckCircle2,
   XCircle,
   AlertCircle,
