@@ -5,6 +5,7 @@ const HOSPITAL_LINKS = [
   { name: 'Dashboard', href: '/hospital/dashboard' },
   { name: 'Post Request', href: '/hospital/post-request' },
   { name: 'Registered Donors', href: '/hospital/donors' },
+  { name: 'Profile', href: '/hospital/profile' },
 ];
 
 export default function HospitalLayout({

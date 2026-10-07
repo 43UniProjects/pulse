@@ -29,8 +29,8 @@ export default async function DonorProfilePage() {
     smsAlertsEnabled: true,
     emailAlertsEnabled: false,
     history: [],
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2023-01-01'),
+    updatedAt: new Date('2024-01-01'),
   };
 
   return (
