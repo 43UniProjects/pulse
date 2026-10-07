@@ -22,7 +22,7 @@ export default function ContactForm({ userRole }: ContactFormProps) {
 
   const isGuest = userRole === 'Guest';
   const formTitle =
-    userRole === 'Guest' || userRole === 'Admin'
+    userRole === 'Guest' || userRole === 'admin'
       ? 'Contact Developers'
       : 'Contact Support';
 

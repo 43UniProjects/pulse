@@ -1,20 +1,5 @@
 import { Metadata } from 'next';
 
-import {
-  User,
-  MapPin,
-  Droplet,
-  ShieldCheck,
-  Clock,
-  Activity,
-  Phone,
-  Mail,
-  Edit3,
-} from 'lucide-react';
-import { getDonorProfile, getDonationHistory } from '../requests/data';
-import { DONATION_STATUS } from '@/types/donation.type';
-import ProfileClient from './profile-client';
-
 import { DonorEntity } from '@/types/donor.type';
 import DonorProfileClient from './donor-profile-client';
 
