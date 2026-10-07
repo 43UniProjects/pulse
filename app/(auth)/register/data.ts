@@ -1,56 +1,32 @@
-export type AccountRole = 'donor' | 'hospital';
+import { UserEntity } from '@/types/user.type';
+import { RegistrationPayload } from './types';
 
-export interface DonorProfile {
-  id: string;
-  role: 'donor';
-  fullName: string;
-  dob: string;
-  email: string;
-  bloodGroup: string;
-  phone: string;
-  location: string;
-}
-
-export interface HospitalProfile {
-  id: string;
-  role: 'hospital';
-  hospitalName: string;
-  registrationNumber: string;
-  contactPerson: string;
-  email: string;
-  dispatchPhone: string;
-  location: string;
-}
-
-// In-memory mock database stores
-const MOCK_DONORS: DonorProfile[] = [];
-const MOCK_HOSPITALS: HospitalProfile[] = [];
+// Mock user collection
+const MOCK_USERS: UserEntity[] = [];
 
 export async function createAccount(
-  role: AccountRole,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: any,
+  payload: RegistrationPayload,
 ): Promise<void> {
-  // Simulate network/database latency
-  await new Promise((resolve) => setTimeout(resolve, 800));
-
-  // Simulate an email uniqueness check
-  const isEmailTaken =
-    MOCK_DONORS.some((d) => d.email === data.email) ||
-    MOCK_HOSPITALS.some((h) => h.email === data.email);
+  const isEmailTaken = MOCK_USERS.some((u) => u.email === payload.email); // check if the email is already registered
 
   if (isEmailTaken) {
     throw new Error('An account with this email already exists.');
   }
 
-  // Save to the respective mock collection
-  const newId = `usr_${Math.random().toString(36).substring(2, 9)}`;
+  const newId = `64f1${Math.random().toString(16).substring(2, 14)}`; // generate new id for mock db, remove upon conn to real db
 
-  if (role === 'donor') {
-    MOCK_DONORS.push({ id: newId, role: 'donor', ...data });
-  } else {
-    MOCK_HOSPITALS.push({ id: newId, role: 'hospital', ...data });
-  }
+  const newUser: UserEntity = {
+    _id: newId, // remove when connecting to real db
+    email: payload.email,
+    role: payload.role,
+    isActive: false, // Account is deactivated until email is verified, default in real db
+    emailVerified: null, // default in real db, null | Date
+  };
 
-  console.log(`[Mock DB] Created new ${role}:`, data.email);
+  MOCK_USERS.push(newUser);
+
+  console.log(
+    `[Mock DB] Created new deactivated base User for ${payload.role}:`,
+    payload.email,
+  );
 }

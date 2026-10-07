@@ -1,7 +1,8 @@
 'use server';
 
 import { redirect } from 'next/navigation';
-import { createAccount, AccountRole } from './data';
+import { createAccount } from './data';
+import { AccountType, RegistrationPayload } from './types';
 
 export interface RegisterActionState {
   error?: string;
@@ -11,9 +12,7 @@ export async function registerAccount(
   prevState: RegisterActionState | null,
   formData: FormData,
 ): Promise<RegisterActionState | null> {
-  // Extract state-driven fields (requires hidden inputs in the form)
-  const role = formData.get('role')?.toString() as AccountRole;
-  const location = formData.get('location')?.toString();
+  const role = formData.get('role')?.toString() as AccountType;
   const email = formData.get('email')?.toString();
   const password = formData.get('password')?.toString();
 
@@ -21,24 +20,15 @@ export async function registerAccount(
     return { error: 'Please fill out all required fields.' };
   }
 
-  if (!location) {
-    return { error: 'Please acquire or enter your location coordinates.' };
-  }
-
   try {
     // Convert the entire FormData map into a plain object for the database payload
     const payload = Object.fromEntries(formData.entries());
 
-    // Call the mock database (or your real Express backend)
-    await createAccount(role, payload);
+    // Cast the payload to RegistrationPayload for type safety
+    const typedPayload = payload as unknown as RegistrationPayload;
 
-    // ==========================================================
-    // BACKEND INTEGRATION NOTE:
-    // Replace createAccount with your Express POST request:
-    // const res = await fetch('http://localhost:5000/api/auth/register', { ... })
-    // const { token } = await res.json();
-    // cookies().set('pulse_token', token, { httpOnly: true });
-    // ==========================================================
+    // Call the mock database with the typed payload
+    await createAccount(typedPayload);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
@@ -48,10 +38,6 @@ export async function registerAccount(
     };
   }
 
-  // Redirect to the appropriate dashboard on success
-  if (role === 'donor') {
-    redirect('/donor/dashboard');
-  } else {
-    redirect('/hospital/dashboard');
-  }
+  // Redirect to login page for email verification / authentication
+  redirect('/login');
 }
