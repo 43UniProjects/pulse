@@ -1,17 +1,23 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, use } from 'react'; // 1. Import `use`
 import { MapPin } from 'lucide-react';
-import { getDonationRequest, RequestStatus } from '../data';
+import { getDonationRequest } from '../data';
+import { RequestStatus } from '@/types/donor-request.type';
 
-export default function RequestDetailClient({ id }: { id: string }) {
-  // Use the updated function from data.ts
+export default function RequestDetailClient({
+  paramsPromise,
+}: {
+  paramsPromise: Promise<{ id: string }>; // 2. Accept the Promise
+}) {
+  // 3. Unwrap the promise directly using React's `use()` hook
+  const { id } = use(paramsPromise);
+
+  // The rest of your code remains exactly the same!
   const req = getDonationRequest(id);
 
-  // Initialize state with the actual status from the database
   const [status, setStatus] = useState<RequestStatus>(req?.status || 'pending');
 
-  // Handle null state gracefully
   if (!req) {
     return (
       <div className="p-8 max-w-4xl mx-auto font-sans text-center text-muted-foreground">
@@ -20,7 +26,6 @@ export default function RequestDetailClient({ id }: { id: string }) {
     );
   }
 
-  // Mapped to Clinical Precision tokens (Updated to match lowercase types)
   const statusStyles: Record<string, string> = {
     pending: 'bg-secondary text-secondary-foreground border border-border',
     accepted:

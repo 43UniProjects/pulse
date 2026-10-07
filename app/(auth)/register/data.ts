@@ -1,39 +1,32 @@
-export type AccountRole = 'donor' | 'hospital';
+import { UserEntity } from '@/types/user.type';
+import { RegistrationPayload } from './types';
 
-export interface BaseUser {
-  id: string;
-  role: AccountRole;
-  email: string;
-}
-
-// In-memory mock database stores
-const MOCK_USERS: BaseUser[] = [];
+// Mock user collection
+const MOCK_USERS: UserEntity[] = [];
 
 export async function createAccount(
-  role: AccountRole,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: any,
+  payload: RegistrationPayload,
 ): Promise<void> {
-  // Simulate network/database latency
-  await new Promise((resolve) => setTimeout(resolve, 800));
-
-  // Simulate an email uniqueness check
-  const isEmailTaken = MOCK_USERS.some((u) => u.email === data.email);
+  const isEmailTaken = MOCK_USERS.some((u) => u.email === payload.email); // check if the email is already registered
 
   if (isEmailTaken) {
     throw new Error('An account with this email already exists.');
   }
 
-  // Save to the mock collection with a hashed password (mocked with base64 for now)
-  const newId = `usr_${Math.random().toString(36).substring(2, 9)}`;
-  const hashedPassword = btoa(data.password || ''); // Mock hashing
+  const newId = `64f1${Math.random().toString(16).substring(2, 14)}`; // generate new id for mock db, remove upon conn to real db
 
-  MOCK_USERS.push({
-    id: newId,
-    role,
-    email: data.email,
-    password: hashedPassword,
-  } as BaseUser);
+  const newUser: UserEntity = {
+    _id: newId, // remove when connecting to real db
+    email: payload.email,
+    role: payload.role,
+    isActive: false, // Account is deactivated until email is verified, default in real db
+    emailVerified: null, // default in real db, null | Date
+  };
 
-  console.log(`[Mock DB] Created new ${role}:`, data.email);
+  MOCK_USERS.push(newUser);
+
+  console.log(
+    `[Mock DB] Created new deactivated base User for ${payload.role}:`,
+    payload.email,
+  );
 }

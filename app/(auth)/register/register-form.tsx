@@ -3,16 +3,28 @@
 import { useState, useEffect, useActionState, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Activity, Loader2, AlertCircle } from 'lucide-react';
-import { registerAccount } from './actions';
+
+import {
+  Activity,
+  MessageSquare,
+  LocateFixed,
+  Loader2,
+  AlertCircle,
+} from 'lucide-react';
 import GenericFallback from '@/components/fallback';
+
+import { registerAccount } from './actions';
+
+import { BLOOD_GROUPS } from '@/types/common.type';
+import { ACCOUNT_TYPE, AccountType } from './types';
 
 function RegisterFormContent() {
   const searchParams = useSearchParams();
 
   // Initialize states
-  const [tab, setTab] = useState<'donor' | 'hospital'>('donor');
-  const [clientError, setClientError] = useState<string | null>(null);
+  const [tab, setTab] = useState<AccountType>(ACCOUNT_TYPE[0]);
+  const [location, setLocation] = useState('');
+  const [isLocating, setIsLocating] = useState(false);
 
   // Wire up the Server Action
   const [state, formAction, isPending] = useActionState(registerAccount, null);
@@ -20,9 +32,9 @@ function RegisterFormContent() {
   // Synchronize tab state whenever the URL search parameter changes
   useEffect(() => {
     const type = searchParams.get('type');
-    if (type === 'hospital' || type === 'donor') {
+    if (type === ACCOUNT_TYPE[0] || type === ACCOUNT_TYPE[1]) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setTab(type);
+      setTab(type as AccountType);
     }
   }, [searchParams]);
 
@@ -47,9 +59,9 @@ function RegisterFormContent() {
         <div className="flex p-1 gap-1 bg-secondary border border-border rounded-lg">
           <button
             type="button"
-            onClick={() => setTab('donor')}
+            onClick={() => setTab(ACCOUNT_TYPE[0])}
             className={`flex-1 text-xs font-medium py-2 rounded-md transition-all uppercase tracking-wider ${
-              tab === 'donor'
+              tab === ACCOUNT_TYPE[0]
                 ? 'bg-background text-foreground shadow-sm border border-border/50'
                 : 'text-muted-foreground hover:text-foreground hover:bg-background/50 border border-transparent'
             }`}
@@ -58,9 +70,9 @@ function RegisterFormContent() {
           </button>
           <button
             type="button"
-            onClick={() => setTab('hospital')}
+            onClick={() => setTab(ACCOUNT_TYPE[1])}
             className={`flex-1 text-xs font-medium py-2 rounded-md transition-all uppercase tracking-wider ${
-              tab === 'hospital'
+              tab === ACCOUNT_TYPE[1]
                 ? 'bg-background text-foreground shadow-sm border border-border/50'
                 : 'text-muted-foreground hover:text-foreground hover:bg-background/50 border border-transparent'
             }`}

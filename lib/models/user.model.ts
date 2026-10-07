@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
-import { UserEntity, USER_ROLES } from '@/types/user.type';
+import { UserEntity, USER_ROLE } from '@/types/user.type';
 
 export interface IUserDocument extends Omit<UserEntity, '_id'>, Document {}
 
@@ -28,13 +28,13 @@ const UserSchema = new Schema<IUserDocument>(
     },
     role: {
       type: String,
-      enum: USER_ROLES,
+      enum: USER_ROLE,
       required: true,
       index: true,
     },
     isActive: {
       type: Boolean,
-      default: true,
+      default: false,
     },
   },
   {
