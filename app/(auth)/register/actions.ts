@@ -2,8 +2,7 @@
 
 import { redirect } from 'next/navigation';
 import { createAccount } from './data';
-import { AccountType, RegistrationPayload } from './types';
-
+import { AccountType } from './types';
 import { registerSchema } from '@/lib/validators/auth.schema';
 
 export interface RegisterActionState {
@@ -16,12 +15,13 @@ export async function registerAccount(
 ): Promise<RegisterActionState | null> {
   const payload = Object.fromEntries(formData.entries());
 
+  // Using the updated Zod schema for validation
   const validation = registerSchema.safeParse({
     role:
       payload.role === 'donor'
-        ? 'Donor'
+        ? 'donor'
         : payload.role === 'hospital'
-          ? 'Hospital'
+          ? 'hospital'
           : undefined,
     email: payload.email,
     password: payload.password,
@@ -35,15 +35,12 @@ export async function registerAccount(
   // Extract the validated and formatted data
   const { role, email, password } = validation.data;
 
-  // Format role back to lowercase for internal mock storage
-  const formattedRole = role.toLowerCase() as AccountRole;
+  // Ensure role matches AccountType
+  const formattedRole = role as AccountType;
 
   try {
-    // Call the mock database (or your real Express backend)
-    await createAccount(formattedRole, { email, password });
-
-    // Call the mock database with the typed payload
-    await createAccount(typedPayload);
+    // Call the mock database
+    await createAccount({ email, password, role: formattedRole });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
