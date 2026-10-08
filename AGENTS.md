@@ -55,3 +55,6 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 # Boundaries
 
 - **CRITICAL:** Do NOT modify `Dockerfile`, `docker-compose.yml`, or `example.env` without explicit human approval. if it was autherized be sure to what has chaged as a comment inside those files.
+- **Full Local Autonomy:** You are explicitly authorized to create, modify, refactor, or delete any code strictly within the current project directory without seeking human approval.
+- **Directory Isolation:** Never attempt to read, write, or execute commands outside the boundaries of the project root.
+- **Rule Supremacy:** This autonomy is absolutely subordinate to the rules defined above. You must never violate architectural conventions or bypass the strict modification bans on `Dockerfile`, `docker-compose.yml`, or `example.env`.
