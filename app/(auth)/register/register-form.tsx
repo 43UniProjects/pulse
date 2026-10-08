@@ -5,23 +5,23 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
 import { Activity, Loader2, AlertCircle } from 'lucide-react';
+import { toast } from 'sonner';
+
 import GenericFallback from '@/components/fallback';
-
 import { registerAccount } from './actions';
-
 import { ACCOUNT_TYPE, AccountType } from './types';
+import { registerSchema } from '../_validators/auth.schema';
 
 function RegisterFormContent() {
   const searchParams = useSearchParams();
 
-  // Initialize states
   const [tab, setTab] = useState<AccountType>(ACCOUNT_TYPE[0]);
-  const [clientError, setClientError] = useState<string | null>(null);
+  const [clientErrors, setClientErrors] = useState<Record<string, string[]>>(
+    {},
+  );
 
-  // Wire up the Server Action
   const [state, formAction, isPending] = useActionState(registerAccount, null);
 
-  // Synchronize tab state whenever the URL search parameter changes
   useEffect(() => {
     const type = searchParams.get('type');
     if (type === ACCOUNT_TYPE[0] || type === ACCOUNT_TYPE[1]) {
@@ -29,6 +29,36 @@ function RegisterFormContent() {
       setTab(type as AccountType);
     }
   }, [searchParams]);
+
+  // Trigger Sonner toasts when the Server Action returns errors
+  useEffect(() => {
+    if (state?.error && !state?.fieldErrors) {
+      toast.error(state.error);
+    }
+
+    if (state?.fieldErrors) {
+      Object.values(state.fieldErrors).forEach((errors) => {
+        errors?.forEach((err) => toast.error(err));
+      });
+    }
+  }, [state]);
+
+  const handleClientValidation = (e: React.FormEvent<HTMLFormElement>) => {
+    const formData = new FormData(e.currentTarget);
+    const rawData = Object.fromEntries(formData.entries());
+
+    // Run Zod schema validation directly on the client before submitting
+    const validation = registerSchema.safeParse(rawData);
+
+    if (!validation.success) {
+      e.preventDefault(); // Stop server request if client validation fails
+      const errors = validation.error.flatten().fieldErrors;
+      setClientErrors(errors as Record<string, string[]>);
+      toast.error('Please fix the errors in the form.');
+    } else {
+      setClientErrors({}); // Clear errors to allow submission to formAction
+    }
+  };
 
   return (
     <div className="w-full max-w-lg bg-card border border-border rounded-xl p-8 shadow-sm">
@@ -76,26 +106,21 @@ function RegisterFormContent() {
 
       <form
         action={formAction}
+        onSubmit={handleClientValidation}
         className="flex flex-col gap-5"
-        onSubmit={(e) => {
-          const formData = new FormData(e.currentTarget);
-          const password = formData.get('password') as string;
-          const confirmPassword = formData.get('confirmPassword') as string;
-
-          if (password.length < 8) {
-            e.preventDefault();
-            setClientError('Password must be at least 8 characters');
-          } else if (password !== confirmPassword) {
-            e.preventDefault();
-            setClientError("Passwords don't match");
-          } else {
-            setClientError(null);
-          }
-        }}
       >
-        {/* Hidden inputs to pass state variables to the Server Action */}
         <input type="hidden" name="role" value={tab} />
 
+        {/* Added username field to satisfy Zod registerSchema */}
+        <Field
+          name="username"
+          label="Username"
+          type="text"
+          placeholder={tab === 'donor' ? 'kamal99' : 'nawaloka_admin'}
+          error={
+            clientErrors.username?.[0] || state?.fieldErrors?.username?.[0]
+          }
+        />
         <Field
           name="email"
           label="Email Address"
@@ -103,25 +128,33 @@ function RegisterFormContent() {
           placeholder={
             tab === 'donor' ? 'kamal@example.lk' : 'admin@nawaloka.lk'
           }
+          error={clientErrors.email?.[0] || state?.fieldErrors?.email?.[0]}
         />
         <Field
           name="password"
           label="Password"
           type="password"
           placeholder="••••••••"
+          error={
+            clientErrors.password?.[0] || state?.fieldErrors?.password?.[0]
+          }
         />
         <Field
           name="confirmPassword"
           label="Confirm Password"
           type="password"
           placeholder="••••••••"
+          error={
+            clientErrors.confirmPassword?.[0] ||
+            state?.fieldErrors?.confirmPassword?.[0]
+          }
         />
 
-        {/* Error Banner */}
-        {(clientError || state?.error) && (
+        {/* Global Error Banner */}
+        {state?.error && !state?.fieldErrors && (
           <div className="flex items-start gap-2 p-3 mt-2 text-sm text-red-600 bg-red-50 border border-red-100 rounded-md">
             <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-            <p>{clientError || state?.error}</p>
+            <p>{state.error}</p>
           </div>
         )}
 
@@ -169,11 +202,13 @@ function Field({
   label,
   type,
   placeholder,
+  error,
 }: {
   name: string;
   label: string;
   type: string;
   placeholder: string;
+  error?: string;
 }) {
   return (
     <div className="space-y-2">
@@ -184,9 +219,13 @@ function Field({
         name={name}
         type={type}
         placeholder={placeholder}
-        required
-        className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
+        className={`w-full h-10 px-3 rounded-md border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all ${
+          error
+            ? 'border-red-500 focus:ring-red-500'
+            : 'border-border focus:ring-ring focus:border-primary'
+        }`}
       />
+      {error && <p className="text-xs text-red-500">{error}</p>}
     </div>
   );
 }

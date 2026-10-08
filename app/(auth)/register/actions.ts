@@ -2,54 +2,61 @@
 
 import { redirect } from 'next/navigation';
 import { createAccount } from './data';
-import { AccountType } from './types';
-import { registerSchema } from '@/lib/validators/auth.schema';
+import { AccountType, RegistrationPayload } from './types';
+import { registerSchema } from '../_validators/auth.schema';
 
 export interface RegisterActionState {
   error?: string;
+  fieldErrors?: {
+    username?: string[];
+    email?: string[];
+    password?: string[];
+    confirmPassword?: string[];
+    role?: string[];
+  };
 }
 
 export async function registerAccount(
-  prevState: RegisterActionState | null,
+  _prevState: RegisterActionState | null,
   formData: FormData,
 ): Promise<RegisterActionState | null> {
-  const payload = Object.fromEntries(formData.entries());
+  const rawData = Object.fromEntries(formData.entries());
 
-  // Using the updated Zod schema for validation
-  const validation = registerSchema.safeParse({
-    role:
-      payload.role === 'donor'
-        ? 'donor'
-        : payload.role === 'hospital'
-          ? 'hospital'
-          : undefined,
-    email: payload.email,
-    password: payload.password,
-    confirmPassword: payload.confirmPassword,
-  });
+  const validation = registerSchema.safeParse(rawData);
 
   if (!validation.success) {
-    return { error: validation.error.issues[0].message };
-  }
+    const fieldErrors: Record<string, string[]> = {};
 
-  // Extract the validated and formatted data
-  const { role, email, password } = validation.data;
+    validation.error.issues.forEach((issue) => {
+      const field = String(issue.path[0]);
+      if (!fieldErrors[field]) fieldErrors[field] = [];
+      fieldErrors[field].push(issue.message);
+    });
 
-  // Ensure role matches AccountType
-  const formattedRole = role as AccountType;
-
-  try {
-    // Call the mock database
-    await createAccount({ email, password, role: formattedRole });
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
-    console.error('Registration error:', error);
     return {
-      error: error.message || 'Failed to connect to the registration server.',
+      fieldErrors: fieldErrors as RegisterActionState['fieldErrors'],
+      error: 'Please fix the errors in the form.',
     };
   }
 
-  // Redirect to the verify-email step on success
+  const { role, email, password, username } = validation.data;
+
+  try {
+    await createAccount({
+      email,
+      password,
+      role: role as AccountType,
+      username,
+    } as RegistrationPayload & { username: string });
+  } catch (error: unknown) {
+    console.error('Registration error:', error);
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Failed to connect to the registration server.',
+    };
+  }
+
   redirect('/verify-email');
 }

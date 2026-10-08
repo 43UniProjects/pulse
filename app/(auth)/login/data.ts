@@ -1,6 +1,7 @@
-import { UserRole } from '@/types/user.type';
+import bcrypt from 'bcryptjs';
 import { connectToDatabase } from '@/lib/db/connect';
 import { User } from '@/lib/models/user.model';
+import { UserRole } from '@/types/user.type';
 
 export interface UserProfile {
   _id: string;
@@ -21,19 +22,23 @@ export async function findUserByCredentials(
     role: role,
   }).lean();
 
-  if (!user) {
+  if (!user || !user.password) {
     return null;
   }
 
-  // Basic string comparison (update to bcrypt.compare when hashing is implemented!)
-  if (user.password !== passwordInput) {
+  const isPasswordValid = await bcrypt.compare(
+    passwordInput,
+    user.password as string,
+  );
+
+  if (!isPasswordValid) {
     return null;
   }
 
   return {
-    _id: user._id.toString(),
+    _id: String(user._id),
     email: user.email,
-    role: user.role,
+    role: user.role as UserRole,
     name: user.name || '',
   };
 }

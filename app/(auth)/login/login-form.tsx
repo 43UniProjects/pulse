@@ -1,14 +1,27 @@
 'use client';
 
-import { useState, useActionState } from 'react';
+import { useState, useActionState, useEffect } from 'react';
 import Link from 'next/link';
 import { Activity, Loader2, AlertCircle } from 'lucide-react';
+import { toast } from 'sonner';
 import { authenticateUser } from './actions';
 
 export default function LoginForm() {
   const [role, setRole] = useState<'donor' | 'hospital' | 'admin'>('donor');
-
   const [state, formAction, isPending] = useActionState(authenticateUser, null);
+
+  // Trigger Sonner toast notifications when the Server Action returns errors
+  useEffect(() => {
+    if (state?.error) {
+      toast.error(state.error);
+    }
+
+    if (state?.fieldErrors) {
+      Object.values(state.fieldErrors).forEach((errors) => {
+        errors?.forEach((err) => toast.error(err));
+      });
+    }
+  }, [state]);
 
   return (
     <div className="w-full max-w-lg bg-card border border-border rounded-xl p-8 shadow-sm">
@@ -23,10 +36,8 @@ export default function LoginForm() {
       </div>
 
       <form action={formAction} className="flex flex-col gap-5">
-        {/* Hidden input to pass the role state into FormData */}
         <input type="hidden" name="role" value={role} />
 
-        {/* Role Selector */}
         <div>
           <label className="text-xs font-mono uppercase tracking-widest text-muted-foreground block mb-2">
             Account Type
@@ -47,6 +58,11 @@ export default function LoginForm() {
               </button>
             ))}
           </div>
+          {state?.fieldErrors?.role && (
+            <p className="text-xs text-red-500 mt-2">
+              {state.fieldErrors.role[0]}
+            </p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -56,10 +72,12 @@ export default function LoginForm() {
           <input
             name="email"
             type="email"
-            required
             placeholder="you@example.com"
             className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
           />
+          {state?.fieldErrors?.email && (
+            <p className="text-xs text-red-500">{state.fieldErrors.email[0]}</p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -69,13 +87,16 @@ export default function LoginForm() {
           <input
             name="password"
             type="password"
-            required
             placeholder="••••••••"
             className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
           />
+          {state?.fieldErrors?.password && (
+            <p className="text-xs text-red-500">
+              {state.fieldErrors.password[0]}
+            </p>
+          )}
         </div>
 
-        {/* Error Banner */}
         {state?.error && (
           <div className="flex items-start gap-2 p-3 text-sm text-red-600 bg-red-50 border border-red-100 rounded-md">
             <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
