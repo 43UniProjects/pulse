@@ -1,22 +1,35 @@
 import { Suspense } from 'react';
+import { cookies } from 'next/headers';
+import { jwtVerify } from 'jose';
 import { Phone, Mail, MapPin, Clock } from 'lucide-react';
-import { getServerSession } from 'next-auth';
 
 import Footer from '@/components/footer';
 import Header from '@/components/header/main';
 import GenericFallback from '@/components/fallback';
 import ContactForm from './contact-form';
-import { USER_ROLE, UserEntity } from '@/types/user.type';
+import { getContactPreFillData } from './data';
 
 async function ContactFormWrapper() {
-  const session = await getServerSession();
+  const cookieStore = await cookies();
+  const token = cookieStore.get('pulse_session')?.value;
+  let userId: string | undefined = undefined;
 
-  // Safely extract the role from the session, fallback to 'guest'
-  const userRole = session?.user
-    ? (session.user as UserEntity).role
-    : USER_ROLE[3]; // 'guest'
+  // Extract the custom JWT session instead of NextAuth[cite: 19]
+  if (token) {
+    try {
+      const secretKey =
+        process.env.JWT_SECRET || 'pulse-default-dev-secret-key';
+      const secret = new TextEncoder().encode(secretKey);
+      const { payload } = await jwtVerify(token, secret);
+      userId = payload._id as string;
+    } catch (error) {
+      // Invalid or expired token, proceed as guest
+    }
+  }
 
-  return <ContactForm userRole={userRole} />;
+  const userData = await getContactPreFillData(userId);
+
+  return <ContactForm user={userData} />;
 }
 
 export default function ContactPage() {
@@ -36,7 +49,6 @@ export default function ContactPage() {
           </div>
 
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-24">
-            {/* Contact Information */}
             <div className="space-y-8">
               <div className="flex items-start gap-4">
                 <div className="w-10 h-10 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
@@ -105,7 +117,6 @@ export default function ContactPage() {
               </div>
             </div>
 
-            {/* Contact Form with Suspense Boundary */}
             <div className="w-full">
               <Suspense fallback={<GenericFallback />}>
                 <ContactFormWrapper />
