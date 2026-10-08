@@ -36,3 +36,11 @@ export const loginSchema = z.object({
   email: z.email('Invalid email address'),
   password: passwordSchema,
 });
+
+export const verifyEmailSchema = z.object({
+  email: z.email('Invalid email address'),
+  code: z
+    .string()
+    .length(6, 'Verification code must be exactly 6 digits')
+    .regex(/^\d+$/, 'Verification code must contain only numbers'),
+});

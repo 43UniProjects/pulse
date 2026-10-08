@@ -1,80 +1,112 @@
 'use client';
 
-import { useActionState, useEffect } from 'react';
-import { submitContactMessage } from '@/actions/contact.actions';
-import { UserRole } from '@/types/user.type';
+import { useActionState, useEffect, useRef, useState } from 'react';
+import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { submitContactMessage } from './actions';
+import { contactSchema } from './schema';
+import { PreFillData } from './data';
 
 interface ContactFormProps {
-  userRole: UserRole;
+  user: PreFillData;
 }
 
-const initialState = {
-  success: false,
-  message: '',
-  errors: undefined,
-};
-
-export default function ContactForm({ userRole }: ContactFormProps) {
+export default function ContactForm({ user }: ContactFormProps) {
   const [state, formAction, isPending] = useActionState(
     submitContactMessage,
-    initialState,
+    null,
   );
+  const [clientErrors, setClientErrors] = useState<Record<string, string[]>>(
+    {},
+  );
+  const formRef = useRef<HTMLFormElement>(null);
 
-  const isGuest = userRole === 'guest';
-
+  const isGuest = user.role === 'guest';
   const formTitle =
-    userRole === 'guest' || userRole === 'admin'
+    user.role === 'guest' || user.role === 'admin'
       ? 'Contact Developers'
       : 'Contact Support';
 
   useEffect(() => {
-    if (state.success) {
-      alert('Message sent successfully!');
-      // A standard reset ref or logic can be added here
-    } else if (state.message && !state.success && !state.errors) {
-      alert(state.message);
+    if (state?.success) {
+      toast.success('Message sent successfully!');
+      formRef.current?.reset();
+    } else if (state?.error && !state?.fieldErrors) {
+      toast.error(state.error);
+    }
+
+    if (state?.fieldErrors) {
+      Object.values(state.fieldErrors).forEach((errors) => {
+        errors?.forEach((err) => toast.error(err));
+      });
     }
   }, [state]);
+
+  const handleClientValidation = (e: React.FormEvent<HTMLFormElement>) => {
+    const formData = new FormData(e.currentTarget);
+    const rawData = Object.fromEntries(formData.entries());
+
+    const validation = contactSchema.safeParse(rawData);
+
+    if (!validation.success) {
+      e.preventDefault();
+      const errors: Record<string, string[]> = {};
+      validation.error.issues.forEach((issue) => {
+        const field = String(issue.path[0]);
+        if (!errors[field]) errors[field] = [];
+        errors[field].push(issue.message);
+      });
+
+      setClientErrors(errors);
+      toast.error('Please fix the errors in the form.');
+    } else {
+      setClientErrors({});
+    }
+  };
 
   return (
     <div className="bg-card border border-border rounded-xl p-6 sm:p-8 shadow-sm">
       <h2 className="text-xl font-semibold text-foreground mb-6">
         {formTitle}
       </h2>
-      <form action={formAction} className="space-y-4">
+      <form
+        ref={formRef}
+        action={formAction}
+        onSubmit={handleClientValidation}
+        className="space-y-4"
+      >
+        {/* Hidden fields to pass state to the Server Action */}
+        <input type="hidden" name="userId" value={user._id || ''} />
+        <input type="hidden" name="senderRole" value={user.role} />
+
+        {/* If logged in, pass name and email silently. If guest, show the inputs. */}
+        {!isGuest && (
+          <>
+            <input type="hidden" name="name" value={user.name} />
+            <input type="hidden" name="email" value={user.email} />
+          </>
+        )}
+
         {isGuest && (
           <>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label
-                  htmlFor="firstName"
-                  className="text-sm font-medium text-foreground"
-                >
-                  First Name
-                </label>
-                <input
-                  id="firstName"
-                  name="firstName"
-                  type="text"
-                  required
-                  className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
-                />
-              </div>
-              <div className="space-y-2">
-                <label
-                  htmlFor="lastName"
-                  className="text-sm font-medium text-foreground"
-                >
-                  Last Name
-                </label>
-                <input
-                  id="lastName"
-                  name="lastName"
-                  type="text"
-                  required
-                  className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
-                />
-              </div>
+            <div className="space-y-2">
+              <label
+                htmlFor="name"
+                className="text-sm font-medium text-foreground"
+              >
+                Full Name
+              </label>
+              <input
+                id="name"
+                name="name"
+                type="text"
+                className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
+              />
+              {(clientErrors.name || state?.fieldErrors?.name) && (
+                <p className="text-xs text-red-500">
+                  {clientErrors.name?.[0] || state?.fieldErrors?.name?.[0]}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -88,15 +120,42 @@ export default function ContactForm({ userRole }: ContactFormProps) {
                 id="email"
                 name="email"
                 type="email"
-                required
                 className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
               />
-              {state.errors?.email && (
-                <p className="text-xs text-red-500">{state.errors.email[0]}</p>
+              {(clientErrors.email || state?.fieldErrors?.email) && (
+                <p className="text-xs text-red-500">
+                  {clientErrors.email?.[0] || state?.fieldErrors?.email?.[0]}
+                </p>
               )}
             </div>
           </>
         )}
+
+        <div className="space-y-2">
+          <label
+            htmlFor="targetAudience"
+            className="text-sm font-medium text-foreground"
+          >
+            Department
+          </label>
+          <select
+            id="targetAudience"
+            name="targetAudience"
+            className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
+          >
+            <option value="">Select a department...</option>
+            <option value="support">General Support</option>
+            <option value="technical">Technical Assistance</option>
+            <option value="billing">Partnerships & Billing</option>
+          </select>
+          {(clientErrors.targetAudience ||
+            state?.fieldErrors?.targetAudience) && (
+            <p className="text-xs text-red-500">
+              {clientErrors.targetAudience?.[0] ||
+                state?.fieldErrors?.targetAudience?.[0]}
+            </p>
+          )}
+        </div>
 
         <div className="space-y-2">
           <label
@@ -109,12 +168,13 @@ export default function ContactForm({ userRole }: ContactFormProps) {
             id="subject"
             name="subject"
             type="text"
-            required
             placeholder="e.g., General Inquiry or Bug Report"
             className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
           />
-          {state.errors?.subject && (
-            <p className="text-xs text-red-500">{state.errors.subject[0]}</p>
+          {(clientErrors.subject || state?.fieldErrors?.subject) && (
+            <p className="text-xs text-red-500">
+              {clientErrors.subject?.[0] || state?.fieldErrors?.subject?.[0]}
+            </p>
           )}
         </div>
 
@@ -129,25 +189,28 @@ export default function ContactForm({ userRole }: ContactFormProps) {
             id="message"
             name="message"
             rows={4}
-            required
             className="w-full p-3 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all resize-none"
           ></textarea>
-          {state.errors?.message && (
-            <p className="text-xs text-red-500">{state.errors.message[0]}</p>
+          {(clientErrors.message || state?.fieldErrors?.message) && (
+            <p className="text-xs text-red-500">
+              {clientErrors.message?.[0] || state?.fieldErrors?.message?.[0]}
+            </p>
           )}
         </div>
 
         <button
           type="submit"
           disabled={isPending}
-          className="w-full h-10 mt-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background disabled:opacity-50"
+          className="w-full h-10 mt-2 flex items-center justify-center rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background disabled:opacity-50"
         >
-          {isPending ? 'Sending...' : 'Send Message'}
+          {isPending ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Sending...
+            </>
+          ) : (
+            'Send Message'
+          )}
         </button>
-
-        {state.success && (
-          <p className="text-sm text-green-500 mt-2">{state.message}</p>
-        )}
       </form>
     </div>
   );
