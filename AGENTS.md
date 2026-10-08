@@ -8,28 +8,50 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
----
+# Commands
 
-# Pulse Project AI Assistant Rules
+- Run development server: `bun run dev`
+- Run type checking: `tsc --noEmit`
+- Run formatting and linting: `prettier --write` and `eslint --fix`
 
-## 1. Infrastructure Restrictions
-- **CRITICAL:** Do NOT modify `Dockerfile`, `docker-compose.yml`, or `example.env` without explicit human approval.
+# Testing
 
-## 2. Styling & Theming
-- Always use the predefined styles and variables from `globals.css` for web page content.
-- This is absolutely necessary to ensure both Light and Dark themes work seamlessly.
-- Only add new or custom styles if the required styling cannot be achieved using what is already in `globals.css`.
+- Frameworks: Use Vitest for unit testing and Playwright for end-to-end (E2E) testing.
+- Execution: Ensure code is formatted and tested locally before committing to bypass Husky pre-commit hook failures.
 
-## 3. React / Next.js Architecture
-- **Client vs. Server:** Carefully evaluate whether code should be Server-side or Client-side (`'use client'`). Keep them strictly separated and optimize for performance.
-- **Component Strategy:** Create components whenever necessary for readability, but **do not over-engineer**. Do not create a new component file if it is only going to be used once and isn't overly complex.
+# Project Structure
 
-## 4. Backend Logic & Database Context
-- **Account Base:** The `users` collection is the source of truth for authentication. It holds the `email`, `password`, and base `role`.
-- **Role Profiles:** A user becomes a Donor, Hospital, or Admin by having a corresponding document created in the `donors`, `hospitals`, or `admins` collection. These profile documents reference the base User's `_id`.
-- **Authentication:** Login logic strictly queries the base `User` model to validate credentials (email/password) before issuing a session. Passwords are NOT stored in the profile collections.
+- `app/`: Next.js App Router pages, layouts, and API routes.
+- `types/`: Shared TypeScript interfaces and enums (`*type.ts`). Represents Application State.
+- `models/`: Mongoose schemas (`*model.ts`). Represents Database State.
+- `actions/`: Next.js Server Actions (`*actions.ts`).
+- `data`/: Data fetching functions (`*data.ts`)
+- `components/`: Reusable UI components. Create components whenever necessary for readability, but do not over-engineer or create single-use component files unnecessarily.
 
-## 5. Coding Standards
-- Adhere to the highest coding best practices.
-- Maintain a clean codebase.
-- Add meaningful comments whenever logic is complex or non-obvious.
+# Code Style & Architecture
+
+- **Client vs. Server:** Keep Server-side and Client-side (`'use client'`) code strictly separated.
+- **Database & Types Synchronization:** Maintain strict parity between `.type.ts` and `.model.ts` files. Omit populated relational fields from Mongoose document interfaces.
+- **Data Architecture:** The `users` collection is the source of truth for authentication (email/password/base role). Passwords are NOT stored in the profile collections (Donors, Hospitals, Admins).
+- **Primary Keys:** Use default MongoDB `_id`s exclusively. Never create custom ID fields (e.g., `donationId`, `requestId`) for database primary keys.
+- **Enums:** Define strict lowercase enums in `.type.ts` (e.g., `['pending', 'completed']`) and reuse them in Mongoose schemas.
+- **Server/Client Boundary:** Always append `.lean()` to Mongoose queries in Server Components before passing data to Client Components as props to ensure plain JSON serialization.
+  ```typescript
+  // Correct implementation
+  const tickets = await Contact.find().lean();
+  ```
+
+* **Async UI:** Isolate async data fetching inside Server Components and wrap them in `<Suspense fallback={<GenericFallback />}>`.
+* **Styling:** Always use the predefined styles and variables from `globals.css` (or updated design tokens like `globals_2.css`) to ensure Light and Dark themes work seamlessly. Apply `font-tabular` utility classes to all numerical data in the UI (dates, quantities, radius).
+
+* **Dates:** Format dates on the client using `Intl.DateTimeFormat` (e.g., 'en-GB').
+
+# Git Workflow
+
+- **Branch Naming:** Follow `<name>/<feature-slug>` standard.
+- **Commit Messages:** Follow Conventional Commits format (`type(scope): subject`).
+- **Line Length:** Wrap commit message bodies at exactly 100 characters per line to pass Husky `commitlint` checks. Stage entire files properly before running pre-commit hooks to avoid `lint-staged` merge conflicts.
+
+# Boundaries
+
+- **CRITICAL:** Do NOT modify `Dockerfile`, `docker-compose.yml`, or `example.env` without explicit human approval. if it was autherized be sure to what has chaged as a comment inside those files.
