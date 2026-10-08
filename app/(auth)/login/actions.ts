@@ -1,45 +1,70 @@
 'use server';
 
 import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
+import { SignJWT } from 'jose';
 import { findUserByCredentials } from './data';
 import { UserRole } from '@/types/user.type';
+import { loginSchema } from '../_validators/auth.schema';
 
 export interface ActionState {
   error?: string;
+  fieldErrors?: {
+    email?: string[];
+    password?: string[];
+    role?: string[];
+  };
 }
 
 export async function authenticateUser(
-  prevState: ActionState | null,
+  _prevState: ActionState | null,
   formData: FormData,
 ): Promise<ActionState | null> {
-  const email = formData.get('email')?.toString();
-  const password = formData.get('password')?.toString();
-  const role = formData.get('role')?.toString() as UserRole;
+  // 1. Parse FormData into a plain object
+  const rawData = Object.fromEntries(formData.entries());
 
-  if (!email || !password || !role) {
-    return { error: 'All fields are required to initialize session.' };
+  // 2. Validate using Zod
+  const validatedFields = loginSchema.safeParse(rawData);
+
+  // 3. Return early if validation fails, passing errors to the client
+  if (!validatedFields.success) {
+    return {
+      fieldErrors: validatedFields.error.flatten().fieldErrors,
+      error: 'Please fix the errors in the form.',
+    };
   }
 
+  const { email, password, role } = validatedFields.data;
+
   try {
-    const user = await findUserByCredentials(email, password, role);
+    const user = await findUserByCredentials(email, password, role as UserRole);
 
     if (!user) {
       return { error: 'Invalid credentials or incorrect access level.' };
     }
 
-    // ==========================================================
-    // BACKEND INTEGRATION NOTE:
-    // Replace the above mock check with your actual Express API call:
-    // const res = await fetch('http://localhost:5000/api/auth/login', { ... })
-    // const { token } = await res.json();
-    // cookies().set('pulse_token', token, { httpOnly: true });
-    // ==========================================================
+    const secretKey = process.env.JWT_SECRET || 'pulse-default-dev-secret-key';
+    const secret = new TextEncoder().encode(secretKey);
+
+    const token = await new SignJWT({ _id: user._id, role: user.role })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuedAt()
+      .setExpirationTime('7d')
+      .sign(secret);
+
+    const cookieStore = await cookies();
+    cookieStore.set('pulse_session', token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7,
+    });
   } catch (error) {
     console.error('Auth error:', error);
     return { error: 'Connection to authentication server failed.' };
   }
 
-  // Redirect must happen outside the try/catch block in Next.js
   if (role === 'donor') redirect('/donor/dashboard');
   if (role === 'hospital') redirect('/hospital/dashboard');
   redirect('/admin/dashboard');
