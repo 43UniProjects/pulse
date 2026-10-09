@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect } from 'react';
 import { User, Phone, Mail, Save, Loader2, Briefcase } from 'lucide-react';
+import { toast } from 'sonner';
 import { updateAdminProfile } from '@/actions/admin.actions';
 import { AdminEntity } from '@/types/admin.type';
 
@@ -16,14 +17,16 @@ export default function AdminProfileForm({
 }) {
   const [state, formAction, isPending] = useActionState(updateAdminProfile, {
     success: false,
-    message: '',
   });
 
   useEffect(() => {
     if (state.success) {
+      toast.success('Profile updated successfully!');
       onSuccess();
+    } else if (state.error && !state.fieldErrors) {
+      toast.error(state.error);
     }
-  }, [state.success, onSuccess]);
+  }, [state, onSuccess]);
 
   return (
     <div className="space-y-6">
@@ -38,12 +41,6 @@ export default function AdminProfileForm({
           </p>
         </div>
       </div>
-
-      {state.message && !state.success && (
-        <div className="p-4 rounded-md bg-destructive/10 border border-destructive/20 text-destructive text-sm font-medium">
-          {state.message}
-        </div>
-      )}
 
       <form action={formAction} className="space-y-8">
         <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
@@ -67,9 +64,9 @@ export default function AdminProfileForm({
                     placeholder="Enter your full name"
                   />
                 </div>
-                {state.errors?.fullName && (
+                {state.fieldErrors?.fullName && (
                   <p className="text-xs text-destructive mt-1">
-                    {state.errors.fullName[0]}
+                    {state.fieldErrors.fullName[0]}
                   </p>
                 )}
               </div>
@@ -88,9 +85,9 @@ export default function AdminProfileForm({
                     placeholder="E.g. Technical Support, Medical Verification"
                   />
                 </div>
-                {state.errors?.department && (
+                {state.fieldErrors?.department && (
                   <p className="text-xs text-destructive mt-1">
-                    {state.errors.department[0]}
+                    {state.fieldErrors.department[0]}
                   </p>
                 )}
               </div>
@@ -119,9 +116,9 @@ export default function AdminProfileForm({
                     placeholder="Enter your contact email"
                   />
                 </div>
-                {state.errors?.email && (
+                {state.fieldErrors?.email && (
                   <p className="text-xs text-destructive mt-1">
-                    {state.errors.email[0]}
+                    {state.fieldErrors.email[0]}
                   </p>
                 )}
               </div>
@@ -140,9 +137,9 @@ export default function AdminProfileForm({
                     placeholder="Enter phone number"
                   />
                 </div>
-                {state.errors?.phone && (
+                {state.fieldErrors?.phone && (
                   <p className="text-xs text-destructive mt-1">
-                    {state.errors.phone[0]}
+                    {state.fieldErrors.phone[0]}
                   </p>
                 )}
               </div>

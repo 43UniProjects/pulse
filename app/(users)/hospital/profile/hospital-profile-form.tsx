@@ -12,6 +12,7 @@ import {
   Globe,
   Building,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { updateHospitalProfile } from '@/actions/hospital.actions';
 import { HospitalEntity, HOSPITAL_TYPE } from '@/types/hospital.type';
 
@@ -26,18 +27,20 @@ export default function HospitalProfileForm({
 }) {
   const [state, formAction, isPending] = useActionState(updateHospitalProfile, {
     success: false,
-    message: '',
   });
 
   // Automatically go back to view mode if submission was successful
   useEffect(() => {
     if (state.success) {
+      toast.success('Profile updated successfully!');
       const timer = setTimeout(() => {
         onSuccess();
       }, 1000);
       return () => clearTimeout(timer);
+    } else if (state.error && !state.fieldErrors) {
+      toast.error(state.error);
     }
-  }, [state.success, onSuccess]);
+  }, [state, onSuccess]);
 
   // Format hospital type label
   const formatType = (type: string) => {
@@ -49,18 +52,6 @@ export default function HospitalProfileForm({
 
   return (
     <form action={formAction} className="space-y-8 pb-12">
-      {state.message && (
-        <div
-          className={`p-4 rounded-md border text-sm font-medium ${
-            state.success
-              ? 'bg-green-500/10 text-green-600 border-green-500/20'
-              : 'bg-red-500/10 text-red-600 border-red-500/20'
-          }`}
-        >
-          {state.message}
-        </div>
-      )}
-
       {/* Section 1: Facility Details */}
       <section className="space-y-4">
         <div className="flex items-center gap-2 mb-4">
@@ -82,8 +73,10 @@ export default function HospitalProfileForm({
                 defaultValue={initialData.name}
                 className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
               />
-              {state.errors?.name && (
-                <p className="text-xs text-red-500">{state.errors.name[0]}</p>
+              {state.fieldErrors?.name && (
+                <p className="text-xs text-red-500">
+                  {state.fieldErrors.name[0]}
+                </p>
               )}
             </div>
 
@@ -105,9 +98,9 @@ export default function HospitalProfileForm({
                 </select>
                 <Building className="w-4 h-4 text-muted-foreground absolute left-3 top-3 opacity-80" />
               </div>
-              {state.errors?.facilityType && (
+              {state.fieldErrors?.facilityType && (
                 <p className="text-xs text-red-500">
-                  {state.errors.facilityType[0]}
+                  {state.fieldErrors.facilityType[0]}
                 </p>
               )}
             </div>
@@ -126,9 +119,9 @@ export default function HospitalProfileForm({
                 />
                 <Globe className="w-4 h-4 text-muted-foreground absolute left-3 top-3 opacity-80" />
               </div>
-              {state.errors?.website && (
+              {state.fieldErrors?.website && (
                 <p className="text-xs text-red-500">
-                  {state.errors.website[0]}
+                  {state.fieldErrors.website[0]}
                 </p>
               )}
             </div>
@@ -163,8 +156,10 @@ export default function HospitalProfileForm({
               <p className="text-xs text-muted-foreground">
                 Publicly visible contact email.
               </p>
-              {state.errors?.email && (
-                <p className="text-xs text-red-500">{state.errors.email[0]}</p>
+              {state.fieldErrors?.email && (
+                <p className="text-xs text-red-500">
+                  {state.fieldErrors.email[0]}
+                </p>
               )}
             </div>
 
@@ -181,9 +176,9 @@ export default function HospitalProfileForm({
                 />
                 <Phone className="w-4 h-4 text-muted-foreground absolute left-3 top-3 opacity-80" />
               </div>
-              {state.errors?.hotline && (
+              {state.fieldErrors?.hotline && (
                 <p className="text-xs text-red-500">
-                  {state.errors.hotline[0]}
+                  {state.fieldErrors.hotline[0]}
                 </p>
               )}
             </div>
@@ -198,9 +193,9 @@ export default function HospitalProfileForm({
                 defaultValue={initialData.address}
                 className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
               />
-              {state.errors?.address && (
+              {state.fieldErrors?.address && (
                 <p className="text-xs text-red-500">
-                  {state.errors.address[0]}
+                  {state.fieldErrors.address[0]}
                 </p>
               )}
             </div>
@@ -215,8 +210,10 @@ export default function HospitalProfileForm({
                 defaultValue={initialData.city}
                 className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
               />
-              {state.errors?.city && (
-                <p className="text-xs text-red-500">{state.errors.city[0]}</p>
+              {state.fieldErrors?.city && (
+                <p className="text-xs text-red-500">
+                  {state.fieldErrors.city[0]}
+                </p>
               )}
             </div>
 
@@ -256,9 +253,9 @@ export default function HospitalProfileForm({
                 defaultValue={initialData.coordinator.name}
                 className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
               />
-              {state.errors?.coordinatorName && (
+              {state.fieldErrors?.coordinatorName && (
                 <p className="text-xs text-red-500">
-                  {state.errors.coordinatorName[0]}
+                  {state.fieldErrors.coordinatorName[0]}
                 </p>
               )}
             </div>
@@ -274,9 +271,9 @@ export default function HospitalProfileForm({
                 placeholder="e.g. Chief Medical Officer"
                 className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
               />
-              {state.errors?.coordinatorDesignation && (
+              {state.fieldErrors?.coordinatorDesignation && (
                 <p className="text-xs text-red-500">
-                  {state.errors.coordinatorDesignation[0]}
+                  {state.fieldErrors.coordinatorDesignation[0]}
                 </p>
               )}
             </div>
@@ -291,9 +288,9 @@ export default function HospitalProfileForm({
                 defaultValue={initialData.coordinator.contactNumber}
                 className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
               />
-              {state.errors?.coordinatorContactNumber && (
+              {state.fieldErrors?.coordinatorContactNumber && (
                 <p className="text-xs text-red-500">
-                  {state.errors.coordinatorContactNumber[0]}
+                  {state.fieldErrors.coordinatorContactNumber[0]}
                 </p>
               )}
             </div>
@@ -308,9 +305,9 @@ export default function HospitalProfileForm({
                 defaultValue={initialData.coordinator.email}
                 className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
               />
-              {state.errors?.coordinatorEmail && (
+              {state.fieldErrors?.coordinatorEmail && (
                 <p className="text-xs text-red-500">
-                  {state.errors.coordinatorEmail[0]}
+                  {state.fieldErrors.coordinatorEmail[0]}
                 </p>
               )}
             </div>

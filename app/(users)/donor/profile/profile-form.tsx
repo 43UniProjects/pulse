@@ -15,6 +15,7 @@ import {
   Navigation,
   Droplet,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { updateDonorProfile } from '@/actions/donor.actions';
 import { DonorEntity } from '@/types/donor.type';
 import { BLOOD_GROUPS } from '@/types/common.type';
@@ -30,17 +31,19 @@ export default function DonorProfileForm({
 }) {
   const [state, formAction, isPending] = useActionState(updateDonorProfile, {
     success: false,
-    message: '',
   });
 
   useEffect(() => {
     if (state.success) {
+      toast.success('Profile updated successfully!');
       const timer = setTimeout(() => {
         onSuccess();
       }, 1000); // Wait 1s to show the success message before switching view
       return () => clearTimeout(timer);
+    } else if (state.error && !state.fieldErrors) {
+      toast.error(state.error);
     }
-  }, [state.success, onSuccess]);
+  }, [state, onSuccess]);
 
   // Manage slider and toggles state so UI updates immediately
   const [radius, setRadius] = useState(initialData.radiusPreferenceKm);
@@ -57,18 +60,6 @@ export default function DonorProfileForm({
 
   return (
     <form action={formAction} className="space-y-8 pb-12">
-      {state.message && (
-        <div
-          className={`p-4 rounded-md border text-sm font-medium ${
-            state.success
-              ? 'bg-green-500/10 text-green-600 border-green-500/20'
-              : 'bg-red-500/10 text-red-600 border-red-500/20'
-          }`}
-        >
-          {state.message}
-        </div>
-      )}
-
       {/* Section 1: Personal & Medical Information */}
       <section className="space-y-4">
         <div className="flex items-center gap-2 mb-4">
@@ -90,9 +81,9 @@ export default function DonorProfileForm({
                 defaultValue={initialData.fullName}
                 className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
               />
-              {state.errors?.fullName && (
+              {state.fieldErrors?.fullName && (
                 <p className="text-xs text-red-500">
-                  {state.errors.fullName[0]}
+                  {state.fieldErrors.fullName[0]}
                 </p>
               )}
             </div>
@@ -115,9 +106,9 @@ export default function DonorProfileForm({
                 </select>
                 <Droplet className="w-4 h-4 text-primary absolute left-3 top-3 opacity-80" />
               </div>
-              {state.errors?.bloodGroup && (
+              {state.fieldErrors?.bloodGroup && (
                 <p className="text-xs text-red-500">
-                  {state.errors.bloodGroup[0]}
+                  {state.fieldErrors.bloodGroup[0]}
                 </p>
               )}
             </div>
@@ -132,8 +123,10 @@ export default function DonorProfileForm({
                 defaultValue={initialData.email}
                 className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
               />
-              {state.errors?.email && (
-                <p className="text-xs text-red-500">{state.errors.email[0]}</p>
+              {state.fieldErrors?.email && (
+                <p className="text-xs text-red-500">
+                  {state.fieldErrors.email[0]}
+                </p>
               )}
             </div>
 
@@ -147,8 +140,10 @@ export default function DonorProfileForm({
                 defaultValue={initialData.phone}
                 className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
               />
-              {state.errors?.phone && (
-                <p className="text-xs text-red-500">{state.errors.phone[0]}</p>
+              {state.fieldErrors?.phone && (
+                <p className="text-xs text-red-500">
+                  {state.fieldErrors.phone[0]}
+                </p>
               )}
             </div>
           </div>
@@ -175,9 +170,9 @@ export default function DonorProfileForm({
               defaultValue={initialData.address}
               className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
             />
-            {state.errors?.address && (
+            {state.fieldErrors?.address && (
               <p className="text-xs text-red-500 mt-1">
-                {state.errors.address[0]}
+                {state.fieldErrors.address[0]}
               </p>
             )}
 
