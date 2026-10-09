@@ -6,14 +6,9 @@ import { AccountType, RegistrationPayload } from './types';
 import { registerSchema } from '../_validators/auth.schema';
 
 export interface RegisterActionState {
+  success?: boolean;
   error?: string;
-  fieldErrors?: {
-    username?: string[];
-    email?: string[];
-    password?: string[];
-    confirmPassword?: string[];
-    role?: string[];
-  };
+  fieldErrors?: Record<string, string[]>;
 }
 
 export async function registerAccount(
@@ -34,7 +29,7 @@ export async function registerAccount(
     });
 
     return {
-      fieldErrors: fieldErrors as RegisterActionState['fieldErrors'],
+      fieldErrors,
       error: 'Please fix the errors in the form.',
     };
   }
@@ -50,12 +45,7 @@ export async function registerAccount(
     } as RegistrationPayload & { username: string });
   } catch (error: unknown) {
     console.error('Registration error:', error);
-    return {
-      error:
-        error instanceof Error
-          ? error.message
-          : 'Failed to connect to the registration server.',
-    };
+    return { error: 'An unexpected error occurred.' };
   }
 
   redirect('/verify-email');

@@ -4,7 +4,7 @@ import { useState, useEffect, useActionState, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
-import { Activity, Loader2, AlertCircle } from 'lucide-react';
+import { Activity, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import GenericFallback from '@/components/fallback';
@@ -30,16 +30,12 @@ function RegisterFormContent() {
     }
   }, [searchParams]);
 
-  // Trigger Sonner toasts when the Server Action returns errors
+  // Trigger Sonner toast notifications for global states
   useEffect(() => {
-    if (state?.error && !state?.fieldErrors) {
+    if (state?.success) {
+      toast.success('Account created successfully!');
+    } else if (state?.error && !state?.fieldErrors) {
       toast.error(state.error);
-    }
-
-    if (state?.fieldErrors) {
-      Object.values(state.fieldErrors).forEach((errors) => {
-        errors?.forEach((err) => toast.error(err));
-      });
     }
   }, [state]);
 
@@ -149,14 +145,6 @@ function RegisterFormContent() {
             state?.fieldErrors?.confirmPassword?.[0]
           }
         />
-
-        {/* Global Error Banner */}
-        {state?.error && !state?.fieldErrors && (
-          <div className="flex items-start gap-2 p-3 mt-2 text-sm text-red-600 bg-red-50 border border-red-100 rounded-md">
-            <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-            <p>{state.error}</p>
-          </div>
-        )}
 
         <button
           type="submit"

@@ -2,7 +2,7 @@
 
 import { useState, useActionState, useEffect } from 'react';
 import Link from 'next/link';
-import { Activity, Loader2, AlertCircle } from 'lucide-react';
+import { Activity, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { authenticateUser } from './actions';
 
@@ -10,16 +10,12 @@ export default function LoginForm() {
   const [role, setRole] = useState<'donor' | 'hospital' | 'admin'>('donor');
   const [state, formAction, isPending] = useActionState(authenticateUser, null);
 
-  // Trigger Sonner toast notifications when the Server Action returns errors
+  // Trigger Sonner toast notifications for global states
   useEffect(() => {
-    if (state?.error) {
+    if (state?.success) {
+      toast.success('Logged in successfully!');
+    } else if (state?.error && !state?.fieldErrors) {
       toast.error(state.error);
-    }
-
-    if (state?.fieldErrors) {
-      Object.values(state.fieldErrors).forEach((errors) => {
-        errors?.forEach((err) => toast.error(err));
-      });
     }
   }, [state]);
 
@@ -96,13 +92,6 @@ export default function LoginForm() {
             </p>
           )}
         </div>
-
-        {state?.error && (
-          <div className="flex items-start gap-2 p-3 text-sm text-red-600 bg-red-50 border border-red-100 rounded-md">
-            <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-            <p>{state.error}</p>
-          </div>
-        )}
 
         <button
           type="submit"
