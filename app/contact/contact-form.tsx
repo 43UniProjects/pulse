@@ -34,12 +34,6 @@ export default function ContactForm({ user }: ContactFormProps) {
     } else if (state?.error && !state?.fieldErrors) {
       toast.error(state.error);
     }
-
-    if (state?.fieldErrors) {
-      Object.values(state.fieldErrors).forEach((errors) => {
-        errors?.forEach((err) => toast.error(err));
-      });
-    }
   }, [state]);
 
   const handleClientValidation = (e: React.FormEvent<HTMLFormElement>) => {
