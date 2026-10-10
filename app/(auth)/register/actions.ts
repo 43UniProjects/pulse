@@ -1,6 +1,5 @@
 'use server';
 
-import { redirect } from 'next/navigation';
 import { createAccount } from './data';
 import { AccountType, RegistrationPayload } from './types';
 import { registerSchema } from '../_validators/auth.schema';
