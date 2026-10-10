@@ -42,6 +42,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             position="top-right"
             offset="120px"
             style={{ right: '15px' }}
+            duration={3000}
           />
         </ThemeProvider>
       </body>
