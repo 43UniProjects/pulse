@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import { headers } from 'next/headers';
 import { Suspense } from 'react';
 import {
   User,
@@ -8,12 +9,14 @@ import {
   ShieldCheck,
   ArrowRight,
   Loader2,
+  Settings,
 } from 'lucide-react';
 
 import Footer from '@/components/footer';
 import Header from '@/components/header/main';
 import { getFaqs } from './data';
 import FaqClient from './faq-client';
+import { auth } from '@/lib/auth/config'; // Import Better Auth
 
 export const metadata: Metadata = {
   title: 'Support & FAQs',
@@ -27,20 +30,40 @@ async function FaqSection() {
   return <FaqClient initialFaqs={faqs} />;
 }
 
-export default function SupportPage() {
+export default async function SupportPage() {
+  // Securely retrieve the active session
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  const isAdmin = session?.user?.role === 'admin';
+
   return (
     <>
       <Header />
       <div className="w-full flex-1 flex flex-col">
         {/* Compact Header Section */}
         <section className="border-b border-border bg-card/20 py-12">
-          <div className="max-w-7xl mx-auto px-6">
-            <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-foreground mb-2">
-              Help Center
-            </h1>
-            <p className="text-lg text-muted-foreground">
-              Find answers instantly or get in touch with our team.
-            </p>
+          <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-foreground mb-2">
+                Help Center
+              </h1>
+              <p className="text-lg text-muted-foreground">
+                Find answers instantly or get in touch with our team.
+              </p>
+            </div>
+
+            {/* Conditional Admin Shortcut */}
+            {isAdmin && (
+              <Link
+                href="/admin/faqs"
+                className="inline-flex items-center justify-center h-10 px-4 rounded-md bg-secondary text-secondary-foreground text-sm font-medium border border-border hover:bg-secondary/80 transition-colors shrink-0"
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Manage FAQs
+              </Link>
+            )}
           </div>
         </section>
 
