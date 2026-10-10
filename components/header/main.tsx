@@ -24,7 +24,7 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-50 w-full flex flex-col shadow-sm">
+    <header className="sticky top-0 z-50 w-full flex flex-col shadow-sm transform-gpu">
       {/* Top Bar: System Status & Utility Links */}
       <div className="bg-background/80 backdrop-blur-md border-b border-border py-1.5 w-full">
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between text-xs font-medium text-muted-foreground">

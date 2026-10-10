@@ -20,6 +20,7 @@ export default function ContactForm({ user }: ContactFormProps) {
     {},
   );
   const formRef = useRef<HTMLFormElement>(null);
+  const lastStateRef = useRef(state);
 
   const isGuest = user.role === 'guest';
   const formTitle =
@@ -28,17 +29,14 @@ export default function ContactForm({ user }: ContactFormProps) {
       : 'Contact Support';
 
   useEffect(() => {
+    if (state === lastStateRef.current) return;
+    lastStateRef.current = state;
+
     if (state?.success) {
       toast.success('Message sent successfully!');
       formRef.current?.reset();
     } else if (state?.error && !state?.fieldErrors) {
       toast.error(state.error);
-    }
-
-    if (state?.fieldErrors) {
-      Object.values(state.fieldErrors).forEach((errors) => {
-        errors?.forEach((err) => toast.error(err));
-      });
     }
   }, [state]);
 

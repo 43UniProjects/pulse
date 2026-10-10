@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LogOut, LayoutDashboard } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { logoutUser } from '@/app/(auth)/login/actions';
 
 type NavLink = {
   name: string;
@@ -65,14 +66,16 @@ function SidebarContent({
         <div className="text-sm font-semibold text-foreground truncate mb-3">
           {userName}
         </div>
-        <Link
-          href="/login"
-          onClick={onNavigate}
-          className="flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
-        >
-          <LogOut className="w-4 h-4" />
-          Logout
-        </Link>
+        <form action={logoutUser}>
+          <button
+            type="submit"
+            onClick={onNavigate}
+            className="flex w-full items-center gap-2 text-xs font-medium text-muted-foreground hover:text-primary transition-colors cursor-pointer bg-transparent border-0 p-0 m-0"
+          >
+            <LogOut className="w-4 h-4" />
+            Logout
+          </button>
+        </form>
       </div>
     </aside>
   );

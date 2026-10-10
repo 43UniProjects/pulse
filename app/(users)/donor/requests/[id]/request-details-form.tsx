@@ -129,7 +129,7 @@ export default function RequestDetailClient({
           ) : (
             <button
               onClick={() => setStatus('pending')}
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-4"
+              className="text-xs font-medium bg-secondary text-secondary-foreground border border-border px-4 py-2 rounded-md hover:bg-secondary/80 transition-all hover:shadow-md active:scale-[0.98]"
             >
               Undo response
             </button>

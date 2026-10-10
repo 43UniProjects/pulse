@@ -14,7 +14,7 @@ async function ContactFormWrapper() {
   const token = cookieStore.get('pulse_session')?.value;
   let userId: string | undefined = undefined;
 
-  // Extract the custom JWT session instead of NextAuth[cite: 19]
+  // Extract the custom JWT session instead of NextAuth
   if (token) {
     try {
       const secretKey =
@@ -22,7 +22,7 @@ async function ContactFormWrapper() {
       const secret = new TextEncoder().encode(secretKey);
       const { payload } = await jwtVerify(token, secret);
       userId = payload._id as string;
-    } catch (error) {
+    } catch {
       // Invalid or expired token, proceed as guest
     }
   }

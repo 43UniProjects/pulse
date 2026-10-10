@@ -8,12 +8,10 @@ import { UserRole } from '@/types/user.type';
 import { loginSchema } from '../_validators/auth.schema';
 
 export interface ActionState {
+  success?: boolean;
   error?: string;
-  fieldErrors?: {
-    email?: string[];
-    password?: string[];
-    role?: string[];
-  };
+  fieldErrors?: Record<string, string[]>;
+  redirectUrl?: string;
 }
 
 export async function authenticateUser(
@@ -28,8 +26,16 @@ export async function authenticateUser(
 
   // 3. Return early if validation fails, passing errors to the client
   if (!validatedFields.success) {
+    const fieldErrors: Record<string, string[]> = {};
+
+    validatedFields.error.issues.forEach((issue) => {
+      const field = String(issue.path[0]);
+      if (!fieldErrors[field]) fieldErrors[field] = [];
+      fieldErrors[field].push(issue.message);
+    });
+
     return {
-      fieldErrors: validatedFields.error.flatten().fieldErrors,
+      fieldErrors,
       error: 'Please fix the errors in the form.',
     };
   }
@@ -60,12 +66,20 @@ export async function authenticateUser(
       path: '/',
       maxAge: 60 * 60 * 24 * 7,
     });
-  } catch (error) {
-    console.error('Auth error:', error);
-    return { error: 'Connection to authentication server failed.' };
+  } catch (error: unknown) {
+    console.error('[Action: authenticateUser]', error);
+    return { error: 'An unexpected error occurred.' };
   }
 
-  if (role === 'donor') redirect('/donor/dashboard');
-  if (role === 'hospital') redirect('/hospital/dashboard');
-  redirect('/admin/dashboard');
+  let redirectUrl = '/admin/dashboard';
+  if (role === 'donor') redirectUrl = '/donor/dashboard';
+  if (role === 'hospital') redirectUrl = '/hospital/dashboard';
+
+  return { success: true, redirectUrl };
+}
+
+export async function logoutUser() {
+  const cookieStore = await cookies();
+  cookieStore.delete('pulse_session');
+  redirect('/login');
 }
