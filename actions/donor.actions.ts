@@ -21,8 +21,8 @@ const donorSchema = z.object({
 
 export type ActionState = {
   success?: boolean;
-  message?: string;
-  errors?: Record<string, string[]>;
+  error?: string;
+  fieldErrors?: Record<string, string[]>;
 };
 
 export async function updateDonorProfile(
@@ -50,17 +50,30 @@ export async function updateDonorProfile(
   const validatedData = donorSchema.safeParse(rawData);
 
   if (!validatedData.success) {
+    const fieldErrors: Record<string, string[]> = {};
+    validatedData.error.issues.forEach((issue) => {
+      const field = String(issue.path[0]);
+      if (!fieldErrors[field]) fieldErrors[field] = [];
+      fieldErrors[field].push(issue.message);
+    });
+
     return {
       success: false,
-      message: 'Please fix the errors in the form.',
-      errors: validatedData.error.flatten().fieldErrors,
+      error: 'Please fix the errors in the form.',
+      fieldErrors,
     };
   }
 
-  // Here you would normally save to MongoDB
-
-  return {
-    success: true,
-    message: 'Profile updated successfully!',
-  };
+  try {
+    // Here you would normally save to MongoDB
+    return {
+      success: true,
+    };
+  } catch (error: unknown) {
+    console.error('[Action: updateDonorProfile]', error);
+    return {
+      success: false,
+      error: 'An unexpected error occurred while updating the profile.',
+    };
+  }
 }

@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter, usePathname, useSearchParams } from 'next/navigation'; // Added useRouter & usePathname
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { Activity, Loader2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -16,22 +16,17 @@ function RegisterFormContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const [tab, setTab] = useState<AccountType>(ACCOUNT_TYPE[0]); // 'donor'
+  // Initialize directly from URL params if present
+  const initialType = searchParams.get('type');
+  const [tab, setTab] = useState<AccountType>(
+    initialType === ACCOUNT_TYPE[1] ? ACCOUNT_TYPE[1] : ACCOUNT_TYPE[0],
+  );
 
   const [isPending, setIsPending] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [globalError, setGlobalError] = useState<string | null>(null);
 
-  // Sync URL -> State on mount or URL change
-  useEffect(() => {
-    const type = searchParams.get('type');
-    if (type === ACCOUNT_TYPE[0] || type === ACCOUNT_TYPE[1]) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setTab(type as AccountType);
-    }
-  }, [searchParams]);
-
-  // Sync State -> URL when a tab is clicked
+  // Sync State -> URL when tab changes
   const handleTabChange = (newTab: AccountType) => {
     setTab(newTab);
     const params = new URLSearchParams(searchParams.toString());
@@ -89,6 +84,7 @@ function RegisterFormContent() {
     }
 
     toast.success('Account created! Please check your email.');
+    router.push(`/verify-email?email=${encodeURIComponent(email)}`);
   };
 
   return (
@@ -112,7 +108,7 @@ function RegisterFormContent() {
         <div className="flex p-1 gap-1 bg-secondary border border-border rounded-lg">
           <button
             type="button"
-            onClick={() => handleTabChange(ACCOUNT_TYPE[0])} // Updated to use handleTabChange
+            onClick={() => handleTabChange(ACCOUNT_TYPE[0])}
             className={`flex-1 text-xs font-medium py-2 rounded-md transition-all uppercase tracking-wider ${
               tab === ACCOUNT_TYPE[0]
                 ? 'bg-background text-foreground shadow-sm border border-border/50'
@@ -123,7 +119,7 @@ function RegisterFormContent() {
           </button>
           <button
             type="button"
-            onClick={() => handleTabChange(ACCOUNT_TYPE[1])} // Updated to use handleTabChange
+            onClick={() => handleTabChange(ACCOUNT_TYPE[1])}
             className={`flex-1 text-xs font-medium py-2 rounded-md transition-all uppercase tracking-wider ${
               tab === ACCOUNT_TYPE[1]
                 ? 'bg-background text-foreground shadow-sm border border-border/50'

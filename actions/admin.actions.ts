@@ -12,8 +12,8 @@ const adminSchema = z.object({
 
 export type AdminActionState = {
   success?: boolean;
-  message?: string;
-  errors?: Record<string, string[]>;
+  error?: string;
+  fieldErrors?: Record<string, string[]>;
 };
 
 export async function updateAdminProfile(
@@ -33,17 +33,30 @@ export async function updateAdminProfile(
   const validatedData = adminSchema.safeParse(rawData);
 
   if (!validatedData.success) {
+    const fieldErrors: Record<string, string[]> = {};
+    validatedData.error.issues.forEach((issue) => {
+      const field = String(issue.path[0]);
+      if (!fieldErrors[field]) fieldErrors[field] = [];
+      fieldErrors[field].push(issue.message);
+    });
+
     return {
       success: false,
-      message: 'Please fix the errors in the form.',
-      errors: validatedData.error.flatten().fieldErrors,
+      error: 'Please fix the errors in the form.',
+      fieldErrors,
     };
   }
 
-  // Normally, update DB here using the verified data
-
-  return {
-    success: true,
-    message: 'Profile updated successfully!',
-  };
+  try {
+    // Normally, update DB here using the verified data
+    return {
+      success: true,
+    };
+  } catch (error: unknown) {
+    console.error('[Action: updateAdminProfile]', error);
+    return {
+      success: false,
+      error: 'An unexpected error occurred while updating the profile.',
+    };
+  }
 }

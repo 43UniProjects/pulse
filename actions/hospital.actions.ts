@@ -26,8 +26,8 @@ const hospitalSchema = z.object({
 
 export type HospitalActionState = {
   success?: boolean;
-  message?: string;
-  errors?: Record<string, string[]>;
+  error?: string;
+  fieldErrors?: Record<string, string[]>;
 };
 
 export async function updateHospitalProfile(
@@ -56,18 +56,31 @@ export async function updateHospitalProfile(
   const validatedData = hospitalSchema.safeParse(rawData);
 
   if (!validatedData.success) {
+    const fieldErrors: Record<string, string[]> = {};
+    validatedData.error.issues.forEach((issue) => {
+      const field = String(issue.path[0]);
+      if (!fieldErrors[field]) fieldErrors[field] = [];
+      fieldErrors[field].push(issue.message);
+    });
+
     return {
       success: false,
-      message: 'Please fix the errors in the form.',
-      errors: validatedData.error.flatten().fieldErrors,
+      error: 'Please fix the errors in the form.',
+      fieldErrors,
     };
   }
 
-  // Here you would normally connect to DB and update the Hospital collection
-  // using the _id from the authenticated session.
-
-  return {
-    success: true,
-    message: 'Hospital profile updated successfully!',
-  };
+  try {
+    // Here you would normally connect to DB and update the Hospital collection
+    // using the _id from the authenticated session.
+    return {
+      success: true,
+    };
+  } catch (error: unknown) {
+    console.error('[Action: updateHospitalProfile]', error);
+    return {
+      success: false,
+      error: 'An unexpected error occurred while updating the profile.',
+    };
+  }
 }

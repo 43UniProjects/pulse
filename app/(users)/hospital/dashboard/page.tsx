@@ -261,7 +261,7 @@ export default function HospitalDashboard() {
                     <td className="px-5 py-3.5 text-right">
                       <Link
                         href={`/hospital/tracking/${r._id}`}
-                        className="text-xs font-medium text-primary hover:underline"
+                        className="text-xs font-medium bg-secondary text-secondary-foreground border border-border px-3 py-1.5 rounded-md hover:bg-secondary/80 transition-all hover:shadow-md active:scale-[0.98] inline-block"
                       >
                         Track
                       </Link>

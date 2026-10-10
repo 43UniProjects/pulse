@@ -167,7 +167,7 @@ export default function VerifyHospitals() {
                     ) : (
                       <button
                         onClick={() => update(h.id, 'Pending')}
-                        className="text-xs text-muted-foreground hover:text-foreground underline transition-colors"
+                        className="text-xs font-medium bg-secondary text-secondary-foreground border border-border px-3 py-1.5 rounded-md hover:bg-secondary/80 transition-all hover:shadow-md active:scale-[0.98]"
                       >
                         Undo
                       </button>
@@ -230,7 +230,7 @@ export default function VerifyHospitals() {
                   ) : (
                     <button
                       onClick={() => update(h.id, 'Pending')}
-                      className="text-xs text-muted-foreground hover:text-foreground underline transition-colors py-1"
+                      className="text-xs font-medium bg-secondary text-secondary-foreground border border-border px-4 py-2 rounded-md hover:bg-secondary/80 transition-all hover:shadow-md active:scale-[0.98]"
                     >
                       Undo Action
                     </button>
