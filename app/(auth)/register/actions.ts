@@ -9,6 +9,7 @@ export interface RegisterActionState {
   success?: boolean;
   error?: string;
   fieldErrors?: Record<string, string[]>;
+  redirectUrl?: string;
 }
 
 export async function registerAccount(
@@ -48,5 +49,5 @@ export async function registerAccount(
     return { error: 'An unexpected error occurred.' };
   }
 
-  redirect('/verify-email');
+  return { success: true, redirectUrl: '/verify-email' };
 }

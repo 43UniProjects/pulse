@@ -2,11 +2,13 @@
 
 import { useState, useActionState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Activity, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { authenticateUser } from './actions';
 
 export default function LoginForm() {
+  const router = useRouter();
   const [role, setRole] = useState<'donor' | 'hospital' | 'admin'>('donor');
   const [state, formAction, isPending] = useActionState(authenticateUser, null);
 
@@ -14,10 +16,13 @@ export default function LoginForm() {
   useEffect(() => {
     if (state?.success) {
       toast.success('Logged in successfully!');
+      if (state.redirectUrl) {
+        setTimeout(() => router.push(state.redirectUrl!), 800);
+      }
     } else if (state?.error && !state?.fieldErrors) {
       toast.error(state.error);
     }
-  }, [state]);
+  }, [state, router]);
 
   return (
     <div className="w-full max-w-lg bg-card border border-border rounded-xl p-8 shadow-sm">

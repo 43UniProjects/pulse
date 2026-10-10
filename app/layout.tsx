@@ -37,7 +37,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className="min-h-screen bg-background text-foreground flex flex-col font-sans selection:bg-primary/30 selection:text-primary-foreground">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <main className="flex-1 flex flex-col">{children}</main>
-          <Toaster richColors position="top-right" />
+          <Toaster
+            richColors
+            position="top-right"
+            offset="120px"
+            style={{ right: '15px' }}
+          />
         </ThemeProvider>
       </body>
     </html>

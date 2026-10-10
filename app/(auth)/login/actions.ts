@@ -11,6 +11,7 @@ export interface ActionState {
   success?: boolean;
   error?: string;
   fieldErrors?: Record<string, string[]>;
+  redirectUrl?: string;
 }
 
 export async function authenticateUser(
@@ -70,7 +71,9 @@ export async function authenticateUser(
     return { error: 'An unexpected error occurred.' };
   }
 
-  if (role === 'donor') redirect('/donor/dashboard');
-  if (role === 'hospital') redirect('/hospital/dashboard');
-  redirect('/admin/dashboard');
+  let redirectUrl = '/admin/dashboard';
+  if (role === 'donor') redirectUrl = '/donor/dashboard';
+  if (role === 'hospital') redirectUrl = '/hospital/dashboard';
+
+  return { success: true, redirectUrl };
 }

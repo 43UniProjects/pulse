@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useActionState, Suspense } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 import { Activity, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -14,6 +14,7 @@ import { registerSchema } from '../_validators/auth.schema';
 
 function RegisterFormContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   const [tab, setTab] = useState<AccountType>(ACCOUNT_TYPE[0]);
   const [clientErrors, setClientErrors] = useState<Record<string, string[]>>(
@@ -34,10 +35,13 @@ function RegisterFormContent() {
   useEffect(() => {
     if (state?.success) {
       toast.success('Account created successfully!');
+      if (state.redirectUrl) {
+        setTimeout(() => router.push(state.redirectUrl!), 800);
+      }
     } else if (state?.error && !state?.fieldErrors) {
       toast.error(state.error);
     }
-  }, [state]);
+  }, [state, router]);
 
   const handleClientValidation = (e: React.FormEvent<HTMLFormElement>) => {
     const formData = new FormData(e.currentTarget);
