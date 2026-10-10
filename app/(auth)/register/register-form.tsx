@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect, useActionState, Suspense } from 'react';
+import { useState, useEffect, useActionState, Suspense, useRef } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 
-import { Activity, Loader2, AlertCircle } from 'lucide-react';
+import { Activity, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import GenericFallback from '@/components/fallback';
@@ -14,6 +14,7 @@ import { registerSchema } from '../_validators/auth.schema';
 
 function RegisterFormContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   const [tab, setTab] = useState<AccountType>(ACCOUNT_TYPE[0]);
   const [clientErrors, setClientErrors] = useState<Record<string, string[]>>(
@@ -21,6 +22,7 @@ function RegisterFormContent() {
   );
 
   const [state, formAction, isPending] = useActionState(registerAccount, null);
+  const lastStateRef = useRef(state);
 
   useEffect(() => {
     const type = searchParams.get('type');
@@ -30,18 +32,20 @@ function RegisterFormContent() {
     }
   }, [searchParams]);
 
-  // Trigger Sonner toasts when the Server Action returns errors
+  // Trigger Sonner toast notifications for global states
   useEffect(() => {
-    if (state?.error && !state?.fieldErrors) {
+    if (state === lastStateRef.current) return;
+    lastStateRef.current = state;
+
+    if (state?.success) {
+      toast.success('Account created successfully!');
+      if (state.redirectUrl) {
+        setTimeout(() => router.push(state.redirectUrl!), 800);
+      }
+    } else if (state?.error && !state?.fieldErrors) {
       toast.error(state.error);
     }
-
-    if (state?.fieldErrors) {
-      Object.values(state.fieldErrors).forEach((errors) => {
-        errors?.forEach((err) => toast.error(err));
-      });
-    }
-  }, [state]);
+  }, [state, router]);
 
   const handleClientValidation = (e: React.FormEvent<HTMLFormElement>) => {
     const formData = new FormData(e.currentTarget);
@@ -149,14 +153,6 @@ function RegisterFormContent() {
             state?.fieldErrors?.confirmPassword?.[0]
           }
         />
-
-        {/* Global Error Banner */}
-        {state?.error && !state?.fieldErrors && (
-          <div className="flex items-start gap-2 p-3 mt-2 text-sm text-red-600 bg-red-50 border border-red-100 rounded-md">
-            <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-            <p>{state.error}</p>
-          </div>
-        )}
 
         <button
           type="submit"

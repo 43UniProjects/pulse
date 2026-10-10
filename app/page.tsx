@@ -129,7 +129,7 @@ export default function HomePage() {
 
         <div className="grid md:grid-cols-3 gap-6">
           {/* Step 01 */}
-          <div className="bg-card border border-border rounded-lg p-8 relative flex flex-col justify-between hover:border-primary/50 transition-all">
+          <div className="bg-card border border-border rounded-2xl shadow-md p-8 relative flex flex-col justify-between hover:border-primary/50 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
             <div>
               <div className="flex items-center justify-between mb-6">
                 <span className="text-3xl font-bold font-tabular text-primary">
@@ -151,7 +151,7 @@ export default function HomePage() {
           </div>
 
           {/* Step 02 */}
-          <div className="bg-card border border-border rounded-lg p-8 relative flex flex-col justify-between hover:border-primary/50 transition-all">
+          <div className="bg-card border border-border rounded-2xl shadow-md p-8 relative flex flex-col justify-between hover:border-primary/50 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
             <div>
               <div className="flex items-center justify-between mb-6">
                 <span className="text-3xl font-bold font-tabular text-primary">
@@ -173,7 +173,7 @@ export default function HomePage() {
           </div>
 
           {/* Step 03 */}
-          <div className="bg-card border border-border rounded-lg p-8 relative flex flex-col justify-between hover:border-primary/50 transition-all">
+          <div className="bg-card border border-border rounded-2xl shadow-md p-8 relative flex flex-col justify-between hover:border-primary/50 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
             <div>
               <div className="flex items-center justify-between mb-6">
                 <span className="text-3xl font-bold font-tabular text-primary">

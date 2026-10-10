@@ -42,9 +42,7 @@ export async function submitContactMessage(
 
     return { success: true };
   } catch (error: unknown) {
-    console.error('Contact submission error:', error);
-    return {
-      error: error instanceof Error ? error.message : 'Failed to send message.',
-    };
+    console.error('[Action: submitContactMessage]', error);
+    return { error: 'An unexpected error occurred while sending the message.' };
   }
 }
