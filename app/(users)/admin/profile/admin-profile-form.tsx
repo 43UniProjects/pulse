@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useEffect } from 'react';
+import { useActionState, useEffect, useRef } from 'react';
 import { User, Phone, Mail, Save, Loader2, Briefcase } from 'lucide-react';
 import { toast } from 'sonner';
 import { updateAdminProfile } from '@/actions/admin.actions';
@@ -18,8 +18,12 @@ export default function AdminProfileForm({
   const [state, formAction, isPending] = useActionState(updateAdminProfile, {
     success: false,
   });
+  const lastStateRef = useRef(state);
 
   useEffect(() => {
+    if (state === lastStateRef.current) return;
+    lastStateRef.current = state;
+
     if (state.success) {
       toast.success('Profile updated successfully!');
       onSuccess();

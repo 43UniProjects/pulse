@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useEffect } from 'react';
+import { useActionState, useEffect, useRef } from 'react';
 import {
   Building2,
   MapPin,
@@ -28,9 +28,13 @@ export default function HospitalProfileForm({
   const [state, formAction, isPending] = useActionState(updateHospitalProfile, {
     success: false,
   });
+  const lastStateRef = useRef(state);
 
   // Automatically go back to view mode if submission was successful
   useEffect(() => {
+    if (state === lastStateRef.current) return;
+    lastStateRef.current = state;
+
     if (state.success) {
       toast.success('Profile updated successfully!');
       const timer = setTimeout(() => {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useActionState, Suspense } from 'react';
+import { useState, useEffect, useActionState, Suspense, useRef } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 
@@ -22,6 +22,7 @@ function RegisterFormContent() {
   );
 
   const [state, formAction, isPending] = useActionState(registerAccount, null);
+  const lastStateRef = useRef(state);
 
   useEffect(() => {
     const type = searchParams.get('type');
@@ -33,6 +34,9 @@ function RegisterFormContent() {
 
   // Trigger Sonner toast notifications for global states
   useEffect(() => {
+    if (state === lastStateRef.current) return;
+    lastStateRef.current = state;
+
     if (state?.success) {
       toast.success('Account created successfully!');
       if (state.redirectUrl) {

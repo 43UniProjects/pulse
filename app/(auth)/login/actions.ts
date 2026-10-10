@@ -77,3 +77,9 @@ export async function authenticateUser(
 
   return { success: true, redirectUrl };
 }
+
+export async function logoutUser() {
+  const cookieStore = await cookies();
+  cookieStore.delete('pulse_session');
+  redirect('/login');
+}

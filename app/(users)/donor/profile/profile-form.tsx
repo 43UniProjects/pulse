@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useState, useEffect } from 'react';
+import { useActionState, useState, useEffect, useRef } from 'react';
 import {
   Bell,
   Moon,
@@ -32,8 +32,12 @@ export default function DonorProfileForm({
   const [state, formAction, isPending] = useActionState(updateDonorProfile, {
     success: false,
   });
+  const lastStateRef = useRef(state);
 
   useEffect(() => {
+    if (state === lastStateRef.current) return;
+    lastStateRef.current = state;
+
     if (state.success) {
       toast.success('Profile updated successfully!');
       const timer = setTimeout(() => {

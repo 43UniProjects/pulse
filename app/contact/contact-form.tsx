@@ -20,6 +20,7 @@ export default function ContactForm({ user }: ContactFormProps) {
     {},
   );
   const formRef = useRef<HTMLFormElement>(null);
+  const lastStateRef = useRef(state);
 
   const isGuest = user.role === 'guest';
   const formTitle =
@@ -28,6 +29,9 @@ export default function ContactForm({ user }: ContactFormProps) {
       : 'Contact Support';
 
   useEffect(() => {
+    if (state === lastStateRef.current) return;
+    lastStateRef.current = state;
+
     if (state?.success) {
       toast.success('Message sent successfully!');
       formRef.current?.reset();

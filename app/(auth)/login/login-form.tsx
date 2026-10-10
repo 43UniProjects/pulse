@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useActionState, useEffect } from 'react';
+import { useState, useActionState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Activity, Loader2 } from 'lucide-react';
@@ -11,9 +11,13 @@ export default function LoginForm() {
   const router = useRouter();
   const [role, setRole] = useState<'donor' | 'hospital' | 'admin'>('donor');
   const [state, formAction, isPending] = useActionState(authenticateUser, null);
+  const lastStateRef = useRef(state);
 
   // Trigger Sonner toast notifications for global states
   useEffect(() => {
+    if (state === lastStateRef.current) return;
+    lastStateRef.current = state;
+
     if (state?.success) {
       toast.success('Logged in successfully!');
       if (state.redirectUrl) {
