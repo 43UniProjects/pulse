@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Menu, LayoutDashboard } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Menu, LayoutDashboard, ChevronDown, User, LogOut } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
@@ -12,6 +13,7 @@ import {
 } from '@/components/ui/sheet';
 
 import { NAV_LINKS } from '@/types/common.type';
+import { authClient } from '@/lib/auth/client';
 
 interface MobileMenuProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -23,7 +25,20 @@ export default function MobileMenu({
   session,
   dashboardHref,
 }: MobileMenuProps) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  const handleLogout = async () => {
+    await authClient.signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          setOpen(false); // Close the mobile menu
+          router.push('/login');
+        },
+      },
+    });
+  };
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -36,17 +51,51 @@ export default function MobileMenu({
 
       <SheetContent
         side="right"
-        className="w-75 sm:w-100 p-0 border-l border-border"
+        className="w-75 sm:w-100 p-0 border-l border-border flex flex-col"
       >
-        <SheetHeader className="p-6 border-b border-border/50 text-left">
+        <SheetHeader className="p-6 border-b border-border/50 text-left bg-secondary/20">
           <SheetTitle className="font-bold tracking-tight text-2xl text-foreground flex items-center">
             Pulse
           </SheetTitle>
+
+          {session && (
+            <div className="mt-3">
+              <button
+                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors focus:outline-none w-full"
+              >
+                <span>Logged in as {session.user.name}</span>
+                <ChevronDown
+                  className={`w-4 h-4 transition-transform ${isProfileOpen ? 'rotate-180' : ''}`}
+                />
+              </button>
+
+              {/* Inline Mobile Profile Menu */}
+              {isProfileOpen && (
+                <div className="mt-3 flex flex-col gap-1 border-l-2 border-primary/30 pl-3 animate-in slide-in-from-top-2 fade-in duration-200">
+                  <Link
+                    href={`/${session.user.role}/profile`}
+                    onClick={() => setOpen(false)}
+                    className="flex items-center py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <User className="w-4 h-4 mr-2" />
+                    Visit Profile
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center py-2 text-sm text-red-500 hover:text-red-600 transition-colors text-left"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </SheetHeader>
 
-        <nav className="flex flex-col p-4">
+        <nav className="flex flex-col p-4 flex-1 overflow-y-auto">
           <ul className="flex flex-col gap-2">
-            {/* 2. Filter standard links based on the actual Better Auth session */}
             {NAV_LINKS.filter((link) =>
               session ? link.label === 'Home' : true,
             ).map(({ label, href }) => (
@@ -61,7 +110,6 @@ export default function MobileMenu({
               </li>
             ))}
 
-            {/* 3. Render dynamic Role-Based CTA Buttons */}
             {session ? (
               <li>
                 <Link

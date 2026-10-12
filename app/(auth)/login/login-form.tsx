@@ -71,8 +71,10 @@ function LoginFormContent() {
 
     toast.success('Logged in successfully!');
 
-    const userRole = data?.user?.role;
+    router.refresh();
 
+    // 2. Route the user
+    const userRole = data?.user?.role;
     if (userRole === 'donor') {
       router.push('/donor/dashboard');
     } else if (userRole === 'hospital') {
