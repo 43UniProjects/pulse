@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Menu } from 'lucide-react';
-import { usePathname } from 'next/navigation';
+import { Menu, LayoutDashboard } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
@@ -14,13 +13,16 @@ import {
 
 import { NAV_LINKS } from '@/types/common.type';
 
-export default function MobileMenu() {
-  const pathname = usePathname();
-  const isLoggedIn =
-    pathname.startsWith('/admin') ||
-    pathname.startsWith('/hospital') ||
-    pathname.startsWith('/donor');
+interface MobileMenuProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  session: any | null;
+  dashboardHref: string;
+}
 
+export default function MobileMenu({
+  session,
+  dashboardHref,
+}: MobileMenuProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -44,8 +46,9 @@ export default function MobileMenu() {
 
         <nav className="flex flex-col p-4">
           <ul className="flex flex-col gap-2">
+            {/* 2. Filter standard links based on the actual Better Auth session */}
             {NAV_LINKS.filter((link) =>
-              isLoggedIn ? link.label === 'Home' : true,
+              session ? link.label === 'Home' : true,
             ).map(({ label, href }) => (
               <li key={href}>
                 <Link
@@ -57,6 +60,30 @@ export default function MobileMenu() {
                 </Link>
               </li>
             ))}
+
+            {/* 3. Render dynamic Role-Based CTA Buttons */}
+            {session ? (
+              <li>
+                <Link
+                  href={dashboardHref}
+                  onClick={() => setOpen(false)}
+                  className="flex items-center justify-center gap-2 px-4 py-3 mt-4 rounded-lg text-lg font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-all"
+                >
+                  <LayoutDashboard className="w-5 h-5" />
+                  Dashboard
+                </Link>
+              </li>
+            ) : (
+              <li>
+                <Link
+                  href="/register"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center justify-center gap-2 px-4 py-3 mt-4 rounded-lg text-lg font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-all"
+                >
+                  Register
+                </Link>
+              </li>
+            )}
           </ul>
         </nav>
       </SheetContent>
