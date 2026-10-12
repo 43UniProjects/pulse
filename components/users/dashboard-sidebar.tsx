@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { LogOut, LayoutDashboard } from 'lucide-react';
+
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { logoutUser } from '@/app/(auth)/login/actions';
+import { authClient } from '@/lib/auth/client';
 
 type NavLink = {
   name: string;
@@ -27,6 +28,20 @@ function SidebarContent({
   onNavigate,
 }: SidebarProps & { onNavigate?: () => void }) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  // Better Auth client-side logout handler
+  const handleLogout = async () => {
+    if (onNavigate) onNavigate(); // Close the mobile menu immediately
+
+    await authClient.signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          router.push('/login'); // Redirect upon successful session destruction
+        },
+      },
+    });
+  };
 
   return (
     <aside className="w-64 bg-card border-r border-border flex flex-col shrink-0 h-full">
@@ -66,16 +81,16 @@ function SidebarContent({
         <div className="text-sm font-semibold text-foreground truncate mb-3">
           {userName}
         </div>
-        <form action={logoutUser}>
-          <button
-            type="submit"
-            onClick={onNavigate}
-            className="flex w-full items-center gap-2 text-xs font-medium text-muted-foreground hover:text-primary transition-colors cursor-pointer bg-transparent border-0 p-0 m-0"
-          >
-            <LogOut className="w-4 h-4" />
-            Logout
-          </button>
-        </form>
+
+        {/* Replaced Server Action form with a standard button calling the SDK */}
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="flex w-full items-center gap-2 text-xs font-medium text-muted-foreground hover:text-primary transition-colors cursor-pointer bg-transparent border-0 p-0 m-0"
+        >
+          <LogOut className="w-4 h-4" />
+          Logout
+        </button>
       </div>
     </aside>
   );

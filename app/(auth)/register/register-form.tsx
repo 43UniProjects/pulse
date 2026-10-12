@@ -1,67 +1,84 @@
 'use client';
 
-import { useState, useEffect, useActionState, Suspense, useRef } from 'react';
+import { useState, Suspense } from 'react';
 import Link from 'next/link';
-import { useSearchParams, useRouter } from 'next/navigation';
-
-import { Activity, Loader2 } from 'lucide-react';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { Activity, Loader2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 import GenericFallback from '@/components/fallback';
-import { registerAccount } from './actions';
 import { ACCOUNT_TYPE, AccountType } from './types';
 import { registerSchema } from '../_validators/auth.schema';
+import { authClient } from '@/lib/auth/client';
 
 function RegisterFormContent() {
-  const searchParams = useSearchParams();
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
-  const [tab, setTab] = useState<AccountType>(ACCOUNT_TYPE[0]);
-  const [clientErrors, setClientErrors] = useState<Record<string, string[]>>(
-    {},
+  // Initialize directly from URL params if present
+  const initialType = searchParams.get('type');
+  const [tab, setTab] = useState<AccountType>(
+    initialType === ACCOUNT_TYPE[1] ? ACCOUNT_TYPE[1] : ACCOUNT_TYPE[0],
   );
 
-  const [state, formAction, isPending] = useActionState(registerAccount, null);
-  const lastStateRef = useRef(state);
+  const [isPending, setIsPending] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
+  const [globalError, setGlobalError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const type = searchParams.get('type');
-    if (type === ACCOUNT_TYPE[0] || type === ACCOUNT_TYPE[1]) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setTab(type as AccountType);
-    }
-  }, [searchParams]);
+  // Sync State -> URL when tab changes
+  const handleTabChange = (newTab: AccountType) => {
+    setTab(newTab);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('type', newTab);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
 
-  // Trigger Sonner toast notifications for global states
-  useEffect(() => {
-    if (state === lastStateRef.current) return;
-    lastStateRef.current = state;
+  const handleRegister = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsPending(true);
+    setFieldErrors({});
+    setGlobalError(null);
 
-    if (state?.success) {
-      toast.success('Account created successfully!');
-      if (state.redirectUrl) {
-        setTimeout(() => router.push(state.redirectUrl!), 800);
-      }
-    } else if (state?.error && !state?.fieldErrors) {
-      toast.error(state.error);
-    }
-  }, [state, router]);
-
-  const handleClientValidation = (e: React.FormEvent<HTMLFormElement>) => {
     const formData = new FormData(e.currentTarget);
     const rawData = Object.fromEntries(formData.entries());
+    rawData.role = tab;
 
-    // Run Zod schema validation directly on the client before submitting
     const validation = registerSchema.safeParse(rawData);
 
     if (!validation.success) {
-      e.preventDefault(); // Stop server request if client validation fails
-      const errors = validation.error.flatten().fieldErrors;
-      setClientErrors(errors as Record<string, string[]>);
+      const errors: Record<string, string[]> = {};
+      validation.error.issues.forEach((issue) => {
+        const field = String(issue.path[0]);
+        if (!errors[field]) errors[field] = [];
+        errors[field].push(issue.message);
+      });
+
+      setFieldErrors(errors);
       toast.error('Please fix the errors in the form.');
-    } else {
-      setClientErrors({}); // Clear errors to allow submission to formAction
+      setIsPending(false);
+      return;
     }
+
+    const { email, password, username, role } = validation.data;
+
+    const { error } = await authClient.signUp.email({
+      email,
+      password,
+      name: username,
+      role: role,
+      isActive: false,
+    });
+
+    if (error) {
+      setGlobalError(error.message || 'Registration failed.');
+      toast.error(error.message || 'Failed to create account.');
+      setIsPending(false);
+      return;
+    }
+
+    toast.success('Account created! Please check your email.');
+    router.push(`/verify-email?email=${encodeURIComponent(email)}`);
   };
 
   return (
@@ -85,7 +102,7 @@ function RegisterFormContent() {
         <div className="flex p-1 gap-1 bg-secondary border border-border rounded-lg">
           <button
             type="button"
-            onClick={() => setTab(ACCOUNT_TYPE[0])}
+            onClick={() => handleTabChange(ACCOUNT_TYPE[0])}
             className={`flex-1 text-xs font-medium py-2 rounded-md transition-all uppercase tracking-wider ${
               tab === ACCOUNT_TYPE[0]
                 ? 'bg-background text-foreground shadow-sm border border-border/50'
@@ -96,7 +113,7 @@ function RegisterFormContent() {
           </button>
           <button
             type="button"
-            onClick={() => setTab(ACCOUNT_TYPE[1])}
+            onClick={() => handleTabChange(ACCOUNT_TYPE[1])}
             className={`flex-1 text-xs font-medium py-2 rounded-md transition-all uppercase tracking-wider ${
               tab === ACCOUNT_TYPE[1]
                 ? 'bg-background text-foreground shadow-sm border border-border/50'
@@ -108,22 +125,13 @@ function RegisterFormContent() {
         </div>
       </div>
 
-      <form
-        action={formAction}
-        onSubmit={handleClientValidation}
-        className="flex flex-col gap-5"
-      >
-        <input type="hidden" name="role" value={tab} />
-
-        {/* Added username field to satisfy Zod registerSchema */}
+      <form onSubmit={handleRegister} className="flex flex-col gap-5">
         <Field
           name="username"
           label="Username"
           type="text"
           placeholder={tab === 'donor' ? 'kamal99' : 'nawaloka_admin'}
-          error={
-            clientErrors.username?.[0] || state?.fieldErrors?.username?.[0]
-          }
+          error={fieldErrors.username?.[0]}
         />
         <Field
           name="email"
@@ -132,27 +140,29 @@ function RegisterFormContent() {
           placeholder={
             tab === 'donor' ? 'kamal@example.lk' : 'admin@nawaloka.lk'
           }
-          error={clientErrors.email?.[0] || state?.fieldErrors?.email?.[0]}
+          error={fieldErrors.email?.[0]}
         />
         <Field
           name="password"
           label="Password"
           type="password"
           placeholder="••••••••"
-          error={
-            clientErrors.password?.[0] || state?.fieldErrors?.password?.[0]
-          }
+          error={fieldErrors.password?.[0]}
         />
         <Field
           name="confirmPassword"
           label="Confirm Password"
           type="password"
           placeholder="••••••••"
-          error={
-            clientErrors.confirmPassword?.[0] ||
-            state?.fieldErrors?.confirmPassword?.[0]
-          }
+          error={fieldErrors.confirmPassword?.[0]}
         />
+
+        {globalError && (
+          <div className="flex items-start gap-2 p-3 mt-2 text-sm text-red-600 bg-red-50 border border-red-100 rounded-md">
+            <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+            <p>{globalError}</p>
+          </div>
+        )}
 
         <button
           type="submit"

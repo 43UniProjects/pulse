@@ -1,32 +1,86 @@
 'use client';
 
-import { useState, useActionState, useEffect, useRef } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Activity, Loader2 } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Activity, Loader2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import { authenticateUser } from './actions';
 
-export default function LoginForm() {
+import { authClient } from '@/lib/auth/client';
+import { loginSchema } from '../_validators/auth.schema';
+import GenericFallback from '@/components/fallback';
+
+function LoginFormContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [role, setRole] = useState<'donor' | 'hospital' | 'admin'>('donor');
-  const [state, formAction, isPending] = useActionState(authenticateUser, null);
-  const lastStateRef = useRef(state);
+  const [isPending, setIsPending] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
+  const [globalError, setGlobalError] = useState<string | null>(null);
 
-  // Trigger Sonner toast notifications for global states
+  // Detect successful email verification redirect
   useEffect(() => {
-    if (state === lastStateRef.current) return;
-    lastStateRef.current = state;
-
-    if (state?.success) {
-      toast.success('Logged in successfully!');
-      if (state.redirectUrl) {
-        setTimeout(() => router.push(state.redirectUrl!), 800);
-      }
-    } else if (state?.error && !state?.fieldErrors) {
-      toast.error(state.error);
+    if (searchParams.get('verified') === 'true') {
+      toast.success('Email verified successfully! You can now log in.');
+      // Clean up the URL so the toast doesn't trigger again on refresh
+      router.replace('/login', { scroll: false });
     }
-  }, [state, router]);
+  }, [searchParams, router]);
+
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsPending(true);
+    setFieldErrors({});
+    setGlobalError(null);
+
+    const formData = new FormData(e.currentTarget);
+    const rawData = Object.fromEntries(formData.entries());
+
+    rawData.role = role;
+
+    const validation = loginSchema.safeParse(rawData);
+
+    if (!validation.success) {
+      const errors: Record<string, string[]> = {};
+      validation.error.issues.forEach((issue) => {
+        const field = String(issue.path[0]);
+        if (!errors[field]) errors[field] = [];
+        errors[field].push(issue.message);
+      });
+
+      setFieldErrors(errors);
+      toast.error('Please fix the errors in the form.');
+      setIsPending(false);
+      return;
+    }
+
+    const { email, password } = validation.data;
+
+    const { data, error } = await authClient.signIn.email({
+      email,
+      password,
+    });
+
+    if (error) {
+      setGlobalError(error.message || 'Invalid credentials.');
+      toast.error(error.message || 'Failed to sign in');
+      setIsPending(false);
+      return;
+    }
+
+    toast.success('Logged in successfully!');
+
+    const userRole = data?.user?.role;
+
+    if (userRole === 'donor') {
+      router.push('/donor/dashboard');
+    } else if (userRole === 'hospital') {
+      router.push('/hospital/dashboard');
+    } else {
+      router.push('/admin/dashboard');
+    }
+  };
 
   return (
     <div className="w-full max-w-lg bg-card border border-border rounded-xl p-8 shadow-sm">
@@ -40,9 +94,7 @@ export default function LoginForm() {
         <p className="text-sm text-muted-foreground">Sign in to your account</p>
       </div>
 
-      <form action={formAction} className="flex flex-col gap-5">
-        <input type="hidden" name="role" value={role} />
-
+      <form onSubmit={handleLogin} className="flex flex-col gap-5">
         <div>
           <label className="text-xs font-mono uppercase tracking-widest text-muted-foreground block mb-2">
             Account Type
@@ -63,10 +115,8 @@ export default function LoginForm() {
               </button>
             ))}
           </div>
-          {state?.fieldErrors?.role && (
-            <p className="text-xs text-red-500 mt-2">
-              {state.fieldErrors.role[0]}
-            </p>
+          {fieldErrors.role && (
+            <p className="text-xs text-red-500 mt-2">{fieldErrors.role[0]}</p>
           )}
         </div>
 
@@ -80,8 +130,8 @@ export default function LoginForm() {
             placeholder="you@example.com"
             className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
           />
-          {state?.fieldErrors?.email && (
-            <p className="text-xs text-red-500">{state.fieldErrors.email[0]}</p>
+          {fieldErrors.email && (
+            <p className="text-xs text-red-500">{fieldErrors.email[0]}</p>
           )}
         </div>
 
@@ -95,17 +145,22 @@ export default function LoginForm() {
             placeholder="••••••••"
             className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
           />
-          {state?.fieldErrors?.password && (
-            <p className="text-xs text-red-500">
-              {state.fieldErrors.password[0]}
-            </p>
+          {fieldErrors.password && (
+            <p className="text-xs text-red-500">{fieldErrors.password[0]}</p>
           )}
         </div>
+
+        {globalError && (
+          <div className="flex items-start gap-2 p-3 text-sm text-red-600 bg-red-50 border border-red-100 rounded-md">
+            <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+            <p>{globalError}</p>
+          </div>
+        )}
 
         <button
           type="submit"
           disabled={isPending}
-          className="w-full h-10 mt-2 flex items-center justify-center rounded-md bg-primary text-primary-foreground text-sm font-semibold hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full h-10 mt-2 flex items-center justify-center rounded-md bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isPending ? (
             <>
@@ -130,5 +185,13 @@ export default function LoginForm() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function LoginForm() {
+  return (
+    <Suspense fallback={<GenericFallback />}>
+      <LoginFormContent />
+    </Suspense>
   );
 }
