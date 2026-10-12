@@ -1,9 +1,9 @@
 import { betterAuth } from 'better-auth';
 import { mongodbAdapter } from '@better-auth/mongo-adapter';
+import { nextCookies } from 'better-auth/next-js';
 import mongoose from 'mongoose';
 import { connectToDatabase } from '../db/connect';
-import { USER_ROLE } from '@/types/user.type';
-import { nextCookies } from 'better-auth/next-js';
+import { sendVerificationEmail } from '../mail';
 
 await connectToDatabase();
 
@@ -19,28 +19,39 @@ export const auth = betterAuth({
   database: mongodbAdapter(db as any, {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     client: client as any,
+    usePlural: true,
   }),
+  baseURL: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+  plugins: [nextCookies()],
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
   },
   emailVerification: {
     sendOnSignUp: true,
+    autoSignInAfterVerification: true,
     sendVerificationEmail: async ({ user, url }) => {
-      // TODO: Replace with Resend/Nodemailer in production
-      console.log(
-        `\n📧 [PULSE DEV EMAIL] Verification required for ${user.email}`,
-      );
-      console.log(`🔗 Click here to verify: ${url}\n`);
+      const verificationUrl = new URL(url);
+      verificationUrl.searchParams.set('callbackURL', '/login?verified=true');
+
+      try {
+        await sendVerificationEmail({
+          to: user.email,
+          name: user.name || 'there',
+          url: verificationUrl.toString(),
+        });
+        console.log(`[Auth] Verification email sent to: ${user.email}`);
+      } catch (error) {
+        console.error('[Auth] Failed to send verification email:', error);
+      }
     },
   },
-  plugins: [nextCookies()],
   user: {
     additionalFields: {
       role: {
         type: 'string',
         required: true,
-        defaultValue: USER_ROLE[1], // 'donor'
+        defaultValue: 'donor',
       },
       isActive: {
         type: 'boolean',

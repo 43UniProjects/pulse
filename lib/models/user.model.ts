@@ -20,7 +20,7 @@ const UserSchema = new Schema<IUserDocument>(
       index: true,
     },
     emailVerified: {
-      type: Date,
+      type: Schema.Types.Mixed,
       default: null,
     },
     image: {
@@ -39,7 +39,7 @@ const UserSchema = new Schema<IUserDocument>(
     },
     password: {
       type: String,
-      required: true,
+      required: false,
     },
   },
   {
@@ -49,7 +49,7 @@ const UserSchema = new Schema<IUserDocument>(
 
 // Triggered on User.create() and user.save()
 UserSchema.pre('save', async function () {
-  if (!this.isModified('password')) return;
+  if (!this.isModified('password') || !this.password) return;
 
   this.password = await bcrypt.hash(this.password as string, 12);
 });

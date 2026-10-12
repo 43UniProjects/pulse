@@ -5,7 +5,7 @@ export interface UserEntity {
   _id?: string;
   name?: string | null;
   email: string;
-  emailVerified?: Date | null;
+  emailVerified?: boolean | Date | null;
   image?: string | null;
 
   role: UserRole;

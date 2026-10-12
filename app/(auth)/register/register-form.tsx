@@ -34,7 +34,7 @@ function RegisterFormContent() {
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
-  const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleRegister = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsPending(true);
     setFieldErrors({});
@@ -62,19 +62,13 @@ function RegisterFormContent() {
 
     const { email, password, username, role } = validation.data;
 
-    type BaseSignUpParams = Parameters<typeof authClient.signUp.email>[0];
-    type CustomSignUpParams = BaseSignUpParams & {
-      role: string;
-      isActive: boolean;
-    };
-
     const { error } = await authClient.signUp.email({
       email,
       password,
       name: username,
       role: role,
       isActive: false,
-    } as CustomSignUpParams);
+    });
 
     if (error) {
       setGlobalError(error.message || 'Registration failed.');

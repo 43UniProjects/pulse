@@ -28,6 +28,7 @@ export async function connectToDatabase() {
     cached.promise = mongoose
       .connect(uri, {
         bufferCommands: false,
+        dbName: process.env.MONGO_DATABASE_NAME || 'pulse_db',
       })
       .then((mongooseInstance) => {
         return mongooseInstance.connection;

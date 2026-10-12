@@ -1,22 +1,32 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Activity, Loader2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { authClient } from '@/lib/auth/client';
 import { loginSchema } from '../_validators/auth.schema';
+import GenericFallback from '@/components/fallback';
 
-export default function LoginForm() {
+function LoginFormContent() {
   const router = useRouter();
-  const [role, setRole] = useState<'donor' | 'hospital' | 'admin'>('donor');
+  const searchParams = useSearchParams();
 
-  // React state to replace useActionState
+  const [role, setRole] = useState<'donor' | 'hospital' | 'admin'>('donor');
   const [isPending, setIsPending] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [globalError, setGlobalError] = useState<string | null>(null);
+
+  // Detect successful email verification redirect
+  useEffect(() => {
+    if (searchParams.get('verified') === 'true') {
+      toast.success('Email verified successfully! You can now log in.');
+      // Clean up the URL so the toast doesn't trigger again on refresh
+      router.replace('/login', { scroll: false });
+    }
+  }, [searchParams, router]);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -27,10 +37,8 @@ export default function LoginForm() {
     const formData = new FormData(e.currentTarget);
     const rawData = Object.fromEntries(formData.entries());
 
-    // Inject the React state role into the raw data for Zod validation
     rawData.role = role;
 
-    // 1. Client-side Zod v4 Validation
     const validation = loginSchema.safeParse(rawData);
 
     if (!validation.success) {
@@ -49,7 +57,6 @@ export default function LoginForm() {
 
     const { email, password } = validation.data;
 
-    // 2. Authenticate using Better Auth Client SDK
     const { data, error } = await authClient.signIn.email({
       email,
       password,
@@ -64,7 +71,6 @@ export default function LoginForm() {
 
     toast.success('Logged in successfully!');
 
-    // 3. Redirect based on the actual authenticated user role returned by Better Auth
     const userRole = data?.user?.role;
 
     if (userRole === 'donor') {
@@ -74,9 +80,6 @@ export default function LoginForm() {
     } else {
       router.push('/admin/dashboard');
     }
-
-    // Notice we do NOT set isPending to false here.
-    // Leaving it true keeps the button spinner active while Next.js handles the route transition.
   };
 
   return (
@@ -182,5 +185,13 @@ export default function LoginForm() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function LoginForm() {
+  return (
+    <Suspense fallback={<GenericFallback />}>
+      <LoginFormContent />
+    </Suspense>
   );
 }
