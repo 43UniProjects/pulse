@@ -1,31 +1,34 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTheme } from 'next-themes';
-import { Sun, Moon } from 'lucide-react';
+import { Sun, Moon, LayoutDashboard } from 'lucide-react';
 
 import MobileMenu from './mobile-menu';
 import { NAV_LINKS } from '@/types/common.type';
+import { authClient } from '@/lib/auth/client'; // Import Better Auth
 
 export default function Header() {
   const { theme, setTheme } = useTheme();
-  const pathname = usePathname();
-  const isLoggedIn =
-    pathname.startsWith('/admin') ||
-    pathname.startsWith('/hospital') ||
-    pathname.startsWith('/donor');
   const [mounted, setMounted] = useState(false);
+
+  // Secure client-side session fetching
+  const { data: session, isPending } = authClient.useSession();
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 
+  // Determine the correct dashboard route based on role
+  const dashboardHref = session?.user?.role
+    ? `/${session.user.role}/dashboard`
+    : '/login';
+
   return (
     <header className="sticky top-0 z-50 w-full flex flex-col shadow-sm transform-gpu">
-      {/* Top Bar: System Status & Utility Links */}
+      {/* Top Bar: System Status & Utility Links*/}
       <div className="bg-background/80 backdrop-blur-md border-b border-border py-1.5 w-full">
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between text-xs font-medium text-muted-foreground">
           {/* Tagline: Hidden on mobile to prevent layout breaking */}
@@ -34,7 +37,7 @@ export default function Header() {
           </div>
 
           <div className="flex items-center justify-end gap-4 w-full sm:w-auto">
-            {/* Theme Switcher: Reduced padding to p-1.5 to fit the thin top bar */}
+            {/* Theme Switcher */}
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               className="p-1.5 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
@@ -76,27 +79,51 @@ export default function Header() {
           </Link>
 
           <nav aria-label="Main" className="flex items-center gap-4 sm:gap-6">
-            {/* Desktop links, generated from the shared config */}
             <ul className="hidden sm:flex items-center gap-6">
+              {/* Render standard links if not auth-related */}
               {NAV_LINKS.filter((link) =>
-                isLoggedIn ? link.label === 'Home' : true,
+                session ? link.label === 'Home' : true,
               ).map(({ label, href }) => (
                 <li key={href}>
                   <Link
                     href={href}
-                    className={
-                      label === NAV_LINKS[2].label
-                        ? 'hidden sm:inline-flex items-center justify-center h-9 px-4 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background'
-                        : 'text-sm font-medium text-muted-foreground hover:text-foreground transition-colors'
-                    }
+                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                   >
                     {label}
                   </Link>
                 </li>
               ))}
+
+              {/* Dynamic Role-Based Authentication UI */}
+              {!isPending && session ? (
+                <li className="flex items-center gap-4 pl-2 border-l border-border/50">
+                  <Link
+                    href={`/${session.user.role}/profile`}
+                    className="text-sm font-medium text-foreground hover:text-primary transition-colors hover:underline underline-offset-4"
+                  >
+                    Hi, {session.user.name}
+                  </Link>
+                  <Link
+                    href={dashboardHref}
+                    className="inline-flex items-center justify-center h-9 px-4 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm"
+                  >
+                    <LayoutDashboard className="w-4 h-4 mr-2" />
+                    Dashboard
+                  </Link>
+                </li>
+              ) : !isPending ? (
+                <li>
+                  <Link
+                    href="/register"
+                    className="inline-flex items-center justify-center h-9 px-4 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm"
+                  >
+                    Register
+                  </Link>
+                </li>
+              ) : null}
             </ul>
             <div className="sm:hidden">
-              <MobileMenu />
+              <MobileMenu session={session} dashboardHref={dashboardHref} />
             </div>
           </nav>
         </div>

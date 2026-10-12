@@ -1,17 +1,34 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { Zap, MapPin, ShieldCheck, ArrowRight, Activity } from 'lucide-react';
+import { headers } from 'next/headers';
+import {
+  Zap,
+  MapPin,
+  ShieldCheck,
+  ArrowRight,
+  Activity,
+  LayoutDashboard,
+} from 'lucide-react';
 
 import Footer from '@/components/footer';
 import Header from '@/components/header/main';
+import { auth } from '@/lib/auth/config';
 
-export default function HomePage() {
+export default async function HomePage() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  // Determine the correct dashboard route based on role
+  const dashboardHref = session?.user?.role
+    ? `/${session.user.role}/dashboard`
+    : null;
+
   return (
     <>
       <Header />
       {/* Hero Section */}
       <section className="relative overflow-hidden min-h-[calc(100vh-4rem)] flex items-center justify-center border-b border-border py-12">
-        {/* Replaced hardcoded red-950 with primary/10 for theme adaptability */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-6 relative z-10 w-full flex flex-col md:flex-row items-center justify-between gap-12 lg:gap-20">
@@ -46,21 +63,33 @@ export default function HomePage() {
               emergency occurs—reducing response time from hours to minutes.
             </p>
 
-            {/* Action Bar 01 */}
+            {/* Action Bar 01: Dynamic based on authentication */}
             <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4">
-              <Link
-                href="/register?type=donor"
-                className="w-full sm:w-auto inline-flex items-center justify-center h-11 px-6 rounded-md bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
-              >
-                Register as Donor
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Link>
-              <Link
-                href="/register?type=hospital"
-                className="w-full sm:w-auto inline-flex items-center justify-center h-11 px-6 rounded-md bg-card border border-border text-foreground font-medium hover:bg-secondary hover:border-foreground/30 transition-all"
-              >
-                Register as Hospital
-              </Link>
+              {session ? (
+                <Link
+                  href={dashboardHref!}
+                  className="w-full sm:w-auto inline-flex items-center justify-center h-11 px-6 rounded-md bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
+                >
+                  <LayoutDashboard className="w-4 h-4 mr-2" />
+                  Return to Dashboard
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    href="/register?type=donor"
+                    className="w-full sm:w-auto inline-flex items-center justify-center h-11 px-6 rounded-md bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
+                  >
+                    Register as Donor
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Link>
+                  <Link
+                    href="/register?type=hospital"
+                    className="w-full sm:w-auto inline-flex items-center justify-center h-11 px-6 rounded-md bg-card border border-border text-foreground font-medium hover:bg-secondary hover:border-foreground/30 transition-all"
+                  >
+                    Register as Hospital
+                  </Link>
+                </>
+              )}
             </div>
           </div>
 
@@ -196,29 +225,42 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Action Bar 02 */}
+      {/* Action Bar 02: Dynamic based on authentication */}
       <section className="border-t border-border bg-card/20 py-20">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mb-4">
-            Ready to save lives?
+            {session ? 'Welcome back to Pulse' : 'Ready to save lives?'}
           </h2>
           <p className="text-sm sm:text-base text-muted-foreground mb-8">
-            Join verified donors and medical institutions already integrated
-            onto the Pulse network.
+            {session
+              ? 'Access your dashboard to manage your account and view emergency broadcasts.'
+              : 'Join verified donors and medical institutions already integrated onto the Pulse network.'}
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4">
-            <Link
-              href="/register?type=donor"
-              className="inline-flex items-center justify-center h-10 px-5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
-            >
-              Register as Donor
-            </Link>
-            <Link
-              href="/register?type=hospital"
-              className="inline-flex items-center justify-center h-10 px-5 rounded-md bg-card border border-border text-foreground text-sm font-medium hover:bg-secondary transition-colors"
-            >
-              Register as Hospital
-            </Link>
+            {session ? (
+              <Link
+                href={dashboardHref!}
+                className="inline-flex items-center justify-center h-10 px-5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+              >
+                <LayoutDashboard className="w-4 h-4 mr-2" />
+                Go to Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/register?type=donor"
+                  className="inline-flex items-center justify-center h-10 px-5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+                >
+                  Register as Donor
+                </Link>
+                <Link
+                  href="/register?type=hospital"
+                  className="inline-flex items-center justify-center h-10 px-5 rounded-md bg-card border border-border text-foreground text-sm font-medium hover:bg-secondary transition-colors"
+                >
+                  Register as Hospital
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </section>
