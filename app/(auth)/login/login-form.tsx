@@ -35,6 +35,16 @@ function LoginFormContent() {
     }
   }, [session, searchParams, router]);
 
+  // Detect unauthenticated redirect from protected routes (single toast guaranteed)
+  useEffect(() => {
+    if (searchParams.get('error') === 'unauthenticated') {
+      toast.error('Please login first to access this page.', {
+        id: 'auth-required-toast',
+      });
+      router.replace('/login', { scroll: false });
+    }
+  }, [searchParams, router]);
+
   // Detect successful email verification redirect for unauthenticated users (single toast guaranteed)
   useEffect(() => {
     if (
