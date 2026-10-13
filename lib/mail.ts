@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import path from 'path';
 
 const port = Number(process.env.SMTP_PORT) || 465;
 
@@ -45,9 +46,13 @@ export async function sendVerificationEmail({
               <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 500px; background-color: #18181b; border: 1px solid #27272a; border-radius: 12px; overflow: hidden; padding: 32px;">
                 <tr>
                   <td align="center" style="padding-bottom: 24px;">
-                    <div style="display: inline-block; width: 44px; height: 44px; line-height: 44px; border-radius: 8px; background-color: rgba(220, 38, 38, 0.15); border: 1px solid rgba(220, 38, 38, 0.3); text-align: center;">
-                      <span style="font-size: 20px; color: #dc2626; font-weight: bold;">P</span>
-                    </div>
+                    <img 
+                      src="cid:pulse-logo" 
+                      alt="Pulse Logo" 
+                      width="44" 
+                      height="44" 
+                      style="display: block; width: 44px; height: 44px; margin: 0 auto; border-radius: 8px;" 
+                    />
                     <h2 style="margin: 16px 0 4px 0; color: #ffffff; font-size: 22px; font-weight: 600; letter-spacing: -0.025em;">Confirm your email</h2>
                     <p style="margin: 0; color: #a1a1aa; font-size: 14px;">Pulse Emergency Blood Network</p>
                   </td>
@@ -93,6 +98,14 @@ export async function sendVerificationEmail({
       </body>
       </html>
     `,
+    attachments: [
+      {
+        filename: 'logo.png',
+        path: path.join(process.cwd(), 'public', 'logo', 'logo.png'),
+        cid: 'pulse-logo',
+        contentType: 'image/png',
+      },
+    ],
   };
 
   await transporter.sendMail(mailOptions);
