@@ -37,7 +37,7 @@ function SidebarContent({
     await authClient.signOut({
       fetchOptions: {
         onSuccess: () => {
-          router.push('/login'); // Redirect upon successful session destruction
+          window.location.href = '/login'; // Hard navigation to completely wipe memory state and client router cache
         },
       },
     });

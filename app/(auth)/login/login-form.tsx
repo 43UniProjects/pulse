@@ -32,8 +32,13 @@ function LoginFormContent() {
     }
   }, [session, router]);
 
-  // Detect unauthenticated redirect from protected routes (single toast guaranteed)
+  // Detect unauthenticated redirect from protected routes (only when accessing without logging in)
   useEffect(() => {
+    if (searchParams.get('logged_out') === 'true') {
+      router.replace('/login', { scroll: false });
+      return;
+    }
+
     if (searchParams.get('error') === 'unauthenticated') {
       toast.error('Please login first to access this page.', {
         id: 'auth-required-toast',
@@ -97,28 +102,33 @@ function LoginFormContent() {
 
     const { email, password } = validation.data;
 
-    const { data, error } = await authClient.signIn.email({
-      email,
-      password,
-    });
+    try {
+      const { data, error } = await authClient.signIn.email({
+        email,
+        password,
+      });
 
-    if (error) {
-      setGlobalError(error.message || 'Invalid credentials.');
-      toast.error(error.message || 'Failed to sign in');
+      if (error) {
+        setGlobalError(error.message || 'Invalid credentials.');
+        toast.error(error.message || 'Failed to sign in');
+        setIsPending(false);
+        return;
+      }
+
+      toast.success('Logged in successfully!');
+
+      const userRole = data?.user?.role;
+
+      if (userRole === 'donor') {
+        router.push('/donor/dashboard');
+      } else if (userRole === 'hospital') {
+        router.push('/hospital/dashboard');
+      } else {
+        router.push('/admin/dashboard');
+      }
+    } catch {
+      toast.error('An unexpected error occurred.');
       setIsPending(false);
-      return;
-    }
-
-    toast.success('Logged in successfully!');
-
-    const userRole = data?.user?.role;
-
-    if (userRole === 'donor') {
-      router.push('/donor/dashboard');
-    } else if (userRole === 'hospital') {
-      router.push('/hospital/dashboard');
-    } else {
-      router.push('/admin/dashboard');
     }
   };
 
