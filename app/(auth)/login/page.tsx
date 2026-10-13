@@ -11,11 +11,7 @@ export const metadata: Metadata = {
   description: 'Login to the Pulse Emergency Blood Network',
 };
 
-export default async function LoginPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
+export default async function LoginPage() {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
