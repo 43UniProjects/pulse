@@ -23,17 +23,14 @@ function LoginFormContent() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [globalError, setGlobalError] = useState<string | null>(null);
 
-  // Automatically redirect authenticated users (e.g. after email verification) to their dashboard
+  // Automatically redirect already-authenticated users to their dashboard
   useEffect(() => {
     if (session?.user && !redirectInitiated.current) {
       redirectInitiated.current = true;
       const userRole = session.user.role || 'donor';
-      const isVerified = searchParams.get('verified') === 'true';
-      router.replace(
-        `/${userRole}/dashboard${isVerified ? '?verified=true' : ''}`,
-      );
+      router.replace(`/${userRole}/dashboard`);
     }
-  }, [session, searchParams, router]);
+  }, [session, router]);
 
   // Detect unauthenticated redirect from protected routes (single toast guaranteed)
   useEffect(() => {
@@ -45,20 +42,31 @@ function LoginFormContent() {
     }
   }, [searchParams, router]);
 
-  // Detect successful email verification redirect for unauthenticated users (single toast guaranteed)
+  // Detect email verification result (success or failure)
   useEffect(() => {
-    if (
-      searchParams.get('verified') === 'true' &&
-      !session?.user &&
+    const verifiedParam = searchParams.get('verified');
+    const errorParam = searchParams.get('error');
+
+    if (verifiedParam === 'true' && !verifiedToastShown.current) {
+      verifiedToastShown.current = true;
+      toast.success('Email verified successfully! Please log in to continue.', {
+        id: 'email-verified-toast',
+      });
+      router.replace('/login', { scroll: false });
+    } else if (
+      (verifiedParam === 'false' ||
+        errorParam === 'INVALID_TOKEN' ||
+        errorParam === 'EXPIRED_TOKEN' ||
+        errorParam === 'verification_failed') &&
       !verifiedToastShown.current
     ) {
       verifiedToastShown.current = true;
-      toast.success('Email verified successfully! You can now log in.', {
+      toast.error('Email verification failed or expired. Please try again.', {
         id: 'email-verified-toast',
       });
       router.replace('/login', { scroll: false });
     }
-  }, [searchParams, session, router]);
+  }, [searchParams, router]);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

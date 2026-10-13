@@ -29,14 +29,10 @@ export const auth = betterAuth({
   },
   emailVerification: {
     sendOnSignUp: true,
-    autoSignInAfterVerification: true,
+    autoSignInAfterVerification: false,
     sendVerificationEmail: async ({ user, url }) => {
       const verificationUrl = new URL(url);
-      const userRole = (user as { role?: string }).role || 'donor';
-      verificationUrl.searchParams.set(
-        'callbackURL',
-        `/${userRole}/dashboard?verified=true`,
-      );
+      verificationUrl.searchParams.set('callbackURL', '/login?verified=true');
 
       try {
         await sendVerificationEmail({

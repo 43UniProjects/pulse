@@ -22,9 +22,7 @@ export default async function LoginPage({
 
   if (session?.user) {
     const role = session.user.role || 'donor';
-    const params = await searchParams;
-    const isVerified = params?.verified === 'true';
-    redirect(`/${role}/dashboard${isVerified ? '?verified=true' : ''}`);
+    redirect(`/${role}/dashboard`);
   }
 
   return (
