@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Activity, Loader2, AlertCircle } from 'lucide-react';
@@ -14,19 +14,41 @@ function LoginFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  const { data: session } = authClient.useSession();
+  const verifiedToastShown = useRef(false);
+  const redirectInitiated = useRef(false);
+
   const [role, setRole] = useState<'donor' | 'hospital' | 'admin'>('donor');
   const [isPending, setIsPending] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [globalError, setGlobalError] = useState<string | null>(null);
 
-  // Detect successful email verification redirect
+  // Automatically redirect authenticated users (e.g. after email verification) to their dashboard
   useEffect(() => {
-    if (searchParams.get('verified') === 'true') {
-      toast.success('Email verified successfully! You can now log in.');
-      // Clean up the URL so the toast doesn't trigger again on refresh
+    if (session?.user && !redirectInitiated.current) {
+      redirectInitiated.current = true;
+      const userRole = session.user.role || 'donor';
+      const isVerified = searchParams.get('verified') === 'true';
+      router.replace(
+        `/${userRole}/dashboard${isVerified ? '?verified=true' : ''}`,
+      );
+    }
+  }, [session, searchParams, router]);
+
+  // Detect successful email verification redirect for unauthenticated users (single toast guaranteed)
+  useEffect(() => {
+    if (
+      searchParams.get('verified') === 'true' &&
+      !session?.user &&
+      !verifiedToastShown.current
+    ) {
+      verifiedToastShown.current = true;
+      toast.success('Email verified successfully! You can now log in.', {
+        id: 'email-verified-toast',
+      });
       router.replace('/login', { scroll: false });
     }
-  }, [searchParams, router]);
+  }, [searchParams, session, router]);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

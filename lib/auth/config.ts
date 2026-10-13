@@ -32,7 +32,11 @@ export const auth = betterAuth({
     autoSignInAfterVerification: true,
     sendVerificationEmail: async ({ user, url }) => {
       const verificationUrl = new URL(url);
-      verificationUrl.searchParams.set('callbackURL', '/login?verified=true');
+      const userRole = (user as { role?: string }).role || 'donor';
+      verificationUrl.searchParams.set(
+        'callbackURL',
+        `/${userRole}/dashboard?verified=true`,
+      );
 
       try {
         await sendVerificationEmail({

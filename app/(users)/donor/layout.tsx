@@ -1,5 +1,7 @@
+import { Suspense } from 'react';
 import Header from '@/components/header/main';
 import DashboardSidebar from '@/components/users/dashboard-sidebar';
+import VerificationToast from '@/components/auth/verification-toast';
 
 const DONOR_LINKS = [
   { name: 'Dashboard', href: '/donor/dashboard' },
@@ -14,6 +16,9 @@ export default function DonorLayout({
 }) {
   return (
     <div className="min-h-screen flex flex-col bg-background font-sans">
+      <Suspense fallback={null}>
+        <VerificationToast />
+      </Suspense>
       <Header />
       <div className="flex-1 flex flex-col md:flex-row w-full">
         <DashboardSidebar
