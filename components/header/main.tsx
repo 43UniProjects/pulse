@@ -1,6 +1,5 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTheme } from 'next-themes';
 import { Sun, Moon, LayoutDashboard } from 'lucide-react';
@@ -9,17 +8,17 @@ import MobileMenu from './mobile-menu';
 import { NAV_LINKS } from '@/types/common.type';
 import { authClient } from '@/lib/auth/client'; // Import Better Auth
 
-export default function Header() {
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+interface HeaderProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  session?: any;
+}
+
+export default function Header({ session: initialSession }: HeaderProps = {}) {
+  const { resolvedTheme, setTheme } = useTheme();
 
   // Secure client-side session fetching
-  const { data: session, isPending } = authClient.useSession();
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true);
-  }, []);
+  const { data: clientSession } = authClient.useSession();
+  const session = clientSession !== undefined ? clientSession : initialSession;
 
   // Determine the correct dashboard route based on role
   const dashboardHref = session?.user?.role
@@ -39,19 +38,14 @@ export default function Header() {
           <div className="flex items-center justify-end gap-4 w-full sm:w-auto">
             {/* Theme Switcher */}
             <button
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="p-1.5 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
+              onClick={() =>
+                setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
+              }
+              className="p-1.5 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background cursor-pointer"
               aria-label="Toggle Theme"
             >
-              {mounted ? (
-                theme === 'dark' ? (
-                  <Sun className="w-3.5 h-3.5" />
-                ) : (
-                  <Moon className="w-3.5 h-3.5" />
-                )
-              ) : (
-                <div className="w-3.5 h-3.5 opacity-0" />
-              )}
+              <Sun className="w-3.5 h-3.5 hidden dark:block" />
+              <Moon className="w-3.5 h-3.5 block dark:hidden" />
             </button>
             <Link
               href="/support"
@@ -95,7 +89,7 @@ export default function Header() {
               ))}
 
               {/* Dynamic Role-Based Authentication UI */}
-              {!isPending && session ? (
+              {session ? (
                 <li className="flex items-center gap-4 pl-2 border-l border-border/50">
                   <Link
                     href={`/${session.user.role}/profile`}
@@ -111,7 +105,7 @@ export default function Header() {
                     Dashboard
                   </Link>
                 </li>
-              ) : !isPending ? (
+              ) : (
                 <li>
                   <Link
                     href="/register"
@@ -120,7 +114,7 @@ export default function Header() {
                     Register
                   </Link>
                 </li>
-              ) : null}
+              )}
             </ul>
             <div className="sm:hidden">
               <MobileMenu session={session} dashboardHref={dashboardHref} />

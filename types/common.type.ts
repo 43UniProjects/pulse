@@ -19,5 +19,4 @@ export type BloodGroup = (typeof BLOOD_GROUPS)[number];
 export const NAV_LINKS = [
   { label: 'Home', href: '/' },
   { label: 'Login', href: '/login' },
-  { label: 'Register', href: '/register' },
 ] as const;

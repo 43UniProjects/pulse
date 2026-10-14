@@ -37,7 +37,8 @@ function SidebarContent({
     await authClient.signOut({
       fetchOptions: {
         onSuccess: () => {
-          router.push('/login'); // Redirect upon successful session destruction
+          router.push('/login?logged_out=true');
+          router.refresh();
         },
       },
     });

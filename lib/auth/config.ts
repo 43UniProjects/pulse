@@ -29,7 +29,7 @@ export const auth = betterAuth({
   },
   emailVerification: {
     sendOnSignUp: true,
-    autoSignInAfterVerification: true,
+    autoSignInAfterVerification: false,
     sendVerificationEmail: async ({ user, url }) => {
       const verificationUrl = new URL(url);
       verificationUrl.searchParams.set('callbackURL', '/login?verified=true');

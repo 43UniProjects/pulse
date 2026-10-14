@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Activity, Loader2, AlertCircle } from 'lucide-react';
@@ -14,16 +14,61 @@ function LoginFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  const { data: session } = authClient.useSession();
+  const verifiedToastShown = useRef(false);
+  const redirectInitiated = useRef(false);
+
   const [role, setRole] = useState<'donor' | 'hospital' | 'admin'>('donor');
   const [isPending, setIsPending] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [globalError, setGlobalError] = useState<string | null>(null);
 
-  // Detect successful email verification redirect
+  // Automatically redirect already-authenticated users to their dashboard
   useEffect(() => {
-    if (searchParams.get('verified') === 'true') {
-      toast.success('Email verified successfully! You can now log in.');
-      // Clean up the URL so the toast doesn't trigger again on refresh
+    if (session?.user && !redirectInitiated.current) {
+      redirectInitiated.current = true;
+      const userRole = session.user.role || 'donor';
+      router.replace(`/${userRole}/dashboard`);
+    }
+  }, [session, router]);
+
+  // Detect unauthenticated redirect from protected routes (only when accessing without logging in)
+  useEffect(() => {
+    if (searchParams.get('logged_out') === 'true') {
+      router.replace('/login', { scroll: false });
+      return;
+    }
+
+    if (searchParams.get('error') === 'unauthenticated') {
+      toast.error('Please login first to access this page.', {
+        id: 'auth-required-toast',
+      });
+      router.replace('/login', { scroll: false });
+    }
+  }, [searchParams, router]);
+
+  // Detect email verification result (success or failure)
+  useEffect(() => {
+    const verifiedParam = searchParams.get('verified');
+    const errorParam = searchParams.get('error');
+
+    if (verifiedParam === 'true' && !verifiedToastShown.current) {
+      verifiedToastShown.current = true;
+      toast.success('Email verified successfully! Please log in to continue.', {
+        id: 'email-verified-toast',
+      });
+      router.replace('/login', { scroll: false });
+    } else if (
+      (verifiedParam === 'false' ||
+        errorParam === 'INVALID_TOKEN' ||
+        errorParam === 'EXPIRED_TOKEN' ||
+        errorParam === 'verification_failed') &&
+      !verifiedToastShown.current
+    ) {
+      verifiedToastShown.current = true;
+      toast.error('Email verification failed or expired. Please try again.', {
+        id: 'email-verified-toast',
+      });
       router.replace('/login', { scroll: false });
     }
   }, [searchParams, router]);
@@ -57,28 +102,33 @@ function LoginFormContent() {
 
     const { email, password } = validation.data;
 
-    const { data, error } = await authClient.signIn.email({
-      email,
-      password,
-    });
+    try {
+      const { data, error } = await authClient.signIn.email({
+        email,
+        password,
+      });
 
-    if (error) {
-      setGlobalError(error.message || 'Invalid credentials.');
-      toast.error(error.message || 'Failed to sign in');
+      if (error) {
+        setGlobalError(error.message || 'Invalid credentials.');
+        toast.error(error.message || 'Failed to sign in');
+        setIsPending(false);
+        return;
+      }
+
+      toast.success('Logged in successfully!');
+
+      const userRole = data?.user?.role;
+
+      if (userRole === 'donor') {
+        router.push('/donor/dashboard');
+      } else if (userRole === 'hospital') {
+        router.push('/hospital/dashboard');
+      } else {
+        router.push('/admin/dashboard');
+      }
+    } catch {
+      toast.error('An unexpected error occurred.');
       setIsPending(false);
-      return;
-    }
-
-    toast.success('Logged in successfully!');
-
-    const userRole = data?.user?.role;
-
-    if (userRole === 'donor') {
-      router.push('/donor/dashboard');
-    } else if (userRole === 'hospital') {
-      router.push('/hospital/dashboard');
-    } else {
-      router.push('/admin/dashboard');
     }
   };
 

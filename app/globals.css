@@ -4,7 +4,7 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: #f4f4f5; /* Zinc 100: Clean clinical canvas base */
+  --background: #fcfcfb; /* Zinc 100: Clean clinical canvas base */
   --foreground: #09090b; /* Zinc 900: High-emphasis text */
 
   --card: #ffffff; /* Surface Level 2: Pure white interactive cards */
