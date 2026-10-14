@@ -2,11 +2,19 @@
 
 import Link from 'next/link';
 import { useTheme } from 'next-themes';
-import { Sun, Moon, LayoutDashboard } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import {
+  Sun,
+  Moon,
+  LayoutDashboard,
+  ChevronDown,
+  User,
+  LogOut,
+} from 'lucide-react';
 
 import MobileMenu from './mobile-menu';
 import { NAV_LINKS } from '@/types/common.type';
-import { authClient } from '@/lib/auth/client'; // Import Better Auth
+import { authClient } from '@/lib/auth/client';
 
 interface HeaderProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -20,23 +28,32 @@ export default function Header({ session: initialSession }: HeaderProps = {}) {
   const { data: clientSession } = authClient.useSession();
   const session = clientSession !== undefined ? clientSession : initialSession;
 
-  // Determine the correct dashboard route based on role
   const dashboardHref = session?.user?.role
     ? `/${session.user.role}/dashboard`
     : '/login';
 
+  const handleLogout = async () => {
+    setIsProfileOpen(false);
+    await authClient.signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          router.refresh();
+          router.push('/login');
+        },
+      },
+    });
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full flex flex-col shadow-sm transform-gpu">
-      {/* Top Bar: System Status & Utility Links*/}
+      {/* Top Bar */}
       <div className="bg-background/80 backdrop-blur-md border-b border-border py-1.5 w-full">
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between text-xs font-medium text-muted-foreground">
-          {/* Tagline: Hidden on mobile to prevent layout breaking */}
           <div className="hidden sm:flex items-center gap-2">
             Real-Time Emergency Blood Network
           </div>
 
           <div className="flex items-center justify-end gap-4 w-full sm:w-auto">
-            {/* Theme Switcher */}
             <button
               onClick={() =>
                 setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
@@ -74,10 +91,13 @@ export default function Header({ session: initialSession }: HeaderProps = {}) {
 
           <nav aria-label="Main" className="flex items-center gap-4 sm:gap-6">
             <ul className="hidden sm:flex items-center gap-6">
-              {/* Render standard links if not auth-related */}
-              {NAV_LINKS.filter((link) =>
-                session ? link.label === 'Home' : true,
-              ).map(({ label, href }) => (
+              {/* Filter out duplicates if NAV_LINKS already has Login/Register */}
+              {NAV_LINKS.filter((link) => {
+                if (session && link.label === 'Home') return false;
+                if (link.label === 'Login' || link.label === 'Register')
+                  return false;
+                return true;
+              }).map(({ label, href }) => (
                 <li key={href}>
                   <Link
                     href={href}
@@ -101,8 +121,7 @@ export default function Header({ session: initialSession }: HeaderProps = {}) {
                     href={dashboardHref}
                     className="inline-flex items-center justify-center h-9 px-4 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm"
                   >
-                    <LayoutDashboard className="w-4 h-4 mr-2" />
-                    Dashboard
+                    <LayoutDashboard className="w-4 h-4 mr-2" /> Dashboard
                   </Link>
                 </li>
               ) : (
