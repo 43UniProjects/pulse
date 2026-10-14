@@ -26,7 +26,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <Header />
+      <Header session={session} />
       {/* Hero Section */}
       <section className="relative overflow-hidden min-h-[calc(100vh-4rem)] flex items-center justify-center border-b border-border py-12">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent pointer-events-none" />

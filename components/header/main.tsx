@@ -1,6 +1,5 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
@@ -17,18 +16,17 @@ import MobileMenu from './mobile-menu';
 import { NAV_LINKS } from '@/types/common.type';
 import { authClient } from '@/lib/auth/client';
 
-export default function Header() {
-  const { theme, setTheme } = useTheme();
-  const router = useRouter();
-  const [mounted, setMounted] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
+interface HeaderProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  session?: any;
+}
 
-  const { data: session, isPending } = authClient.useSession();
+export default function Header({ session: initialSession }: HeaderProps = {}) {
+  const { resolvedTheme, setTheme } = useTheme();
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true);
-  }, []);
+  // Secure client-side session fetching
+  const { data: clientSession } = authClient.useSession();
+  const session = clientSession !== undefined ? clientSession : initialSession;
 
   const dashboardHref = session?.user?.role
     ? `/${session.user.role}/dashboard`
@@ -57,19 +55,14 @@ export default function Header() {
 
           <div className="flex items-center justify-end gap-4 w-full sm:w-auto">
             <button
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="p-1.5 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
+              onClick={() =>
+                setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
+              }
+              className="p-1.5 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background cursor-pointer"
               aria-label="Toggle Theme"
             >
-              {mounted ? (
-                theme === 'dark' ? (
-                  <Sun className="w-3.5 h-3.5" />
-                ) : (
-                  <Moon className="w-3.5 h-3.5" />
-                )
-              ) : (
-                <div className="w-3.5 h-3.5 opacity-0" />
-              )}
+              <Sun className="w-3.5 h-3.5 hidden dark:block" />
+              <Moon className="w-3.5 h-3.5 block dark:hidden" />
             </button>
             <Link
               href="/support"
@@ -116,49 +109,14 @@ export default function Header() {
               ))}
 
               {/* Dynamic Role-Based Authentication UI */}
-              {isPending ? (
-                <li className="flex items-center gap-4 pl-4 border-l border-border/50">
-                  <div className="w-20 h-5 bg-secondary rounded-md animate-pulse" />
-                  <div className="w-28 h-9 bg-secondary rounded-md animate-pulse" />
-                </li>
-              ) : session ? (
-                <li className="flex items-center gap-4 pl-4 border-l border-border/50">
-                  <div className="relative">
-                    <button
-                      onClick={() => setIsProfileOpen(!isProfileOpen)}
-                      className="flex items-center gap-1.5 text-sm font-medium text-foreground hover:text-primary transition-colors focus:outline-none"
-                    >
-                      Hi, {session.user.name}
-                      <ChevronDown
-                        className={`w-4 h-4 transition-transform ${isProfileOpen ? 'rotate-180' : ''}`}
-                      />
-                    </button>
-
-                    {isProfileOpen && (
-                      <>
-                        <div
-                          className="fixed inset-0 z-40"
-                          onClick={() => setIsProfileOpen(false)}
-                        />
-                        <div className="absolute right-0 mt-3 w-48 bg-card border border-border rounded-md shadow-lg z-50 py-1 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                          <Link
-                            href={`/${session.user.role}/profile`}
-                            onClick={() => setIsProfileOpen(false)}
-                            className="flex items-center px-4 py-2.5 text-sm text-foreground hover:bg-secondary transition-colors"
-                          >
-                            <User className="w-4 h-4 mr-2" /> Visit Profile
-                          </Link>
-                          <div className="h-px bg-border my-1" />
-                          <button
-                            onClick={handleLogout}
-                            className="w-full flex items-center px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors"
-                          >
-                            <LogOut className="w-4 h-4 mr-2" /> Logout
-                          </button>
-                        </div>
-                      </>
-                    )}
-                  </div>
+              {session ? (
+                <li className="flex items-center gap-4 pl-2 border-l border-border/50">
+                  <Link
+                    href={`/${session.user.role}/profile`}
+                    className="text-sm font-medium text-foreground hover:text-primary transition-colors hover:underline underline-offset-4"
+                  >
+                    Hi, {session.user.name}
+                  </Link>
                   <Link
                     href={dashboardHref}
                     className="inline-flex items-center justify-center h-9 px-4 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm"
@@ -167,13 +125,7 @@ export default function Header() {
                   </Link>
                 </li>
               ) : (
-                <li className="flex items-center gap-4 pl-4 border-l border-border/50">
-                  <Link
-                    href="/login"
-                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    Login
-                  </Link>
+                <li>
                   <Link
                     href="/register"
                     className="inline-flex items-center justify-center h-9 px-4 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm"

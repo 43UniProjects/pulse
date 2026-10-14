@@ -77,7 +77,7 @@ function RegisterFormContent() {
       return;
     }
 
-    toast.success('Account created! Please check your email.');
+    toast.success('Account created! Please check your email to verify.');
     router.push(`/verify-email?email=${encodeURIComponent(email)}`);
   };
 

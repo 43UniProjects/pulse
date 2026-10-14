@@ -1,17 +1,29 @@
 import { Metadata } from 'next';
+import { redirect } from 'next/navigation';
+import { headers } from 'next/headers';
 import LoginForm from './login-form';
 import Footer from '@/components/footer';
 import Header from '@/components/header/main';
+import { auth } from '@/lib/auth/config';
 
 export const metadata: Metadata = {
   title: 'Login',
   description: 'Login to the Pulse Emergency Blood Network',
 };
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (session?.user) {
+    const role = session.user.role || 'donor';
+    redirect(`/${role}/dashboard`);
+  }
+
   return (
     <>
-      <Header />
+      <Header session={session} />
       <main className="flex-1 flex items-center justify-center p-6 py-12 relative w-full">
         {/* Telemetry grid background */}
         <div className="absolute inset-0 z-0 bg-[linear-gradient(to_right,var(--color-border)_1px,transparent_1px),linear-gradient(to_bottom,var(--color-border)_1px,transparent_1px)] bg-[size:3rem_3rem] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,#000_20%,transparent_100%)] opacity-20 pointer-events-none" />
