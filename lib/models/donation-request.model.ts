@@ -1,4 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
+import { PointSchema } from './common.models';
 import { BLOOD_GROUPS } from '@/types/common.type';
 import {
   REQUEST_URGENCY_LEVEL,
@@ -19,7 +20,7 @@ const DonationRequestSchema = new Schema(
 
     // GeoJSON schema structure for broadcasting and spatial calculations
     location: {
-      type: { type: String, enum: ['Point'], default: 'Point' },
+      type: PointSchema,
       required: true,
     },
 

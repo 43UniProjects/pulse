@@ -1,26 +1,22 @@
+import { connectToDatabase } from '@/lib/db/connect';
+import { Admin } from '@/lib/models/admin.model';
 import { AdminEntity } from '@/types/admin.type';
 
-const ADMINS_DB: Record<string, AdminEntity> = {
-  admin_1: {
-    _id: 'admin_1', // matches base User._id conceptually
-    fullName: 'Anura Bandara',
-    email: 'anura.admin@pulse.lk',
-    phone: '+94 77 987 6543',
-    role: 'superadmin',
-    status: 'active',
-    department: 'System Administration',
-    lastLoginAt: new Date('2024-05-15T08:30:00Z'),
-    actionsLogged: 12450,
-    createdAt: new Date('2023-01-01T00:00:00Z'),
-    updatedAt: new Date('2024-05-10T12:00:00Z'),
-  },
-};
-
 /**
- * Retrieves an admin's profile.
+ * Retrieves an admin's profile from MongoDB.
  */
 export async function getAdminProfile(
   adminId: string,
 ): Promise<AdminEntity | null> {
-  return ADMINS_DB[adminId] || null;
+  await connectToDatabase();
+  const admin = await Admin.findById(adminId).lean();
+  if (!admin) return null;
+
+  return {
+    ...admin,
+    _id: admin._id.toString(),
+    lastLoginAt: admin.lastLoginAt ? new Date(admin.lastLoginAt) : null,
+    createdAt: admin.createdAt ? new Date(admin.createdAt) : undefined,
+    updatedAt: admin.updatedAt ? new Date(admin.updatedAt) : undefined,
+  } as unknown as AdminEntity;
 }

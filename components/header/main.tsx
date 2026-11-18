@@ -2,15 +2,7 @@
 
 import Link from 'next/link';
 import { useTheme } from 'next-themes';
-import { useRouter } from 'next/navigation';
-import {
-  Sun,
-  Moon,
-  LayoutDashboard,
-  ChevronDown,
-  User,
-  LogOut,
-} from 'lucide-react';
+import { Sun, Moon, LayoutDashboard } from 'lucide-react';
 
 import MobileMenu from './mobile-menu';
 import { NAV_LINKS } from '@/types/common.type';
@@ -31,18 +23,6 @@ export default function Header({ session: initialSession }: HeaderProps = {}) {
   const dashboardHref = session?.user?.role
     ? `/${session.user.role}/dashboard`
     : '/login';
-
-  const handleLogout = async () => {
-    setIsProfileOpen(false);
-    await authClient.signOut({
-      fetchOptions: {
-        onSuccess: () => {
-          router.refresh();
-          router.push('/login');
-        },
-      },
-    });
-  };
 
   return (
     <header className="sticky top-0 z-50 w-full flex flex-col shadow-sm transform-gpu">
@@ -91,11 +71,10 @@ export default function Header({ session: initialSession }: HeaderProps = {}) {
 
           <nav aria-label="Main" className="flex items-center gap-4 sm:gap-6">
             <ul className="hidden sm:flex items-center gap-6">
-              {/* Filter out duplicates if NAV_LINKS already has Login/Register */}
+              {/* Filter out duplicates if NAV_LINKS already has Login */}
               {NAV_LINKS.filter((link) => {
                 if (session && link.label === 'Home') return false;
-                if (link.label === 'Login' || link.label === 'Register')
-                  return false;
+                if (link.label === 'Login') return false;
                 return true;
               }).map(({ label, href }) => (
                 <li key={href}>
@@ -125,7 +104,13 @@ export default function Header({ session: initialSession }: HeaderProps = {}) {
                   </Link>
                 </li>
               ) : (
-                <li>
+                <li className="flex items-center gap-3">
+                  <Link
+                    href="/login"
+                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Login
+                  </Link>
                   <Link
                     href="/register"
                     className="inline-flex items-center justify-center h-9 px-4 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm"

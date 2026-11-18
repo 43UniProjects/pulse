@@ -5,13 +5,17 @@ import mongoose from 'mongoose';
 import { connectToDatabase } from '../db/connect';
 import { sendVerificationEmail } from '../mail';
 
-await connectToDatabase();
+let client: unknown = {};
+let db: unknown = {};
 
-const client = mongoose.connection.getClient();
-const db = mongoose.connection.db;
+if (process.env.NEXT_PHASE !== 'phase-production-build') {
+  await connectToDatabase();
+  client = mongoose.connection.getClient();
+  db = mongoose.connection.db;
 
-if (!db) {
-  throw new Error('Database connection not established');
+  if (!db) {
+    throw new Error('Database connection not established');
+  }
 }
 
 export const auth = betterAuth({
@@ -22,6 +26,17 @@ export const auth = betterAuth({
     usePlural: true,
   }),
   baseURL: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+  trustedOrigins: [
+    ...(process.env.NEXT_PUBLIC_APP_URL
+      ? [process.env.NEXT_PUBLIC_APP_URL]
+      : []),
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'http://localhost:3002',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:3001',
+    'http://127.0.0.1:3002',
+  ],
   plugins: [nextCookies()],
   emailAndPassword: {
     enabled: true,

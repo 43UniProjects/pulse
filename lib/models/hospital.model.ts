@@ -13,10 +13,10 @@ export interface IHospitalDocument
 
 const CoordinatorSchema = new Schema(
   {
-    name: { type: String, required: true, trim: true },
-    designation: { type: String, required: true, trim: true },
-    contactNumber: { type: String, required: true },
-    email: { type: String, required: true, lowercase: true, trim: true },
+    name: { type: String, default: '', trim: true },
+    designation: { type: String, default: '', trim: true },
+    contactNumber: { type: String, default: '' },
+    email: { type: String, default: '', lowercase: true, trim: true },
   },
   { _id: false },
 );
@@ -28,11 +28,11 @@ const HospitalSchema = new Schema<IHospitalDocument>(
       ref: 'User',
       required: true,
     },
-    name: { type: String, required: true, trim: true },
+    name: { type: String, default: '', trim: true },
     facilityType: {
       type: String,
-      enum: HOSPITAL_TYPE,
-      default: 'private_hospital',
+      enum: [...HOSPITAL_TYPE, ''],
+      default: '',
     },
     verificationStatus: {
       type: String,
@@ -46,8 +46,8 @@ const HospitalSchema = new Schema<IHospitalDocument>(
       ref: 'Admin',
       default: null,
     },
-    address: { type: String, required: true },
-    city: { type: String, required: true, index: true },
+    address: { type: String, default: '' },
+    city: { type: String, default: '', index: true },
     location: {
       type: {
         type: String,
@@ -56,13 +56,21 @@ const HospitalSchema = new Schema<IHospitalDocument>(
       },
       coordinates: {
         type: [Number],
-        required: true,
+        default: [79.8612, 6.9271],
       },
     },
-    hotline: { type: String, required: true },
+    hotline: { type: String, default: '' },
     email: { type: String, required: true, lowercase: true },
-    website: { type: String, trim: true },
-    coordinator: { type: CoordinatorSchema, required: true },
+    website: { type: String, trim: true, default: '' },
+    coordinator: {
+      type: CoordinatorSchema,
+      default: () => ({
+        name: '',
+        designation: '',
+        contactNumber: '',
+        email: '',
+      }),
+    },
     activeRequestsCount: { type: Number, default: 0 },
   },
   {

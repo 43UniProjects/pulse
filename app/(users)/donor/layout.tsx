@@ -10,12 +10,8 @@ const DONOR_LINKS = [
   { name: 'Profile', href: '/donor/profile' },
 ];
 
-export default async function DonorLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const session = await validateRoleAccess('donor');
+async function DonorLayoutContent({ children }: { children: React.ReactNode }) {
+  const session = await validateRoleAccess('donor', { allowInactive: true });
 
   return (
     <div className="min-h-screen flex flex-col bg-background font-sans">
@@ -27,6 +23,7 @@ export default async function DonorLayout({
         <DashboardSidebar
           roleLabel="Registered Donor"
           userName={session.user.name || 'Registered Donor'}
+          isDeactivated={!session.user.isActive}
           links={DONOR_LINKS}
         />
         <main className="flex-1 bg-background px-4 pb-4 md:p-8 lg:px-12 w-full">
@@ -34,5 +31,23 @@ export default async function DonorLayout({
         </main>
       </div>
     </div>
+  );
+}
+
+export default function DonorLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+        </div>
+      }
+    >
+      <DonorLayoutContent>{children}</DonorLayoutContent>
+    </Suspense>
   );
 }

@@ -29,7 +29,7 @@ export interface HospitalCoordinator {
 export interface HospitalEntity {
   _id: string | UserEntity;
   name: string;
-  facilityType: FacilityType;
+  facilityType: FacilityType | '';
   verificationStatus: VerificationStatus;
   verifiedAt?: Date | null;
   verifiedBy?: string | AdminEntity | null;

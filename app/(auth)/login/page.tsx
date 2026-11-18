@@ -1,9 +1,11 @@
 import { Metadata } from 'next';
+import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 import LoginForm from './login-form';
 import Footer from '@/components/footer';
 import Header from '@/components/header/main';
+import GenericFallback from '@/components/fallback';
 import { auth } from '@/lib/auth/config';
 
 export const metadata: Metadata = {
@@ -11,7 +13,7 @@ export const metadata: Metadata = {
   description: 'Login to the Pulse Emergency Blood Network',
 };
 
-export default async function LoginPage() {
+async function LoginContent() {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -34,5 +36,19 @@ export default async function LoginPage() {
       </main>
       <Footer />
     </>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <GenericFallback />
+        </div>
+      }
+    >
+      <LoginContent />
+    </Suspense>
   );
 }

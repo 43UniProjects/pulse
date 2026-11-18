@@ -12,11 +12,7 @@ const ADMIN_LINKS = [
   { name: 'Profile', href: '/admin/profile' },
 ];
 
-export default async function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+async function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const session = await validateRoleAccess('admin');
 
   return (
@@ -36,5 +32,23 @@ export default async function AdminLayout({
         </main>
       </div>
     </div>
+  );
+}
+
+export default function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+        </div>
+      }
+    >
+      <AdminLayoutContent>{children}</AdminLayoutContent>
+    </Suspense>
   );
 }

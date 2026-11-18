@@ -1,9 +1,12 @@
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth/config';
+import { connectToDatabase } from '@/lib/db/connect';
+import { User } from '@/lib/models/user.model';
 
 export async function validateRoleAccess(
   requiredRole: 'donor' | 'hospital' | 'admin',
+  options?: { allowInactive?: boolean },
 ) {
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -17,6 +20,28 @@ export async function validateRoleAccess(
   // 2. If authenticated but role does not match -> redirect to unauthorized page
   if (session.user.role !== requiredRole) {
     redirect('/unauthorized');
+  }
+
+  // 3. Always sync live activation status from MongoDB for donor/hospital so layouts & routes never use stale session cookies
+  if (session.user.role !== 'admin') {
+    await connectToDatabase();
+    const dbUser = await User.findById(session.user.id)
+      .select('isActive name')
+      .lean();
+    const isActuallyActive = Boolean(dbUser?.isActive);
+
+    if (!options?.allowInactive && !isActuallyActive) {
+      redirect(`/${session.user.role}/profile?setup=true`);
+    }
+
+    return {
+      ...session,
+      user: {
+        ...session.user,
+        isActive: isActuallyActive,
+        name: dbUser?.name || session.user.name,
+      },
+    };
   }
 
   return session;

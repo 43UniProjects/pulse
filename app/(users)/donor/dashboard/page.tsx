@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import { Suspense } from 'react';
 import {
   ShieldCheck,
   MessageSquare,
@@ -10,7 +11,11 @@ import {
   AlertCircle,
   Droplet,
 } from 'lucide-react';
-import { getDonorProfile, getDonationRequests } from '../requests/data';
+import { validateRoleAccess } from '@/lib/auth/guard';
+import { connectToDatabase } from '@/lib/db/connect';
+import { Donor } from '@/lib/models/donor.model';
+import { DonationRequest } from '@/lib/models/donation-request.model';
+import { calculateClinicalEligibility } from '../requests/data';
 import {
   DonationRequestEntity,
   REQUEST_URGENCY_LEVEL,
@@ -21,19 +26,87 @@ export const metadata: Metadata = {
   description: 'View your donation status and nearby emergency requests.',
 };
 
-export default async function DonorDashboard() {
-  // In a real application, you would get this ID from the authenticated session
-  const donorId = 'donor_1';
-  const donor = getDonorProfile(donorId);
-  const activeRequests = Object.values(getDonationRequests());
+function DashboardSkeleton() {
+  return (
+    <div className="p-6 md:p-8 max-w-5xl mx-auto w-full space-y-6 animate-pulse">
+      <div className="bg-card border border-border rounded-xl p-5 md:p-6 shadow-sm flex items-center justify-between">
+        <div className="space-y-2">
+          <div className="h-7 w-48 bg-muted rounded" />
+          <div className="h-4 w-32 bg-muted rounded" />
+        </div>
+        <div className="w-12 h-12 rounded-xl bg-muted" />
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="space-y-6 lg:col-span-1">
+          <div className="bg-card border border-border rounded-xl p-5 h-28 bg-muted/40" />
+          <div className="bg-card border border-border rounded-xl p-5 h-44 bg-muted/40" />
+        </div>
+        <div className="lg:col-span-2 space-y-3">
+          <div className="h-5 w-48 bg-muted rounded" />
+          <div className="bg-card border border-border rounded-xl p-5 h-24 bg-muted/40" />
+          <div className="bg-card border border-border rounded-xl p-5 h-24 bg-muted/40" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+async function DonorDashboardContent() {
+  const session = await validateRoleAccess('donor');
+  await connectToDatabase();
+
+  let donor = await Donor.findById(session.user.id).lean();
 
   if (!donor) {
-    return (
-      <div className="flex items-center justify-center h-[60vh] text-muted-foreground">
-        Dashboard data not found.
-      </div>
-    );
+    const created = await Donor.create({
+      _id: session.user.id,
+      fullName: session.user.name || '',
+      email: session.user.email,
+      phone: '',
+      bloodGroup: '',
+      dateOfBirth: null,
+      address: '',
+      location: { type: 'Point', coordinates: [79.8612, 6.9271] },
+      radiusPreferenceKm: 10,
+      isEligible: true,
+      isAvailable: true,
+      liveLocationSync: false,
+      smsAlertsEnabled: true,
+      emailAlertsEnabled: false,
+    });
+    donor = created.toObject();
   }
+
+  // Calculate clinical eligibility (120 days waiting period)
+  const isClinicallyEligible = calculateClinicalEligibility(donor);
+
+  // Fetch pending active requests
+  const activeRequestsRaw = await DonationRequest.find({ status: 'pending' })
+    .sort({ createdAt: -1 })
+    .limit(10)
+    .lean();
+
+  const activeRequests: DonationRequestEntity[] = activeRequestsRaw.map(
+    (req) => ({
+      ...req,
+      _id: req._id.toString(),
+      hospitalId: req.hospitalId.toString(),
+      timePosted: req.createdAt
+        ? new Intl.DateTimeFormat('en-GB', {
+            hour: '2-digit',
+            minute: '2-digit',
+            day: '2-digit',
+            month: 'short',
+          }).format(new Date(req.createdAt))
+        : 'Recent',
+      createdAt: req.createdAt
+        ? new Date(req.createdAt).toISOString()
+        : new Date().toISOString(),
+      updatedAt: req.updatedAt
+        ? new Date(req.updatedAt).toISOString()
+        : new Date().toISOString(),
+    }),
+  ) as unknown as DonationRequestEntity[];
 
   return (
     <div className="p-6 md:p-8 max-w-5xl mx-auto w-full space-y-6">
@@ -49,7 +122,8 @@ export default async function DonorDashboard() {
             </span>
           </div>
           <p className="text-sm text-muted-foreground">
-            Welcome back, {donor.fullName.split(' ')[0]}
+            Welcome back,{' '}
+            {donor.fullName ? donor.fullName.split(' ')[0] : 'Donor'}
           </p>
         </div>
 
@@ -69,7 +143,9 @@ export default async function DonorDashboard() {
             </div>
             <div>
               <div className="text-sm font-semibold text-foreground mb-1">
-                SMS alerts are on
+                {donor.smsAlertsEnabled
+                  ? 'SMS alerts are on'
+                  : 'SMS alerts are off'}
               </div>
               <div className="text-xs text-muted-foreground leading-relaxed">
                 We will text you the moment{' '}
@@ -83,24 +159,42 @@ export default async function DonorDashboard() {
           {/* Eligibility Card */}
           <div className="bg-card border border-border rounded-xl p-5 shadow-sm relative overflow-hidden">
             {/* Green accent line */}
-            <div className="absolute top-0 left-0 right-0 h-1.5 bg-emerald-500" />
+            <div
+              className={`absolute top-0 left-0 right-0 h-1.5 ${
+                isClinicallyEligible ? 'bg-emerald-500' : 'bg-amber-500'
+              }`}
+            />
 
             <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4 mt-1">
               Clinical Eligibility
             </h3>
 
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+              <div
+                className={`p-2 rounded-full ${
+                  isClinicallyEligible
+                    ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                    : 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+                }`}
+              >
                 <ShieldCheck className="w-6 h-6" />
               </div>
               <div>
                 <p className="text-lg font-semibold text-foreground">
-                  {donor.isEligible ? 'Eligible to Donate' : 'Not Eligible'}
+                  {isClinicallyEligible
+                    ? 'Eligible to Donate'
+                    : 'Waiting Period Active'}
                 </p>
-                <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
-                  {donor.isEligible
+                <p
+                  className={`text-xs font-medium ${
+                    isClinicallyEligible
+                      ? 'text-emerald-600 dark:text-emerald-400'
+                      : 'text-amber-600 dark:text-amber-400'
+                  }`}
+                >
+                  {isClinicallyEligible
                     ? 'Clearance active'
-                    : 'Please check details'}
+                    : '4-month interval required'}
                 </p>
               </div>
             </div>
@@ -110,7 +204,11 @@ export default async function DonorDashboard() {
               <span>
                 Your last donation was on{' '}
                 {donor.lastDonationDate
-                  ? new Date(donor.lastDonationDate).toLocaleDateString()
+                  ? new Intl.DateTimeFormat('en-GB', {
+                      day: '2-digit',
+                      month: 'short',
+                      year: 'numeric',
+                    }).format(new Date(donor.lastDonationDate))
                   : 'Never'}
                 .
               </span>
@@ -154,7 +252,7 @@ export default async function DonorDashboard() {
                       <div className="flex items-center gap-2 mb-1">
                         <UrgencyBadge level={request.urgency} />
                         <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider hidden sm:inline-block">
-                          {request._id}
+                          {request.requestId || request._id}
                         </span>
                       </div>
                       <h3 className="font-medium text-foreground text-base group-hover:text-primary transition-colors">
@@ -167,7 +265,7 @@ export default async function DonorDashboard() {
                         </span>
                         <span className="flex items-center gap-1 hidden sm:flex">
                           <MapPin className="w-3 h-3" />{' '}
-                          {request.distance || 'Nearby'}
+                          {request.address || 'Nearby'}
                         </span>
                         <span className="flex items-center gap-1">
                           <Clock className="w-3 h-3" /> {request.timePosted}
@@ -191,6 +289,14 @@ export default async function DonorDashboard() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function DonorDashboard() {
+  return (
+    <Suspense fallback={<DashboardSkeleton />}>
+      <DonorDashboardContent />
+    </Suspense>
   );
 }
 

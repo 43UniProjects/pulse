@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { DonorEntity } from '@/types/donor.type';
 import DonorProfileView from './profile-view';
 import DonorProfileForm from './profile-form';
@@ -9,20 +10,39 @@ export default function DonorProfileClient({
   initialData,
   historyCount,
   completedDonations,
+  isAccountActive,
 }: {
   initialData: DonorEntity;
   historyCount: number;
   completedDonations: number;
+  isAccountActive: boolean;
 }) {
-  const [isEditing, setIsEditing] = useState(false);
+  const router = useRouter();
+  const isProfileIncomplete =
+    !isAccountActive ||
+    !initialData.fullName ||
+    !initialData.phone ||
+    !initialData.bloodGroup ||
+    !initialData.dateOfBirth ||
+    !initialData.address;
+
+  const [isEditing, setIsEditing] = useState(isProfileIncomplete);
 
   if (isEditing) {
     return (
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
         <DonorProfileForm
           initialData={initialData}
-          onCancel={() => setIsEditing(false)}
-          onSuccess={() => setIsEditing(false)}
+          isIncomplete={isProfileIncomplete}
+          onCancel={() => {
+            if (!isProfileIncomplete) {
+              setIsEditing(false);
+            }
+          }}
+          onSuccess={() => {
+            setIsEditing(false);
+            router.refresh();
+          }}
         />
       </div>
     );
