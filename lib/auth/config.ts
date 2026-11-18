@@ -5,13 +5,17 @@ import mongoose from 'mongoose';
 import { connectToDatabase } from '../db/connect';
 import { sendVerificationEmail } from '../mail';
 
-await connectToDatabase();
+let client: unknown = {};
+let db: unknown = {};
 
-const client = mongoose.connection.getClient();
-const db = mongoose.connection.db;
+if (process.env.NEXT_PHASE !== 'phase-production-build') {
+  await connectToDatabase();
+  client = mongoose.connection.getClient();
+  db = mongoose.connection.db;
 
-if (!db) {
-  throw new Error('Database connection not established');
+  if (!db) {
+    throw new Error('Database connection not established');
+  }
 }
 
 export const auth = betterAuth({
