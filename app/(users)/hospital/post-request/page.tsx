@@ -1,20 +1,18 @@
 'use client';
+
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { createHospitalDonationRequest } from '@/actions/hospital.actions';
 
 const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
-const radii = ['5 km', '10 km', '20 km'];
+const radii = [
+  { label: '5 km', value: 5 },
+  { label: '10 km', value: 10 },
+  { label: '20 km', value: 20 },
+];
 
 export default function PostRequest() {
-  const router = useRouter();
-  const [radius, setRadius] = useState('10 km');
+  const [radiusKm, setRadiusKm] = useState(10);
   const [submitted, setSubmitted] = useState(false);
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => router.push('/hospital'), 1200);
-  }
 
   return (
     <div className="p-8 max-w-3xl mx-auto">
@@ -28,17 +26,27 @@ export default function PostRequest() {
       </div>
 
       <form
-        onSubmit={handleSubmit}
+        action={async (formData: FormData) => {
+          setSubmitted(true);
+          formData.set('radiusKm', String(radiusKm));
+          await createHospitalDonationRequest(formData);
+        }}
         className="bg-card border border-border rounded-lg p-6 flex flex-col gap-5"
       >
         <div>
           <label className="text-xs font-medium text-foreground block mb-1">
             Blood Group Required
           </label>
-          <select className="w-full border border-border rounded px-3 py-2 text-sm outline-none focus:border-border transition-colors bg-background">
+          <select
+            name="bloodGroup"
+            required
+            className="w-full border border-border rounded px-3 py-2 text-sm outline-none focus:border-border transition-colors bg-background"
+          >
             <option value="">Select blood group</option>
             {bloodGroups.map((g) => (
-              <option key={g}>{g}</option>
+              <option key={g} value={g}>
+                {g}
+              </option>
             ))}
           </select>
         </div>
@@ -49,10 +57,12 @@ export default function PostRequest() {
           </label>
           <input
             type="number"
+            name="quantity"
             min={1}
             max={20}
             defaultValue={1}
-            className="w-full border border-border rounded px-3 py-2 text-sm outline-none focus:border-border transition-colors bg-background"
+            required
+            className="w-full border border-border rounded px-3 py-2 text-sm outline-none focus:border-border transition-colors bg-background font-tabular"
           />
         </div>
 
@@ -63,16 +73,16 @@ export default function PostRequest() {
           <div className="flex gap-2">
             {radii.map((r) => (
               <button
-                key={r}
+                key={r.value}
                 type="button"
-                onClick={() => setRadius(r)}
+                onClick={() => setRadiusKm(r.value)}
                 className={`flex-1 text-sm font-medium py-2 rounded border transition-colors ${
-                  radius === r
+                  radiusKm === r.value
                     ? 'bg-red-600 text-white border-red-600'
                     : 'bg-transparent text-muted-foreground border-border hover:bg-muted/50'
                 }`}
               >
-                {r}
+                {r.label}
               </button>
             ))}
           </div>
@@ -82,11 +92,15 @@ export default function PostRequest() {
           <label className="text-xs font-medium text-foreground block mb-1">
             Urgency Level
           </label>
-          <select className="w-full border border-border rounded px-3 py-2 text-sm outline-none focus:border-border transition-colors bg-background">
-            <option>Critical</option>
-            <option>High</option>
-            <option>Medium</option>
-            <option>Low</option>
+          <select
+            name="urgency"
+            required
+            defaultValue="critical"
+            className="w-full border border-border rounded px-3 py-2 text-sm outline-none focus:border-border transition-colors bg-background"
+          >
+            <option value="critical">Critical</option>
+            <option value="high">High</option>
+            <option value="normal">Normal</option>
           </select>
         </div>
 
@@ -95,6 +109,7 @@ export default function PostRequest() {
             Additional Notes
           </label>
           <textarea
+            name="notes"
             rows={3}
             placeholder="Any specific instructions or context for the donor..."
             className="w-full border border-border rounded px-3 py-2 text-sm outline-none focus:border-border transition-colors resize-none bg-background"
@@ -105,7 +120,7 @@ export default function PostRequest() {
           <button
             type="submit"
             disabled={submitted}
-            className="bg-red-600 text-white font-medium text-sm px-5 py-2 rounded hover:bg-red-700 transition-colors disabled:opacity-60 shadow-sm hover:shadow-md"
+            className="bg-red-600 text-white font-medium text-sm px-5 py-2 rounded hover:bg-red-700 transition-colors disabled:opacity-60 shadow-sm hover:shadow-md cursor-pointer"
           >
             {submitted ? 'Broadcasting...' : 'Post Request'}
           </button>

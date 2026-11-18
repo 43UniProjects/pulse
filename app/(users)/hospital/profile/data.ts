@@ -1,38 +1,23 @@
+import { connectToDatabase } from '@/lib/db/connect';
+import { Hospital } from '@/lib/models/hospital.model';
 import { HospitalEntity } from '@/types/hospital.type';
 
-const HOSPITALS_DB: Record<string, HospitalEntity> = {
-  hospital_1: {
-    _id: 'hospital_1', // matches base User._id conceptually
-    name: 'National Hospital of Sri Lanka',
-    facilityType: 'government_hospital',
-    verificationStatus: 'verified',
-    verifiedAt: new Date('2023-01-15'),
-    address: 'Regent Street, Colombo 08',
-    city: 'Colombo',
-    location: {
-      type: 'Point',
-      coordinates: [79.8661, 6.9197], // [longitude, latitude]
-    },
-    hotline: '+94 11 269 1111',
-    email: 'bloodbank@nhsl.health.lk',
-    website: 'https://nhsl.health.lk',
-    coordinator: {
-      name: 'Dr. Saman Weerasinghe',
-      designation: 'Head of Blood Bank',
-      contactNumber: '+94 71 234 5678',
-      email: 'saman.w@nhsl.health.lk',
-    },
-    activeRequestsCount: 3,
-    createdAt: new Date('2023-01-10'),
-    updatedAt: new Date('2024-01-01'),
-  },
-};
-
 /**
- * Retrieves a hospital's profile.
+ * Retrieves a hospital's profile from MongoDB.
  */
 export async function getHospitalProfile(
   hospitalId: string,
 ): Promise<HospitalEntity | null> {
-  return HOSPITALS_DB[hospitalId] || null;
+  await connectToDatabase();
+  const hospital = await Hospital.findById(hospitalId).lean();
+  if (!hospital) return null;
+
+  return {
+    ...hospital,
+    _id: hospital._id.toString(),
+    verifiedBy: hospital.verifiedBy ? hospital.verifiedBy.toString() : null,
+    verifiedAt: hospital.verifiedAt ? new Date(hospital.verifiedAt) : null,
+    createdAt: hospital.createdAt ? new Date(hospital.createdAt) : undefined,
+    updatedAt: hospital.updatedAt ? new Date(hospital.updatedAt) : undefined,
+  } as unknown as HospitalEntity;
 }
