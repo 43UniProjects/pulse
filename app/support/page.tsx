@@ -30,14 +30,25 @@ async function FaqSection() {
   return <FaqClient initialFaqs={faqs} />;
 }
 
-export default async function SupportPage() {
-  // Securely retrieve the active session
+async function AdminManageFaqsButton() {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
 
-  const isAdmin = session?.user?.role === 'admin';
+  if (session?.user?.role !== 'admin') return null;
 
+  return (
+    <Link
+      href="/admin/faqs"
+      className="inline-flex items-center justify-center h-10 px-4 rounded-md bg-secondary text-secondary-foreground text-sm font-medium border border-border hover:bg-secondary/80 transition-colors shrink-0"
+    >
+      <Settings className="w-4 h-4 mr-2" />
+      Manage FAQs
+    </Link>
+  );
+}
+
+export default function SupportPage() {
   return (
     <>
       <Header />
@@ -55,15 +66,9 @@ export default async function SupportPage() {
             </div>
 
             {/* Conditional Admin Shortcut */}
-            {isAdmin && (
-              <Link
-                href="/admin/faqs"
-                className="inline-flex items-center justify-center h-10 px-4 rounded-md bg-secondary text-secondary-foreground text-sm font-medium border border-border hover:bg-secondary/80 transition-colors shrink-0"
-              >
-                <Settings className="w-4 h-4 mr-2" />
-                Manage FAQs
-              </Link>
-            )}
+            <Suspense fallback={null}>
+              <AdminManageFaqsButton />
+            </Suspense>
           </div>
         </section>
 
