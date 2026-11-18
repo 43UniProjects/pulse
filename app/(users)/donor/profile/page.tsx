@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 export default async function DonorProfilePage() {
-  const session = await validateRoleAccess('donor');
+  const session = await validateRoleAccess('donor', { allowInactive: true });
   await connectToDatabase();
 
   let donorDoc = await Donor.findById(session.user.id).lean();
@@ -21,12 +21,12 @@ export default async function DonorProfilePage() {
   if (!donorDoc) {
     const created = await Donor.create({
       _id: session.user.id,
-      fullName: session.user.name || 'Verified Donor',
+      fullName: session.user.name || '',
       email: session.user.email,
-      phone: '+94 77 000 0000',
-      bloodGroup: 'O+',
-      dateOfBirth: new Date('2000-01-01'),
-      address: 'Colombo, Sri Lanka',
+      phone: '',
+      bloodGroup: '',
+      dateOfBirth: null,
+      address: '',
       location: { type: 'Point', coordinates: [79.8612, 6.9271] },
       radiusPreferenceKm: 10,
       isEligible: true,
@@ -46,9 +46,7 @@ export default async function DonorProfilePage() {
   const serializedDonor = {
     ...donorDoc,
     _id: donorDoc._id.toString(),
-    dateOfBirth: donorDoc.dateOfBirth
-      ? new Date(donorDoc.dateOfBirth)
-      : new Date('2000-01-01'),
+    dateOfBirth: donorDoc.dateOfBirth ? new Date(donorDoc.dateOfBirth) : null,
     lastDonationDate: donorDoc.lastDonationDate
       ? new Date(donorDoc.lastDonationDate)
       : null,

@@ -61,9 +61,7 @@ export async function getDonorProfile(
   return {
     ...donor,
     _id: donor._id.toString(),
-    dateOfBirth: donor.dateOfBirth
-      ? new Date(donor.dateOfBirth)
-      : new Date('2000-01-01'),
+    dateOfBirth: donor.dateOfBirth ? new Date(donor.dateOfBirth) : null,
     lastDonationDate: donor.lastDonationDate
       ? new Date(donor.lastDonationDate)
       : null,

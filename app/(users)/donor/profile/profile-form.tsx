@@ -14,6 +14,7 @@ import {
   Radar,
   Navigation,
   Droplet,
+  Calendar,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { updateDonorProfile } from '@/actions/donor.actions';
@@ -22,10 +23,12 @@ import { BLOOD_GROUPS } from '@/types/common.type';
 
 export default function DonorProfileForm({
   initialData,
+  isIncomplete = false,
   onCancel,
   onSuccess,
 }: {
   initialData: DonorEntity;
+  isIncomplete?: boolean;
   onCancel: () => void;
   onSuccess: () => void;
 }) {
@@ -39,7 +42,11 @@ export default function DonorProfileForm({
     lastStateRef.current = state;
 
     if (state.success) {
-      toast.success('Profile updated successfully!');
+      toast.success(
+        isIncomplete
+          ? 'Profile completed! Your account is now activated.'
+          : 'Profile updated successfully!',
+      );
       const timer = setTimeout(() => {
         onSuccess();
       }, 1000); // Wait 1s to show the success message before switching view
@@ -47,7 +54,7 @@ export default function DonorProfileForm({
     } else if (state.error && !state.fieldErrors) {
       toast.error(state.error);
     }
-  }, [state, onSuccess]);
+  }, [state, onSuccess, isIncomplete]);
 
   // Manage slider and toggles state so UI updates immediately
   const [radius, setRadius] = useState(initialData.radiusPreferenceKm);
@@ -64,6 +71,21 @@ export default function DonorProfileForm({
 
   return (
     <form action={formAction} className="space-y-8 pb-12">
+      {isIncomplete && (
+        <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <h3 className="text-sm font-semibold text-amber-500">
+              Account Deactivated
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              Please complete and save your required profile details below to
+              activate your account.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Section 1: Personal & Medical Information */}
       <section className="space-y-4">
         <div className="flex items-center gap-2 mb-4">
@@ -77,13 +99,15 @@ export default function DonorProfileForm({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div className="space-y-2">
               <label className="text-xs font-medium text-foreground block">
-                Full Name
+                Full Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 name="fullName"
-                defaultValue={initialData.fullName}
-                className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
+                defaultValue={initialData.fullName || ''}
+                placeholder="e.g. John Doe"
+                required
+                className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
               />
               {state.fieldErrors?.fullName && (
                 <p className="text-xs text-red-500">
@@ -94,21 +118,25 @@ export default function DonorProfileForm({
 
             <div className="space-y-2">
               <label className="text-xs font-medium text-foreground block">
-                Blood Group
+                Blood Group <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <select
                   name="bloodGroup"
-                  defaultValue={initialData.bloodGroup}
+                  defaultValue={initialData.bloodGroup || ''}
+                  required
                   className="w-full h-10 pl-10 pr-3 appearance-none rounded-md border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
                 >
+                  <option value="" disabled>
+                    Select your blood group
+                  </option>
                   {BLOOD_GROUPS.map((group) => (
                     <option key={group} value={group}>
                       {group}
                     </option>
                   ))}
                 </select>
-                <Droplet className="w-4 h-4 text-primary absolute left-3 top-3 opacity-80" />
+                <Droplet className="w-4 h-4 text-primary absolute left-3 top-3 opacity-80 pointer-events-none" />
               </div>
               {state.fieldErrors?.bloodGroup && (
                 <p className="text-xs text-red-500">
@@ -119,31 +147,69 @@ export default function DonorProfileForm({
 
             <div className="space-y-2">
               <label className="text-xs font-medium text-foreground block">
-                Contact Email
+                Date of Birth <span className="text-red-500">*</span>
               </label>
-              <input
-                type="email"
-                name="email"
-                defaultValue={initialData.email}
-                className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
-              />
-              {state.fieldErrors?.email && (
+              <div className="relative">
+                <input
+                  type="date"
+                  name="dateOfBirth"
+                  defaultValue={
+                    initialData.dateOfBirth
+                      ? new Date(initialData.dateOfBirth)
+                          .toISOString()
+                          .split('T')[0]
+                      : ''
+                  }
+                  max={new Date().toISOString().split('T')[0]}
+                  required
+                  className="w-full h-10 pl-10 pr-3 rounded-md border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
+                />
+                <Calendar className="w-4 h-4 text-muted-foreground absolute left-3 top-3 opacity-80 pointer-events-none" />
+              </div>
+              {state.fieldErrors?.dateOfBirth && (
                 <p className="text-xs text-red-500">
-                  {state.fieldErrors.email[0]}
+                  {state.fieldErrors.dateOfBirth[0]}
                 </p>
               )}
             </div>
 
             <div className="space-y-2">
               <label className="text-xs font-medium text-foreground block">
-                Phone Number
+                Contact Email{' '}
+                <span className="text-muted-foreground text-[10px]">
+                  (Locked)
+                </span>
               </label>
-              <input
-                type="tel"
-                name="phone"
-                defaultValue={initialData.phone}
-                className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
-              />
+              <div className="relative">
+                <input
+                  type="email"
+                  name="email"
+                  value={initialData.email}
+                  readOnly
+                  className="w-full h-10 pl-10 pr-3 rounded-md border border-border/80 bg-muted text-muted-foreground cursor-not-allowed select-none text-sm transition-all focus:outline-none"
+                />
+                <Mail className="w-4 h-4 text-muted-foreground absolute left-3 top-3 opacity-80 pointer-events-none" />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Your registered email address cannot be changed.
+              </p>
+            </div>
+
+            <div className="space-y-2 sm:col-span-2">
+              <label className="text-xs font-medium text-foreground block">
+                Phone Number <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <input
+                  type="tel"
+                  name="phone"
+                  defaultValue={initialData.phone || ''}
+                  placeholder="e.g. +94 77 123 4567"
+                  required
+                  className="w-full h-10 pl-10 pr-3 rounded-md border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
+                />
+                <Smartphone className="w-4 h-4 text-muted-foreground absolute left-3 top-3 opacity-80 pointer-events-none" />
+              </div>
               {state.fieldErrors?.phone && (
                 <p className="text-xs text-red-500">
                   {state.fieldErrors.phone[0]}
@@ -166,13 +232,15 @@ export default function DonorProfileForm({
         <div className="bg-card border border-border rounded-xl divide-y divide-border overflow-hidden shadow-sm">
           <div className="p-5">
             <label className="text-xs font-medium text-foreground block mb-2">
-              Current Address
+              Current Address <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               name="address"
-              defaultValue={initialData.address}
-              className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
+              defaultValue={initialData.address || ''}
+              placeholder="e.g. 123 Galle Road, Colombo 03"
+              required
+              className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
             />
             {state.fieldErrors?.address && (
               <p className="text-xs text-red-500 mt-1">
@@ -184,12 +252,12 @@ export default function DonorProfileForm({
             <input
               type="hidden"
               name="longitude"
-              value={initialData.location.coordinates[0]}
+              value={initialData.location?.coordinates?.[0] ?? 79.8612}
             />
             <input
               type="hidden"
               name="latitude"
-              value={initialData.location.coordinates[1]}
+              value={initialData.location?.coordinates?.[1] ?? 6.9271}
             />
           </div>
 
@@ -311,14 +379,16 @@ export default function DonorProfileForm({
 
       {/* Action Footer */}
       <div className="pt-6 border-t border-border flex items-center justify-end gap-3 sticky bottom-0 bg-background/80 backdrop-blur-md pb-4 z-10">
-        <button
-          type="button"
-          onClick={onCancel}
-          disabled={isPending}
-          className="px-5 py-2.5 rounded-md text-sm font-medium text-foreground hover:bg-secondary transition-colors disabled:opacity-50"
-        >
-          Cancel
-        </button>
+        {!isIncomplete && (
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={isPending}
+            className="px-5 py-2.5 rounded-md text-sm font-medium text-foreground hover:bg-secondary transition-colors disabled:opacity-50"
+          >
+            Cancel
+          </button>
+        )}
         <button
           type="submit"
           disabled={isPending}
@@ -332,7 +402,7 @@ export default function DonorProfileForm({
           ) : (
             <>
               <Save className="w-4 h-4 mr-2" />
-              Save Preferences
+              {isIncomplete ? 'Save & Activate Account' : 'Save Preferences'}
             </>
           )}
         </button>

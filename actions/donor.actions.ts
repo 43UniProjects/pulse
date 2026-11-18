@@ -11,11 +11,25 @@ import { auth } from '@/lib/auth/config';
 
 // Zod Schema based on DonorEntity
 const donorSchema = z.object({
-  fullName: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Invalid email address'),
-  phone: z.string().min(10, 'Phone number is required'),
-  bloodGroup: z.enum(BLOOD_GROUPS as unknown as [string, ...string[]]),
-  address: z.string().min(5, 'Address is required'),
+  fullName: z.string().trim().min(2, 'Full name must be at least 2 characters'),
+  phone: z
+    .string()
+    .trim()
+    .min(9, 'Phone number is required (at least 9 digits)'),
+  bloodGroup: z.enum(BLOOD_GROUPS as unknown as [string, ...string[]], {
+    message: 'Please select your blood group',
+  }),
+  dateOfBirth: z
+    .string()
+    .min(1, 'Date of birth is required')
+    .refine((val) => {
+      const parsed = new Date(val);
+      return !isNaN(parsed.getTime()) && parsed < new Date();
+    }, 'Date of birth must be a valid past date'),
+  address: z
+    .string()
+    .trim()
+    .min(5, 'Address is required (at least 5 characters)'),
   latitude: z.coerce.number().min(-90).max(90),
   longitude: z.coerce.number().min(-180).max(180),
   radiusPreferenceKm: z.coerce.number().min(1).max(100),
@@ -48,9 +62,9 @@ export async function updateDonorProfile(
 
   const rawData = {
     fullName: formData.get('fullName'),
-    email: formData.get('email'),
     phone: formData.get('phone'),
     bloodGroup: formData.get('bloodGroup'),
+    dateOfBirth: formData.get('dateOfBirth'),
     address: formData.get('address'),
     latitude: formData.get('latitude'),
     longitude: formData.get('longitude'),
@@ -83,9 +97,9 @@ export async function updateDonorProfile(
 
     const {
       fullName,
-      email,
       phone,
       bloodGroup,
+      dateOfBirth,
       address,
       latitude,
       longitude,
@@ -96,13 +110,17 @@ export async function updateDonorProfile(
       emailAlertsEnabled,
     } = validatedData.data;
 
+    // Strict lock: enforce user's authenticated email
+    const lockedEmail = session.user.email;
+
     await Donor.findByIdAndUpdate(
       session.user.id,
       {
         fullName,
-        email,
+        email: lockedEmail,
         phone,
         bloodGroup,
+        dateOfBirth: new Date(dateOfBirth),
         address,
         location: {
           type: 'Point',
@@ -123,6 +141,7 @@ export async function updateDonorProfile(
 
     await User.findByIdAndUpdate(session.user.id, {
       name: fullName,
+      isActive: true,
     });
 
     revalidatePath('/donor/profile');

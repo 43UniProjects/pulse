@@ -60,12 +60,12 @@ async function DonorDashboardContent() {
   if (!donor) {
     const created = await Donor.create({
       _id: session.user.id,
-      fullName: session.user.name || 'Verified Donor',
+      fullName: session.user.name || '',
       email: session.user.email,
-      phone: '+94 77 000 0000',
-      bloodGroup: 'O+',
-      dateOfBirth: new Date('2000-01-01'),
-      address: 'Colombo, Sri Lanka',
+      phone: '',
+      bloodGroup: '',
+      dateOfBirth: null,
+      address: '',
       location: { type: 'Point', coordinates: [79.8612, 6.9271] },
       radiusPreferenceKm: 10,
       isEligible: true,

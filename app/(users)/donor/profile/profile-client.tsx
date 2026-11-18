@@ -14,14 +14,26 @@ export default function DonorProfileClient({
   historyCount: number;
   completedDonations: number;
 }) {
-  const [isEditing, setIsEditing] = useState(false);
+  const isProfileIncomplete =
+    !initialData.fullName ||
+    !initialData.phone ||
+    !initialData.bloodGroup ||
+    !initialData.dateOfBirth ||
+    !initialData.address;
+
+  const [isEditing, setIsEditing] = useState(isProfileIncomplete);
 
   if (isEditing) {
     return (
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
         <DonorProfileForm
           initialData={initialData}
-          onCancel={() => setIsEditing(false)}
+          isIncomplete={isProfileIncomplete}
+          onCancel={() => {
+            if (!isProfileIncomplete) {
+              setIsEditing(false);
+            }
+          }}
           onSuccess={() => setIsEditing(false)}
         />
       </div>

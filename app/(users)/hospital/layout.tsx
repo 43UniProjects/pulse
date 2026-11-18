@@ -16,7 +16,7 @@ export default async function HospitalLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await validateRoleAccess('hospital');
+  const session = await validateRoleAccess('hospital', { allowInactive: true });
 
   return (
     <div className="min-h-screen flex flex-col bg-background font-sans">

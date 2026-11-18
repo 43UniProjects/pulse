@@ -15,7 +15,7 @@ export default async function DonorLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await validateRoleAccess('donor');
+  const session = await validateRoleAccess('donor', { allowInactive: true });
 
   return (
     <div className="min-h-screen flex flex-col bg-background font-sans">

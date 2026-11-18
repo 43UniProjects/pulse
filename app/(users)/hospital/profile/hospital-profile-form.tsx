@@ -11,6 +11,7 @@ import {
   Mail,
   Globe,
   Building,
+  AlertTriangle,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { updateHospitalProfile } from '@/actions/hospital.actions';
@@ -18,10 +19,12 @@ import { HospitalEntity, HOSPITAL_TYPE } from '@/types/hospital.type';
 
 export default function HospitalProfileForm({
   initialData,
+  isIncomplete = false,
   onCancel,
   onSuccess,
 }: {
   initialData: HospitalEntity;
+  isIncomplete?: boolean;
   onCancel: () => void;
   onSuccess: () => void;
 }) {
@@ -36,7 +39,11 @@ export default function HospitalProfileForm({
     lastStateRef.current = state;
 
     if (state.success) {
-      toast.success('Profile updated successfully!');
+      toast.success(
+        isIncomplete
+          ? 'Facility profile completed! Your account is now activated.'
+          : 'Profile updated successfully!',
+      );
       const timer = setTimeout(() => {
         onSuccess();
       }, 1000);
@@ -44,7 +51,7 @@ export default function HospitalProfileForm({
     } else if (state.error && !state.fieldErrors) {
       toast.error(state.error);
     }
-  }, [state, onSuccess]);
+  }, [state, onSuccess, isIncomplete]);
 
   // Format hospital type label
   const formatType = (type: string) => {
@@ -56,6 +63,21 @@ export default function HospitalProfileForm({
 
   return (
     <form action={formAction} className="space-y-8 pb-12">
+      {isIncomplete && (
+        <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <h3 className="text-sm font-semibold text-amber-500">
+              Account Deactivated
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              Please complete and save your facility profile details below to
+              activate your account.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Section 1: Facility Details */}
       <section className="space-y-4">
         <div className="flex items-center gap-2 mb-4">
@@ -69,13 +91,15 @@ export default function HospitalProfileForm({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div className="space-y-2 sm:col-span-2">
               <label className="text-xs font-medium text-foreground block">
-                Facility Name
+                Facility Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 name="name"
-                defaultValue={initialData.name}
-                className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
+                defaultValue={initialData.name || ''}
+                placeholder="e.g. National Hospital Colombo"
+                required
+                className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
               />
               {state.fieldErrors?.name && (
                 <p className="text-xs text-red-500">
@@ -86,12 +110,13 @@ export default function HospitalProfileForm({
 
             <div className="space-y-2">
               <label className="text-xs font-medium text-foreground block">
-                Facility Type
+                Facility Type <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <select
                   name="facilityType"
-                  defaultValue={initialData.facilityType}
+                  defaultValue={initialData.facilityType || 'private_hospital'}
+                  required
                   className="w-full h-10 pl-10 pr-3 appearance-none rounded-md border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
                 >
                   {HOSPITAL_TYPE.map((type) => (
@@ -100,7 +125,7 @@ export default function HospitalProfileForm({
                     </option>
                   ))}
                 </select>
-                <Building className="w-4 h-4 text-muted-foreground absolute left-3 top-3 opacity-80" />
+                <Building className="w-4 h-4 text-muted-foreground absolute left-3 top-3 opacity-80 pointer-events-none" />
               </div>
               {state.fieldErrors?.facilityType && (
                 <p className="text-xs text-red-500">
@@ -111,7 +136,10 @@ export default function HospitalProfileForm({
 
             <div className="space-y-2">
               <label className="text-xs font-medium text-foreground block">
-                Website (Optional)
+                Website{' '}
+                <span className="text-muted-foreground text-xs font-normal">
+                  (Optional)
+                </span>
               </label>
               <div className="relative">
                 <input
@@ -119,9 +147,9 @@ export default function HospitalProfileForm({
                   name="website"
                   defaultValue={initialData.website || ''}
                   placeholder="https://..."
-                  className="w-full h-10 pl-10 pr-3 rounded-md border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
+                  className="w-full h-10 pl-10 pr-3 rounded-md border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
                 />
-                <Globe className="w-4 h-4 text-muted-foreground absolute left-3 top-3 opacity-80" />
+                <Globe className="w-4 h-4 text-muted-foreground absolute left-3 top-3 opacity-80 pointer-events-none" />
               </div>
               {state.fieldErrors?.website && (
                 <p className="text-xs text-red-500">
@@ -146,39 +174,40 @@ export default function HospitalProfileForm({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div className="space-y-2">
               <label className="text-xs font-medium text-foreground block">
-                Department/Desk Email
+                Department/Desk Email{' '}
+                <span className="text-muted-foreground text-[10px]">
+                  (Locked)
+                </span>
               </label>
               <div className="relative">
                 <input
                   type="email"
                   name="email"
-                  defaultValue={initialData.email}
-                  className="w-full h-10 pl-10 pr-3 rounded-md border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
+                  value={initialData.email}
+                  readOnly
+                  className="w-full h-10 pl-10 pr-3 rounded-md border border-border/80 bg-muted text-muted-foreground cursor-not-allowed select-none text-sm transition-all focus:outline-none"
                 />
-                <Mail className="w-4 h-4 text-muted-foreground absolute left-3 top-3 opacity-80" />
+                <Mail className="w-4 h-4 text-muted-foreground absolute left-3 top-3 opacity-80 pointer-events-none" />
               </div>
               <p className="text-xs text-muted-foreground">
-                Publicly visible contact email.
+                Your registered facility email cannot be changed.
               </p>
-              {state.fieldErrors?.email && (
-                <p className="text-xs text-red-500">
-                  {state.fieldErrors.email[0]}
-                </p>
-              )}
             </div>
 
             <div className="space-y-2">
               <label className="text-xs font-medium text-foreground block">
-                Hotline Number
+                Hotline Number <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <input
                   type="tel"
                   name="hotline"
-                  defaultValue={initialData.hotline}
-                  className="w-full h-10 pl-10 pr-3 rounded-md border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
+                  defaultValue={initialData.hotline || ''}
+                  placeholder="e.g. +94 11 234 5678"
+                  required
+                  className="w-full h-10 pl-10 pr-3 rounded-md border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
                 />
-                <Phone className="w-4 h-4 text-muted-foreground absolute left-3 top-3 opacity-80" />
+                <Phone className="w-4 h-4 text-muted-foreground absolute left-3 top-3 opacity-80 pointer-events-none" />
               </div>
               {state.fieldErrors?.hotline && (
                 <p className="text-xs text-red-500">
@@ -189,13 +218,15 @@ export default function HospitalProfileForm({
 
             <div className="space-y-2 sm:col-span-2">
               <label className="text-xs font-medium text-foreground block">
-                Street Address
+                Street Address <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 name="address"
-                defaultValue={initialData.address}
-                className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
+                defaultValue={initialData.address || ''}
+                placeholder="e.g. Regent Street, Colombo 08"
+                required
+                className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
               />
               {state.fieldErrors?.address && (
                 <p className="text-xs text-red-500">
@@ -204,15 +235,17 @@ export default function HospitalProfileForm({
               )}
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 sm:col-span-2">
               <label className="text-xs font-medium text-foreground block">
-                City
+                City <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 name="city"
-                defaultValue={initialData.city}
-                className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
+                defaultValue={initialData.city || ''}
+                placeholder="e.g. Colombo"
+                required
+                className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
               />
               {state.fieldErrors?.city && (
                 <p className="text-xs text-red-500">
@@ -225,12 +258,12 @@ export default function HospitalProfileForm({
             <input
               type="hidden"
               name="longitude"
-              value={initialData.location.coordinates[0]}
+              value={initialData.location?.coordinates?.[0] ?? 79.8612}
             />
             <input
               type="hidden"
               name="latitude"
-              value={initialData.location.coordinates[1]}
+              value={initialData.location?.coordinates?.[1] ?? 6.9271}
             />
           </div>
         </div>
@@ -249,13 +282,15 @@ export default function HospitalProfileForm({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div className="space-y-2">
               <label className="text-xs font-medium text-foreground block">
-                Coordinator Name
+                Coordinator Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 name="coordinatorName"
-                defaultValue={initialData.coordinator.name}
-                className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
+                defaultValue={initialData.coordinator?.name || ''}
+                placeholder="e.g. Dr. Priyantha Silva"
+                required
+                className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
               />
               {state.fieldErrors?.coordinatorName && (
                 <p className="text-xs text-red-500">
@@ -266,14 +301,15 @@ export default function HospitalProfileForm({
 
             <div className="space-y-2">
               <label className="text-xs font-medium text-foreground block">
-                Designation
+                Designation <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 name="coordinatorDesignation"
-                defaultValue={initialData.coordinator.designation}
-                placeholder="e.g. Chief Medical Officer"
-                className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
+                defaultValue={initialData.coordinator?.designation || ''}
+                placeholder="e.g. Blood Bank Coordinator"
+                required
+                className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
               />
               {state.fieldErrors?.coordinatorDesignation && (
                 <p className="text-xs text-red-500">
@@ -284,13 +320,15 @@ export default function HospitalProfileForm({
 
             <div className="space-y-2">
               <label className="text-xs font-medium text-foreground block">
-                Contact Number
+                Contact Number <span className="text-red-500">*</span>
               </label>
               <input
                 type="tel"
                 name="coordinatorContactNumber"
-                defaultValue={initialData.coordinator.contactNumber}
-                className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
+                defaultValue={initialData.coordinator?.contactNumber || ''}
+                placeholder="e.g. +94 77 987 6543"
+                required
+                className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
               />
               {state.fieldErrors?.coordinatorContactNumber && (
                 <p className="text-xs text-red-500">
@@ -301,13 +339,15 @@ export default function HospitalProfileForm({
 
             <div className="space-y-2">
               <label className="text-xs font-medium text-foreground block">
-                Email Address
+                Email Address <span className="text-red-500">*</span>
               </label>
               <input
                 type="email"
                 name="coordinatorEmail"
-                defaultValue={initialData.coordinator.email}
-                className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
+                defaultValue={initialData.coordinator?.email || ''}
+                placeholder="e.g. coordinator@hospital.lk"
+                required
+                className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
               />
               {state.fieldErrors?.coordinatorEmail && (
                 <p className="text-xs text-red-500">
@@ -321,14 +361,16 @@ export default function HospitalProfileForm({
 
       {/* Action Footer */}
       <div className="pt-6 border-t border-border flex items-center justify-end gap-3 sticky bottom-0 bg-background/80 backdrop-blur-md pb-4 z-10">
-        <button
-          type="button"
-          onClick={onCancel}
-          disabled={isPending}
-          className="px-5 py-2.5 rounded-md text-sm font-medium text-foreground hover:bg-secondary transition-colors disabled:opacity-50"
-        >
-          Cancel
-        </button>
+        {!isIncomplete && (
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={isPending}
+            className="px-5 py-2.5 rounded-md text-sm font-medium text-foreground hover:bg-secondary transition-colors disabled:opacity-50"
+          >
+            Cancel
+          </button>
+        )}
         <button
           type="submit"
           disabled={isPending}
@@ -342,7 +384,9 @@ export default function HospitalProfileForm({
           ) : (
             <>
               <Save className="w-4 h-4 mr-2" />
-              Save Facility Profile
+              {isIncomplete
+                ? 'Save & Activate Facility'
+                : 'Save Facility Profile'}
             </>
           )}
         </button>

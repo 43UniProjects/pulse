@@ -16,23 +16,32 @@ import { auth } from '@/lib/auth/config';
 
 // Zod Schema based on HospitalEntity Form requirements
 const hospitalSchema = z.object({
-  name: z.string().min(2, 'Facility name must be at least 2 characters'),
+  name: z.string().trim().min(2, 'Facility name must be at least 2 characters'),
   facilityType: z.enum(HOSPITAL_TYPE as unknown as [string, ...string[]]),
-  website: z.string().url('Invalid website URL').optional().or(z.literal('')),
-  hotline: z.string().min(9, 'Hotline number is required'),
-  email: z.string().email('Invalid department email address'),
-  address: z.string().min(5, 'Full address is required'),
-  city: z.string().min(2, 'City is required'),
+  website: z
+    .string()
+    .trim()
+    .url('Invalid website URL')
+    .optional()
+    .or(z.literal('')),
+  hotline: z.string().trim().min(9, 'Hotline number is required'),
+  address: z.string().trim().min(5, 'Full street address is required'),
+  city: z.string().trim().min(2, 'City is required'),
   latitude: z.coerce.number().min(-90).max(90),
   longitude: z.coerce.number().min(-180).max(180),
-  coordinatorName: z.string().min(2, 'Coordinator name is required'),
+  coordinatorName: z.string().trim().min(2, 'Coordinator name is required'),
   coordinatorDesignation: z
     .string()
+    .trim()
     .min(2, 'Coordinator designation is required'),
   coordinatorContactNumber: z
     .string()
+    .trim()
     .min(9, 'Coordinator contact is required'),
-  coordinatorEmail: z.string().email('Invalid coordinator email address'),
+  coordinatorEmail: z
+    .string()
+    .trim()
+    .email('Invalid coordinator email address'),
 });
 
 export type HospitalActionState = {
@@ -61,7 +70,6 @@ export async function updateHospitalProfile(
     facilityType: formData.get('facilityType'),
     website: formData.get('website'),
     hotline: formData.get('hotline'),
-    email: formData.get('email'),
     address: formData.get('address'),
     city: formData.get('city'),
     latitude: formData.get('latitude'),
@@ -93,15 +101,16 @@ export async function updateHospitalProfile(
     await connectToDatabase();
 
     const data = validatedData.data;
+    const lockedEmail = session.user.email;
 
     await Hospital.findByIdAndUpdate(
       session.user.id,
       {
         name: data.name,
         facilityType: data.facilityType,
-        website: data.website || undefined,
+        website: data.website || '',
         hotline: data.hotline,
-        email: data.email,
+        email: lockedEmail,
         address: data.address,
         city: data.city,
         location: {
@@ -124,6 +133,7 @@ export async function updateHospitalProfile(
 
     await User.findByIdAndUpdate(session.user.id, {
       name: data.name,
+      isActive: true,
     });
 
     revalidatePath('/hospital/profile');
@@ -156,6 +166,17 @@ export async function createHospitalDonationRequest(formData: FormData) {
 
   if (!session?.user || session.user.role !== 'hospital') {
     throw new Error('Unauthorized');
+  }
+
+  await connectToDatabase();
+
+  if (!session.user.isActive) {
+    const user = await User.findById(session.user.id).select('isActive').lean();
+    if (!user?.isActive) {
+      throw new Error(
+        'Your facility account is deactivated. Please complete your profile to activate your account.',
+      );
+    }
   }
 
   const rawData = {
@@ -219,6 +240,17 @@ export async function toggleDonorVerification(
   }
 
   await connectToDatabase();
+
+  if (!session.user.isActive) {
+    const user = await User.findById(session.user.id).select('isActive').lean();
+    if (!user?.isActive) {
+      return {
+        success: false,
+        error:
+          'Your facility account is deactivated. Please complete your profile to activate your account.',
+      };
+    }
+  }
 
   await Donor.findByIdAndUpdate(donorId, {
     isEligible: newStatus,

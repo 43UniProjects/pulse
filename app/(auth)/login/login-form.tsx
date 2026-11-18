@@ -118,11 +118,20 @@ function LoginFormContent() {
       toast.success('Logged in successfully!');
 
       const userRole = data?.user?.role;
+      const isActive = data?.user?.isActive;
 
       if (userRole === 'donor') {
-        router.push('/donor/dashboard');
+        if (isActive === false) {
+          router.push('/donor/profile?setup=true');
+        } else {
+          router.push('/donor/dashboard');
+        }
       } else if (userRole === 'hospital') {
-        router.push('/hospital/dashboard');
+        if (isActive === false) {
+          router.push('/hospital/profile?setup=true');
+        } else {
+          router.push('/hospital/dashboard');
+        }
       } else {
         router.push('/admin/dashboard');
       }

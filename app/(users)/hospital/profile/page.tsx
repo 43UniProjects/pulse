@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 export default async function HospitalProfilePage() {
-  const session = await validateRoleAccess('hospital');
+  const session = await validateRoleAccess('hospital', { allowInactive: true });
   await connectToDatabase();
 
   let hospitalDoc = await Hospital.findById(session.user.id).lean();
@@ -19,18 +19,18 @@ export default async function HospitalProfilePage() {
   if (!hospitalDoc) {
     const created = await Hospital.create({
       _id: session.user.id,
-      name: session.user.name || 'Medical Facility',
+      name: session.user.name || '',
       facilityType: 'private_hospital',
       verificationStatus: 'pending',
-      address: 'Colombo, Sri Lanka',
-      city: 'Colombo',
+      address: '',
+      city: '',
       location: { type: 'Point', coordinates: [79.8612, 6.9271] },
-      hotline: '+94 11 000 0000',
+      hotline: '',
       email: session.user.email,
       coordinator: {
-        name: 'Medical Officer',
-        designation: 'Blood Bank Coordinator',
-        contactNumber: '+94 77 000 0000',
+        name: '',
+        designation: '',
+        contactNumber: '',
         email: session.user.email,
       },
       activeRequestsCount: 0,
