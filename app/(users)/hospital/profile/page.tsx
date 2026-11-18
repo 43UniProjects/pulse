@@ -5,9 +5,6 @@ import { Hospital } from '@/lib/models/hospital.model';
 import { HospitalEntity } from '@/types/hospital.type';
 import HospitalProfileClient from './hospital-profile-client';
 
-export const dynamic = 'force-dynamic';
-export const instant = false;
-
 export const metadata: Metadata = {
   title: 'Facility Profile | Pulse',
   description: 'Manage your hospital profile and coordinator details.',

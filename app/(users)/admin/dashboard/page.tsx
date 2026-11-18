@@ -7,9 +7,6 @@ import { Hospital } from '@/lib/models/hospital.model';
 import { Donor } from '@/lib/models/donor.model';
 import { DonationRequest } from '@/lib/models/donation-request.model';
 
-export const dynamic = 'force-dynamic';
-export const instant = false;
-
 export const metadata: Metadata = { title: 'Admin Dashboard | Pulse' };
 
 function AdminDashboardSkeleton() {

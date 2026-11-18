@@ -21,9 +21,6 @@ import {
   REQUEST_URGENCY_LEVEL,
 } from '@/types/donor-request.type';
 
-export const dynamic = 'force-dynamic';
-export const instant = false;
-
 export const metadata: Metadata = {
   title: 'Donor Dashboard | Pulse',
   description: 'View your donation status and nearby emergency requests.',

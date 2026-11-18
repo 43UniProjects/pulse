@@ -4,9 +4,6 @@ import { User } from '@/lib/models/user.model';
 import { UserEntity } from '@/types/user.type';
 import ManageUsersClient, { SerializedUser } from './manage-users-client';
 
-export const dynamic = 'force-dynamic';
-export const instant = false;
-
 export default async function ManageUsersPage() {
   await validateRoleAccess('admin');
   await connectToDatabase();

@@ -7,9 +7,6 @@ import { DonationRequest } from '@/lib/models/donation-request.model';
 import { Donation } from '@/lib/models/donation.model';
 import { DonationRequestEntity } from '@/types/donor-request.type';
 
-export const dynamic = 'force-dynamic';
-export const instant = false;
-
 export const metadata: Metadata = { title: 'Hospital Dashboard | Pulse' };
 
 const statusStyles: Record<string, string> = {

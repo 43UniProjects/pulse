@@ -8,9 +8,6 @@ import HospitalTrackingClient, {
   RespondingDonorItem,
 } from './tracking-client';
 
-export const dynamic = 'force-dynamic';
-export const instant = false;
-
 export const metadata: Metadata = {
   title: 'Emergency Tracking | Pulse',
   description:
