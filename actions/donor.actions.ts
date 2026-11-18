@@ -1,7 +1,13 @@
 'use server';
 
 import { z } from 'zod';
+import { headers } from 'next/headers';
+import { revalidatePath } from 'next/cache';
 import { BLOOD_GROUPS } from '@/types/common.type';
+import { connectToDatabase } from '@/lib/db/connect';
+import { Donor } from '@/lib/models/donor.model';
+import { User } from '@/lib/models/user.model';
+import { auth } from '@/lib/auth/config';
 
 // Zod Schema based on DonorEntity
 const donorSchema = z.object({
@@ -29,8 +35,16 @@ export async function updateDonorProfile(
   prevState: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user || session.user.role !== 'donor') {
+    return {
+      success: false,
+      error: 'You must be logged in as a donor to update your profile.',
+    };
+  }
 
   const rawData = {
     fullName: formData.get('fullName'),
@@ -65,7 +79,55 @@ export async function updateDonorProfile(
   }
 
   try {
-    // Here you would normally save to MongoDB
+    await connectToDatabase();
+
+    const {
+      fullName,
+      email,
+      phone,
+      bloodGroup,
+      address,
+      latitude,
+      longitude,
+      radiusPreferenceKm,
+      isAvailable,
+      liveLocationSync,
+      smsAlertsEnabled,
+      emailAlertsEnabled,
+    } = validatedData.data;
+
+    await Donor.findByIdAndUpdate(
+      session.user.id,
+      {
+        fullName,
+        email,
+        phone,
+        bloodGroup,
+        address,
+        location: {
+          type: 'Point',
+          coordinates: [longitude, latitude],
+        },
+        radiusPreferenceKm,
+        isAvailable,
+        liveLocationSync,
+        smsAlertsEnabled,
+        emailAlertsEnabled,
+      },
+      {
+        upsert: true,
+        new: true,
+        setDefaultsOnInsert: true,
+      },
+    );
+
+    await User.findByIdAndUpdate(session.user.id, {
+      name: fullName,
+    });
+
+    revalidatePath('/donor/profile');
+    revalidatePath('/donor/dashboard');
+
     return {
       success: true,
     };

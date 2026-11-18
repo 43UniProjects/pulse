@@ -8,7 +8,7 @@ export interface DonorEntity {
   email: string;
   phone: string;
   bloodGroup: BloodGroup;
-  dateOfBirth: Date;
+  dateOfBirth?: Date;
   address: string;
   location: IGeoPoint;
   radiusPreferenceKm: number;

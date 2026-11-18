@@ -1,21 +1,18 @@
 'use client';
 
-import { useState, use } from 'react'; // 1. Import `use`
+import { useState } from 'react';
 import { MapPin } from 'lucide-react';
-import { getDonationRequest } from '../data';
-import { RequestStatus } from '@/types/donor-request.type';
+import {
+  DonationRequestEntity,
+  RequestStatus,
+} from '@/types/donor-request.type';
 
 export default function RequestDetailClient({
-  paramsPromise,
+  initialRequest,
 }: {
-  paramsPromise: Promise<{ id: string }>; // 2. Accept the Promise
+  initialRequest: DonationRequestEntity | null;
 }) {
-  // 3. Unwrap the promise directly using React's `use()` hook
-  const { id } = use(paramsPromise);
-
-  // The rest of your code remains exactly the same!
-  const req = getDonationRequest(id);
-
+  const req = initialRequest;
   const [status, setStatus] = useState<RequestStatus>(req?.status || 'pending');
 
   if (!req) {

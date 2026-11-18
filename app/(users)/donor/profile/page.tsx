@@ -1,6 +1,10 @@
 import { Metadata } from 'next';
-import { getDonorProfile, getDonationHistory } from '../requests/data';
+import { validateRoleAccess } from '@/lib/auth/guard';
+import { connectToDatabase } from '@/lib/db/connect';
+import { Donor } from '@/lib/models/donor.model';
+import { Donation } from '@/lib/models/donation.model';
 import { DONATION_STATUS } from '@/types/donation.type';
+import { DonorEntity } from '@/types/donor.type';
 import DonorProfileClient from './profile-client';
 
 export const metadata: Metadata = {
@@ -9,29 +13,53 @@ export const metadata: Metadata = {
 };
 
 export default async function DonorProfilePage() {
-  const donorId = 'donor_1';
+  const session = await validateRoleAccess('donor');
+  await connectToDatabase();
 
-  // Fetch from the data layer instead of hardcoding
-  const donor = getDonorProfile(donorId);
-  const history = getDonationHistory(donorId);
+  let donorDoc = await Donor.findById(session.user.id).lean();
 
-  // Calculate stats securely on the server
+  if (!donorDoc) {
+    const created = await Donor.create({
+      _id: session.user.id,
+      fullName: session.user.name || 'Verified Donor',
+      email: session.user.email,
+      phone: '+94 77 000 0000',
+      bloodGroup: 'O+',
+      dateOfBirth: new Date('2000-01-01'),
+      address: 'Colombo, Sri Lanka',
+      location: { type: 'Point', coordinates: [79.8612, 6.9271] },
+      radiusPreferenceKm: 10,
+      isEligible: true,
+      isAvailable: true,
+      liveLocationSync: false,
+      smsAlertsEnabled: true,
+      emailAlertsEnabled: false,
+    });
+    donorDoc = created.toObject();
+  }
+
+  const history = await Donation.find({ donorId: session.user.id }).lean();
   const completedDonations = history.filter(
     (req) => req.status === DONATION_STATUS[2], // 'completed'
   ).length;
 
-  if (!donor) {
-    return (
-      <div className="flex items-center justify-center h-[60vh] text-muted-foreground">
-        Profile data not found.
-      </div>
-    );
-  }
+  const serializedDonor = {
+    ...donorDoc,
+    _id: donorDoc._id.toString(),
+    dateOfBirth: donorDoc.dateOfBirth
+      ? new Date(donorDoc.dateOfBirth)
+      : new Date('2000-01-01'),
+    lastDonationDate: donorDoc.lastDonationDate
+      ? new Date(donorDoc.lastDonationDate)
+      : null,
+    createdAt: donorDoc.createdAt ? new Date(donorDoc.createdAt) : undefined,
+    updatedAt: donorDoc.updatedAt ? new Date(donorDoc.updatedAt) : undefined,
+  } as unknown as DonorEntity;
 
   return (
     <div className="max-w-5xl mx-auto w-full space-y-6">
       <DonorProfileClient
-        initialData={donor}
+        initialData={serializedDonor}
         historyCount={history.length}
         completedDonations={completedDonations}
       />

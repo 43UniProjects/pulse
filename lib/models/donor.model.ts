@@ -25,7 +25,7 @@ const DonorSchema = new Schema<IDonorDocument>(
       required: true,
       index: true,
     },
-    dateOfBirth: { type: Date, required: true },
+    dateOfBirth: { type: Date, required: false },
     address: { type: String, required: true },
     location: {
       type: PointSchema,

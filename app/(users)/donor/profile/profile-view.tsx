@@ -103,11 +103,13 @@ export default function DonorProfileView({
                   Date of Birth
                 </p>
                 <p className="text-sm font-medium text-foreground">
-                  {donor.dateOfBirth.toLocaleDateString('en-GB', {
-                    day: 'numeric',
-                    month: 'short',
-                    year: 'numeric',
-                  })}
+                  {donor.dateOfBirth
+                    ? new Date(donor.dateOfBirth).toLocaleDateString('en-GB', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                      })
+                    : 'Not specified'}
                 </p>
               </div>
               <div>
