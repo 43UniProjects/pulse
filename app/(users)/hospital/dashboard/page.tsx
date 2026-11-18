@@ -1,10 +1,14 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import { Suspense } from 'react';
 import { validateRoleAccess } from '@/lib/auth/guard';
 import { connectToDatabase } from '@/lib/db/connect';
 import { DonationRequest } from '@/lib/models/donation-request.model';
 import { Donation } from '@/lib/models/donation.model';
 import { DonationRequestEntity } from '@/types/donor-request.type';
+
+export const dynamic = 'force-dynamic';
+export const instant = false;
 
 export const metadata: Metadata = { title: 'Hospital Dashboard | Pulse' };
 
@@ -20,7 +24,21 @@ const statusStyles: Record<string, string> = {
   expired: 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400',
 };
 
-export default async function HospitalDashboard() {
+function HospitalDashboardSkeleton() {
+  return (
+    <div className="p-8 max-w-7xl mx-auto w-full space-y-8 animate-pulse">
+      <div className="h-20 bg-muted/40 rounded-xl" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="h-28 bg-muted/40 rounded-xl" />
+        ))}
+      </div>
+      <div className="h-64 bg-muted/40 rounded-xl" />
+    </div>
+  );
+}
+
+async function HospitalDashboardContent() {
   const session = await validateRoleAccess('hospital');
   await connectToDatabase();
 
@@ -252,5 +270,13 @@ export default async function HospitalDashboard() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function HospitalDashboard() {
+  return (
+    <Suspense fallback={<HospitalDashboardSkeleton />}>
+      <HospitalDashboardContent />
+    </Suspense>
   );
 }

@@ -7,6 +7,9 @@ import { DONATION_STATUS } from '@/types/donation.type';
 import { DonorEntity } from '@/types/donor.type';
 import DonorProfileClient from './profile-client';
 
+export const dynamic = 'force-dynamic';
+export const instant = false;
+
 export const metadata: Metadata = {
   title: 'My Profile | Pulse',
   description: 'Manage your donor profile and availability.',

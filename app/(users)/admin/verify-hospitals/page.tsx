@@ -7,6 +7,9 @@ import VerifyHospitalsClient, {
   HospitalStatus,
 } from './verify-hospitals-client';
 
+export const dynamic = 'force-dynamic';
+export const instant = false;
+
 export default async function VerifyHospitalsPage() {
   await validateRoleAccess('admin');
   await connectToDatabase();

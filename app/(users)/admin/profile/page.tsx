@@ -5,6 +5,9 @@ import { Admin } from '@/lib/models/admin.model';
 import { AdminEntity } from '@/types/admin.type';
 import AdminProfileClient from './admin-profile-client';
 
+export const dynamic = 'force-dynamic';
+export const instant = false;
+
 export const metadata: Metadata = {
   title: 'Admin Profile | Pulse',
   description: 'Manage your administrative account details.',

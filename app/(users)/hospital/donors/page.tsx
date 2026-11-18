@@ -4,6 +4,9 @@ import { connectToDatabase } from '@/lib/db/connect';
 import { Donor } from '@/lib/models/donor.model';
 import DonorsClient, { SerializedDonor } from './donors-client';
 
+export const dynamic = 'force-dynamic';
+export const instant = false;
+
 export const metadata: Metadata = {
   title: 'Registered Donors | Pulse',
   description: 'View registered donors and manage health verifications.',

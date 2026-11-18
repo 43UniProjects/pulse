@@ -7,6 +7,9 @@ import {
 } from './data';
 import RequestsClient from './requests-client';
 
+export const dynamic = 'force-dynamic';
+export const instant = false;
+
 export const metadata: Metadata = {
   title: 'Emergency Requests | Pulse',
   description: 'Manage nearby active emergencies and view your past donations.',

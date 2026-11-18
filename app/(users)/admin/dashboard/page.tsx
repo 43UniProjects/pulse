@@ -1,14 +1,32 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import { Suspense } from 'react';
 import { validateRoleAccess } from '@/lib/auth/guard';
 import { connectToDatabase } from '@/lib/db/connect';
 import { Hospital } from '@/lib/models/hospital.model';
 import { Donor } from '@/lib/models/donor.model';
 import { DonationRequest } from '@/lib/models/donation-request.model';
 
+export const dynamic = 'force-dynamic';
+export const instant = false;
+
 export const metadata: Metadata = { title: 'Admin Dashboard | Pulse' };
 
-export default async function AdminDashboard() {
+function AdminDashboardSkeleton() {
+  return (
+    <div className="p-8 space-y-6 animate-pulse">
+      <div className="h-20 bg-muted/40 rounded-xl" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="h-28 bg-muted/40 rounded-xl" />
+        ))}
+      </div>
+      <div className="h-64 bg-muted/40 rounded-lg" />
+    </div>
+  );
+}
+
+async function AdminDashboardContent() {
   await validateRoleAccess('admin');
   await connectToDatabase();
 
@@ -169,5 +187,13 @@ export default async function AdminDashboard() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AdminDashboard() {
+  return (
+    <Suspense fallback={<AdminDashboardSkeleton />}>
+      <AdminDashboardContent />
+    </Suspense>
   );
 }

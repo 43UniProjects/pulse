@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import { Suspense } from 'react';
 import {
   ShieldCheck,
   MessageSquare,
@@ -20,12 +21,40 @@ import {
   REQUEST_URGENCY_LEVEL,
 } from '@/types/donor-request.type';
 
+export const dynamic = 'force-dynamic';
+export const instant = false;
+
 export const metadata: Metadata = {
   title: 'Donor Dashboard | Pulse',
   description: 'View your donation status and nearby emergency requests.',
 };
 
-export default async function DonorDashboard() {
+function DashboardSkeleton() {
+  return (
+    <div className="p-6 md:p-8 max-w-5xl mx-auto w-full space-y-6 animate-pulse">
+      <div className="bg-card border border-border rounded-xl p-5 md:p-6 shadow-sm flex items-center justify-between">
+        <div className="space-y-2">
+          <div className="h-7 w-48 bg-muted rounded" />
+          <div className="h-4 w-32 bg-muted rounded" />
+        </div>
+        <div className="w-12 h-12 rounded-xl bg-muted" />
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="space-y-6 lg:col-span-1">
+          <div className="bg-card border border-border rounded-xl p-5 h-28 bg-muted/40" />
+          <div className="bg-card border border-border rounded-xl p-5 h-44 bg-muted/40" />
+        </div>
+        <div className="lg:col-span-2 space-y-3">
+          <div className="h-5 w-48 bg-muted rounded" />
+          <div className="bg-card border border-border rounded-xl p-5 h-24 bg-muted/40" />
+          <div className="bg-card border border-border rounded-xl p-5 h-24 bg-muted/40" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+async function DonorDashboardContent() {
   const session = await validateRoleAccess('donor');
   await connectToDatabase();
 
@@ -263,6 +292,14 @@ export default async function DonorDashboard() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function DonorDashboard() {
+  return (
+    <Suspense fallback={<DashboardSkeleton />}>
+      <DonorDashboardContent />
+    </Suspense>
   );
 }
 
