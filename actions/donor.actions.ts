@@ -134,7 +134,7 @@ export async function updateDonorProfile(
       },
       {
         upsert: true,
-        new: true,
+        returnDocument: 'after',
         setDefaultsOnInsert: true,
       },
     );
@@ -144,8 +144,10 @@ export async function updateDonorProfile(
       isActive: true,
     });
 
+    revalidatePath('/donor', 'layout');
     revalidatePath('/donor/profile');
     revalidatePath('/donor/dashboard');
+    revalidatePath('/donor/requests');
 
     return {
       success: true,

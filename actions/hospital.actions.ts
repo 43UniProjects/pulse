@@ -126,7 +126,7 @@ export async function updateHospitalProfile(
       },
       {
         upsert: true,
-        new: true,
+        returnDocument: 'after',
         setDefaultsOnInsert: true,
       },
     );
@@ -136,8 +136,12 @@ export async function updateHospitalProfile(
       isActive: true,
     });
 
+    revalidatePath('/hospital', 'layout');
     revalidatePath('/hospital/profile');
     revalidatePath('/hospital/dashboard');
+    revalidatePath('/hospital/donors');
+    revalidatePath('/hospital/post-request');
+    revalidatePath('/hospital/tracking');
 
     return {
       success: true,

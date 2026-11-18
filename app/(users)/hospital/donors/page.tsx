@@ -1,7 +1,9 @@
 import { Metadata } from 'next';
+import { Suspense } from 'react';
 import { validateRoleAccess } from '@/lib/auth/guard';
 import { connectToDatabase } from '@/lib/db/connect';
 import { Donor } from '@/lib/models/donor.model';
+import GenericFallback from '@/components/fallback';
 import DonorsClient, { SerializedDonor } from './donors-client';
 
 export const metadata: Metadata = {
@@ -9,7 +11,7 @@ export const metadata: Metadata = {
   description: 'View registered donors and manage health verifications.',
 };
 
-export default async function RegisteredDonorsPage() {
+async function RegisteredDonorsContent() {
   await validateRoleAccess('hospital');
   await connectToDatabase();
 
@@ -32,4 +34,12 @@ export default async function RegisteredDonorsPage() {
   }));
 
   return <DonorsClient initialDonors={serializedDonors} />;
+}
+
+export default function RegisteredDonorsPage() {
+  return (
+    <Suspense fallback={<GenericFallback />}>
+      <RegisteredDonorsContent />
+    </Suspense>
+  );
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { DonorEntity } from '@/types/donor.type';
 import DonorProfileView from './profile-view';
 import DonorProfileForm from './profile-form';
@@ -9,12 +10,16 @@ export default function DonorProfileClient({
   initialData,
   historyCount,
   completedDonations,
+  isAccountActive,
 }: {
   initialData: DonorEntity;
   historyCount: number;
   completedDonations: number;
+  isAccountActive: boolean;
 }) {
+  const router = useRouter();
   const isProfileIncomplete =
+    !isAccountActive ||
     !initialData.fullName ||
     !initialData.phone ||
     !initialData.bloodGroup ||
@@ -34,7 +39,10 @@ export default function DonorProfileClient({
               setIsEditing(false);
             }
           }}
-          onSuccess={() => setIsEditing(false)}
+          onSuccess={() => {
+            setIsEditing(false);
+            router.refresh();
+          }}
         />
       </div>
     );

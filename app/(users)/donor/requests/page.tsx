@@ -1,10 +1,12 @@
 import { Metadata } from 'next';
+import { Suspense } from 'react';
 import { validateRoleAccess } from '@/lib/auth/guard';
 import {
   getDonationRequests,
   getDonationHistory,
   getDonorProfile,
 } from './data';
+import GenericFallback from '@/components/fallback';
 import RequestsClient from './requests-client';
 
 export const metadata: Metadata = {
@@ -12,7 +14,7 @@ export const metadata: Metadata = {
   description: 'Manage nearby active emergencies and view your past donations.',
 };
 
-export default async function DonorRequestsPage() {
+async function DonorRequestsContent() {
   const session = await validateRoleAccess('donor');
 
   const [activeRequests, historyRequests, donorProfile] = await Promise.all([
@@ -27,5 +29,13 @@ export default async function DonorRequestsPage() {
       initialHistoryRequests={historyRequests}
       radiusKm={donorProfile?.radiusPreferenceKm || 10}
     />
+  );
+}
+
+export default function DonorRequestsPage() {
+  return (
+    <Suspense fallback={<GenericFallback />}>
+      <DonorRequestsContent />
+    </Suspense>
   );
 }

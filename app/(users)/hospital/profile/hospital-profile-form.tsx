@@ -46,9 +46,9 @@ export default function HospitalProfileForm({
       );
       const timer = setTimeout(() => {
         onSuccess();
-      }, 1000);
+      }, 600);
       return () => clearTimeout(timer);
-    } else if (state.error && !state.fieldErrors) {
+    } else if (state.error) {
       toast.error(state.error);
     }
   }, [state, onSuccess, isIncomplete]);
@@ -115,10 +115,13 @@ export default function HospitalProfileForm({
               <div className="relative">
                 <select
                   name="facilityType"
-                  defaultValue={initialData.facilityType || 'private_hospital'}
+                  defaultValue={initialData.facilityType || ''}
                   required
                   className="w-full h-10 pl-10 pr-3 appearance-none rounded-md border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
                 >
+                  <option value="" disabled>
+                    Select facility type
+                  </option>
                   {HOSPITAL_TYPE.map((type) => (
                     <option key={type} value={type}>
                       {formatType(type)}

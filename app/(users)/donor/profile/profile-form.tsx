@@ -49,9 +49,9 @@ export default function DonorProfileForm({
       );
       const timer = setTimeout(() => {
         onSuccess();
-      }, 1000); // Wait 1s to show the success message before switching view
+      }, 600);
       return () => clearTimeout(timer);
-    } else if (state.error && !state.fieldErrors) {
+    } else if (state.error) {
       toast.error(state.error);
     }
   }, [state, onSuccess, isIncomplete]);

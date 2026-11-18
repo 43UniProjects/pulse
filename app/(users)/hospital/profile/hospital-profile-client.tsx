@@ -1,17 +1,23 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { HospitalEntity } from '@/types/hospital.type';
 import HospitalProfileView from './hospital-profile-view';
 import HospitalProfileForm from './hospital-profile-form';
 
 export default function HospitalProfileClient({
   initialData,
+  isAccountActive,
 }: {
   initialData: HospitalEntity;
+  isAccountActive: boolean;
 }) {
+  const router = useRouter();
   const isProfileIncomplete =
+    !isAccountActive ||
     !initialData.name ||
+    !initialData.facilityType ||
     !initialData.address ||
     !initialData.city ||
     !initialData.hotline ||
@@ -33,7 +39,10 @@ export default function HospitalProfileClient({
               setIsEditing(false);
             }
           }}
-          onSuccess={() => setIsEditing(false)}
+          onSuccess={() => {
+            setIsEditing(false);
+            router.refresh();
+          }}
         />
       </div>
     );

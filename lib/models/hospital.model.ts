@@ -31,8 +31,8 @@ const HospitalSchema = new Schema<IHospitalDocument>(
     name: { type: String, default: '', trim: true },
     facilityType: {
       type: String,
-      enum: HOSPITAL_TYPE,
-      default: 'private_hospital',
+      enum: [...HOSPITAL_TYPE, ''],
+      default: '',
     },
     verificationStatus: {
       type: String,

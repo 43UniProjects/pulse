@@ -22,17 +22,26 @@ export async function validateRoleAccess(
     redirect('/unauthorized');
   }
 
-  // 3. If account is deactivated / profile incomplete and route requires active account -> redirect to profile setup
-  if (!options?.allowInactive && session.user.role !== 'admin') {
-    if (session.user.isActive === false) {
-      await connectToDatabase();
-      const user = await User.findById(session.user.id)
-        .select('isActive')
-        .lean();
-      if (!user?.isActive) {
-        redirect(`/${session.user.role}/profile?setup=true`);
-      }
+  // 3. Always sync live activation status from MongoDB for donor/hospital so layouts & routes never use stale session cookies
+  if (session.user.role !== 'admin') {
+    await connectToDatabase();
+    const dbUser = await User.findById(session.user.id)
+      .select('isActive name')
+      .lean();
+    const isActuallyActive = Boolean(dbUser?.isActive);
+
+    if (!options?.allowInactive && !isActuallyActive) {
+      redirect(`/${session.user.role}/profile?setup=true`);
     }
+
+    return {
+      ...session,
+      user: {
+        ...session.user,
+        isActive: isActuallyActive,
+        name: dbUser?.name || session.user.name,
+      },
+    };
   }
 
   return session;
