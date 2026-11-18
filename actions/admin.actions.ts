@@ -1,6 +1,13 @@
 'use server';
 
 import { z } from 'zod';
+import { headers } from 'next/headers';
+import { revalidatePath } from 'next/cache';
+import { connectToDatabase } from '@/lib/db/connect';
+import { Admin } from '@/lib/models/admin.model';
+import { Hospital } from '@/lib/models/hospital.model';
+import { User } from '@/lib/models/user.model';
+import { auth } from '@/lib/auth/config';
 
 // Zod Schema based on AdminEntity Form requirements
 const adminSchema = z.object({
@@ -20,8 +27,17 @@ export async function updateAdminProfile(
   prevState: AdminActionState,
   formData: FormData,
 ): Promise<AdminActionState> {
-  // Simulate network delay for pending state
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user || session.user.role !== 'admin') {
+    return {
+      success: false,
+      error:
+        'You must be logged in as an administrator to update this profile.',
+    };
+  }
 
   const rawData = {
     fullName: formData.get('fullName'),
@@ -48,7 +64,31 @@ export async function updateAdminProfile(
   }
 
   try {
-    // Normally, update DB here using the verified data
+    await connectToDatabase();
+
+    await Admin.findByIdAndUpdate(
+      session.user.id,
+      {
+        fullName: validatedData.data.fullName,
+        email: validatedData.data.email,
+        phone: validatedData.data.phone || undefined,
+        department: validatedData.data.department,
+        $inc: { actionsLogged: 1 },
+      },
+      {
+        upsert: true,
+        new: true,
+        setDefaultsOnInsert: true,
+      },
+    );
+
+    await User.findByIdAndUpdate(session.user.id, {
+      name: validatedData.data.fullName,
+    });
+
+    revalidatePath('/admin/profile');
+    revalidatePath('/admin/dashboard');
+
     return {
       success: true,
     };
@@ -59,4 +99,69 @@ export async function updateAdminProfile(
       error: 'An unexpected error occurred while updating the profile.',
     };
   }
+}
+
+export async function verifyHospitalAction(
+  hospitalId: string,
+  action: 'approve' | 'reject' | 'pending',
+) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user || session.user.role !== 'admin') {
+    return { success: false, error: 'Unauthorized' };
+  }
+
+  await connectToDatabase();
+
+  const newStatus =
+    action === 'approve'
+      ? 'verified'
+      : action === 'reject'
+        ? 'rejected'
+        : 'pending';
+
+  await Hospital.findByIdAndUpdate(hospitalId, {
+    verificationStatus: newStatus,
+    verifiedAt: newStatus === 'verified' ? new Date() : null,
+    verifiedBy: newStatus === 'verified' ? session.user.id : null,
+  });
+
+  await Admin.findByIdAndUpdate(session.user.id, {
+    $inc: { actionsLogged: 1 },
+  });
+
+  revalidatePath('/admin/verify-hospitals');
+  revalidatePath('/admin/dashboard');
+
+  return { success: true };
+}
+
+export async function toggleUserStatusAction(
+  userId: string,
+  isActive: boolean,
+) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user || session.user.role !== 'admin') {
+    return { success: false, error: 'Unauthorized' };
+  }
+
+  await connectToDatabase();
+
+  await User.findByIdAndUpdate(userId, {
+    isActive,
+  });
+
+  await Admin.findByIdAndUpdate(session.user.id, {
+    $inc: { actionsLogged: 1 },
+  });
+
+  revalidatePath('/admin/manage-users');
+  revalidatePath('/admin/dashboard');
+
+  return { success: true };
 }

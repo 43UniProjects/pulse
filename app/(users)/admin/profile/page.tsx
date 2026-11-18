@@ -1,6 +1,9 @@
 import { Metadata } from 'next';
+import { validateRoleAccess } from '@/lib/auth/guard';
+import { connectToDatabase } from '@/lib/db/connect';
+import { Admin } from '@/lib/models/admin.model';
+import { AdminEntity } from '@/types/admin.type';
 import AdminProfileClient from './admin-profile-client';
-import { getAdminProfile } from './data';
 
 export const metadata: Metadata = {
   title: 'Admin Profile | Pulse',
@@ -8,20 +11,36 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminProfilePage() {
-  const adminId = 'admin_1';
-  const admin = await getAdminProfile(adminId);
+  const session = await validateRoleAccess('admin');
+  await connectToDatabase();
 
-  if (!admin) {
-    return (
-      <div className="flex items-center justify-center h-[60vh] text-muted-foreground">
-        Profile data not found.
-      </div>
-    );
+  let adminDoc = await Admin.findById(session.user.id).lean();
+
+  if (!adminDoc) {
+    const created = await Admin.create({
+      _id: session.user.id,
+      fullName: session.user.name || 'System Administrator',
+      email: session.user.email,
+      phone: '+94 77 000 0000',
+      role: 'superadmin',
+      status: 'active',
+      department: 'Operations',
+      actionsLogged: 0,
+    });
+    adminDoc = created.toObject();
   }
+
+  const serializedAdmin = {
+    ...adminDoc,
+    _id: adminDoc._id.toString(),
+    lastLoginAt: adminDoc.lastLoginAt ? new Date(adminDoc.lastLoginAt) : null,
+    createdAt: adminDoc.createdAt ? new Date(adminDoc.createdAt) : undefined,
+    updatedAt: adminDoc.updatedAt ? new Date(adminDoc.updatedAt) : undefined,
+  } as unknown as AdminEntity;
 
   return (
     <div className="max-w-5xl mx-auto w-full space-y-6">
-      <AdminProfileClient initialData={admin} />
+      <AdminProfileClient initialData={serializedAdmin} />
     </div>
   );
 }
