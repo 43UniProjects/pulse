@@ -30,14 +30,29 @@ export default function MobileMenu({
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const handleLogout = async () => {
-    await authClient.signOut({
-      fetchOptions: {
-        onSuccess: () => {
-          setOpen(false); // Close the mobile menu
-          router.push('/login');
+    try {
+      await authClient.signOut({
+        fetchOptions: {
+          onSuccess: () => {
+            setOpen(false); // Close the mobile menu
+            router.push('/login?logged_out=true');
+            router.refresh();
+          },
+          onError: (ctx) => {
+            console.error('[Logout Error]', ctx.error);
+            setOpen(false);
+            router.push('/login?logged_out=true');
+            router.refresh();
+          },
         },
-      },
-    });
+      });
+    } catch (err) {
+      console.error('[Logout Exception]', err);
+    } finally {
+      setOpen(false);
+      router.push('/login?logged_out=true');
+      router.refresh();
+    }
   };
 
   return (
