@@ -134,6 +134,7 @@ export async function getDonationRequests(
 
   const donationByRequestId = new Map<string, string>();
   const excludedRequestIds: mongoose.Types.ObjectId[] = [];
+  const acceptedRequestIds: mongoose.Types.ObjectId[] = [];
 
   for (const d of userDonations) {
     if (d.requestId) {
@@ -145,16 +146,37 @@ export async function getDonationRequests(
         if (mongoose.Types.ObjectId.isValid(reqIdStr)) {
           excludedRequestIds.push(new mongoose.Types.ObjectId(reqIdStr));
         }
+      } else if (d.status === 'accepted') {
+        if (mongoose.Types.ObjectId.isValid(reqIdStr)) {
+          acceptedRequestIds.push(new mongoose.Types.ObjectId(reqIdStr));
+        }
       }
     }
   }
 
-  const query: Record<string, unknown> = {
+  // Active criteria for open requests not yet full
+  const generalCriteria: Record<string, unknown> = {
     status: { $in: ['pending', 'in-progress', 'in_transit'] },
   };
-
   if (excludedRequestIds.length > 0) {
-    query._id = { $nin: excludedRequestIds };
+    generalCriteria._id = { $nin: excludedRequestIds };
+  }
+
+  // If this donor has accepted requests (whose request status may now be 'accepted' if fully committed),
+  // include them in active requests until blood intake is completed by the hospital.
+  let query: Record<string, unknown>;
+  if (acceptedRequestIds.length > 0) {
+    query = {
+      $or: [
+        generalCriteria,
+        {
+          _id: { $in: acceptedRequestIds },
+          status: { $nin: ['completed', 'declined', 'cancelled'] },
+        },
+      ],
+    };
+  } else {
+    query = generalCriteria;
   }
 
   const requests = await DonationRequest.find(query)
