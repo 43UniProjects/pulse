@@ -10,7 +10,7 @@ import GenericFallback from '@/components/fallback';
 import DonorProfileClient from './profile-client';
 
 export const metadata: Metadata = {
-  title: 'My Profile | Pulse',
+  title: 'My Profile',
   description: 'Manage your donor profile and availability.',
 };
 
