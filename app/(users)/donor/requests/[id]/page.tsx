@@ -9,6 +9,7 @@ import { connectToDatabase } from '@/lib/db/connect';
 import { DonationRequest } from '@/lib/models/donation-request.model';
 import { Donation } from '@/lib/models/donation.model';
 import { Donor } from '@/lib/models/donor.model';
+import '@/lib/models/hospital.model';
 
 function calculateHaversineDistanceKm(
   coords1: [number, number], // [lng, lat]
