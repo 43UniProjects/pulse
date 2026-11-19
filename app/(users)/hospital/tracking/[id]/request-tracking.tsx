@@ -1,11 +1,30 @@
 'use client';
 
+import { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import {
+  Droplet,
+  CheckCircle2,
+  Clock,
+  Phone,
+  Barcode,
+  ArrowLeft,
+  ShieldCheck,
+} from 'lucide-react';
+import BloodIntakeModal from '@/components/hospital/blood-intake-modal';
+
 export interface TrackingDetailDonor {
+  donationId: string;
+  donorId: string;
   name: string;
+  bloodGroup: string;
   distance: string;
-  status: string;
+  status: 'Accepted' | 'Completed' | 'Declined' | 'Pending';
   phone: string;
   verified: boolean;
+  units: number;
+  batchNumber?: string;
 }
 
 export interface TrackingDetailRequest {
@@ -18,11 +37,13 @@ export interface TrackingDetailRequest {
   status: string;
 }
 
-const statusStyles: Record<string, string> = {
-  Notified: 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400',
+const statusBadgeStyles: Record<string, string> = {
   Accepted:
-    'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
-  Declined: 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400',
+    'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30',
+  Completed:
+    'bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30',
+  Declined: 'bg-destructive/15 text-destructive border border-destructive/30',
+  Pending: 'bg-secondary text-secondary-foreground border border-border',
 };
 
 export default function RequestTrackingClient({
@@ -34,152 +55,290 @@ export default function RequestTrackingClient({
   requestData?: TrackingDetailRequest | null;
   initialDonors?: TrackingDetailDonor[];
 }) {
-  const donors = initialDonors;
-  const accepted = donors.filter((d) => d.status === 'Accepted').length;
-  const needed = requestData?.quantity || 1;
-  const pct = Math.round((accepted / needed) * 100);
+  const router = useRouter();
+  const [selectedDonorForIntake, setSelectedDonorForIntake] =
+    useState<TrackingDetailDonor | null>(null);
 
   if (!requestData) {
     return (
       <div className="p-8 max-w-5xl mx-auto text-center text-muted-foreground">
-        Request record not found.
+        Emergency blood request record not found.
       </div>
     );
   }
 
+  const donors = initialDonors;
+  const acceptedDonors = donors.filter((d) => d.status === 'Accepted');
+  const completedDonors = donors.filter((d) => d.status === 'Completed');
+
+  const needed = requestData.quantity || 1;
+  const fulfilledUnits = completedDonors.reduce(
+    (acc, d) => acc + (d.units || 1),
+    0,
+  );
+  const pct = Math.round((fulfilledUnits / needed) * 100);
+
   return (
-    <div className="p-8 max-w-5xl mx-auto">
-      <div className="mb-6 glass rounded-xl border px-5 py-4 shadow-sm">
-        <h1 className="font-display font-bold text-2xl text-foreground mb-1">
-          Request Tracking
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Request #{requestData.requestId || id} — {requestData.bloodGroup},{' '}
-          {requestData.quantity} unit{requestData.quantity !== 1 ? 's' : ''},{' '}
-          {requestData.radiusKm} km radius
-        </p>
+    <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6">
+      {/* Back button & Breadcrumb */}
+      <div className="flex items-center justify-between">
+        <Link
+          href="/hospital/dashboard"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Hospital Dashboard
+        </Link>
+        <span className="text-xs font-mono font-medium text-muted-foreground uppercase tracking-widest font-tabular">
+          #{requestData.requestId || id}
+        </span>
       </div>
 
-      {/* Summary */}
-      <div className="glass border rounded-xl p-5 shadow-sm mb-6 grid grid-cols-3 gap-5">
+      {/* Header Banner */}
+      <div className="bg-card border border-border rounded-xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-0.5">
-            Blood Group
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full capitalize bg-primary/10 text-primary border border-primary/20">
+              {requestData.urgency} Urgency
+            </span>
+            <span
+              className={`text-xs font-medium px-2.5 py-0.5 rounded-full capitalize ${
+                requestData.status === 'completed'
+                  ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400'
+                  : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+              }`}
+            >
+              {requestData.status}
+            </span>
           </div>
-          <div className="font-display font-bold text-xl text-foreground font-tabular">
-            {requestData.bloodGroup}
-          </div>
+          <h1 className="font-bold text-2xl text-foreground">
+            Emergency Blood Request Tracking
+          </h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Monitor incoming responding donors in real time and record clinical
+            blood collections.
+          </p>
         </div>
-        <div>
-          <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-0.5">
-            Quantity Needed
-          </div>
-          <div className="font-display font-bold text-xl text-foreground font-tabular">
-            {requestData.quantity} unit
-            {requestData.quantity !== 1 ? 's' : ''}
-          </div>
-        </div>
-        <div>
-          <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-0.5">
-            Search Radius
-          </div>
-          <div className="font-display font-bold text-xl text-foreground font-tabular">
-            {requestData.radiusKm} km
-          </div>
-        </div>
-      </div>
 
-      {/* Progress */}
-      <div className="glass border rounded-xl p-5 shadow-sm mb-6">
-        <div className="flex items-center justify-between mb-3">
-          <div className="text-sm font-medium text-foreground">
-            Fulfillment Progress
+        <div className="flex items-center gap-4 border-t md:border-t-0 md:border-l border-border pt-4 md:pt-0 md:pl-6">
+          <div>
+            <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+              Required Match
+            </div>
+            <div className="font-extrabold text-3xl text-primary font-tabular">
+              {requestData.bloodGroup}
+            </div>
           </div>
-          <span
-            className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-              pct >= 100
-                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                : 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400'
-            }`}
-          >
-            {pct >= 100 ? 'Fulfilled' : 'In Progress'}
-          </span>
-        </div>
-        <div className="h-2 bg-muted rounded-full overflow-hidden mb-1">
-          <div
-            className="h-full bg-red-500 rounded-full transition-all duration-700"
-            style={{ width: `${Math.min(pct, 100)}%` }}
-          />
-        </div>
-        <div className="text-xs text-muted-foreground font-tabular">
-          {accepted} of {needed} units accepted
+          <div className="border-l border-border pl-4">
+            <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+              Target Quota
+            </div>
+            <div className="font-extrabold text-3xl text-foreground font-tabular">
+              {requestData.quantity}{' '}
+              <span className="text-sm font-normal text-muted-foreground">
+                Unit{requestData.quantity !== 1 ? 's' : ''}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Donors list */}
-      <div className="bg-card border border-border rounded-lg overflow-hidden">
-        <div className="px-5 py-3 border-b border-border flex items-center justify-between">
-          <h2 className="font-display font-semibold text-sm text-muted-foreground uppercase tracking-wider">
-            Notified Donors ({donors.length})
-          </h2>
+      {/* Progress & Overview Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Metric 1: Fulfillment Bar */}
+        <div className="md:col-span-2 bg-card border border-border rounded-xl p-5 shadow-sm space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-semibold text-foreground">
+              Fulfillment Progress
+            </span>
+            <span
+              className={`text-xs font-semibold px-2.5 py-0.5 rounded-full font-tabular ${
+                pct >= 100
+                  ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+                  : 'bg-orange-500/15 text-orange-600 dark:text-orange-400 border border-orange-500/30'
+              }`}
+            >
+              {pct >= 100 ? 'Fully Fulfilled' : `${pct}% Fulfilled`}
+            </span>
+          </div>
+
+          <div className="h-2.5 bg-muted rounded-full overflow-hidden">
+            <div
+              className="h-full bg-primary rounded-full transition-all duration-700"
+              style={{ width: `${Math.min(pct, 100)}%` }}
+            />
+          </div>
+
+          <div className="flex items-center justify-between text-xs text-muted-foreground font-tabular">
+            <span>
+              <strong>{fulfilledUnits}</strong> of {needed} units collected
+            </span>
+            <span>
+              {acceptedDonors.length} donor
+              {acceptedDonors.length !== 1 ? 's' : ''} en route / accepted
+            </span>
+          </div>
+        </div>
+
+        {/* Metric 2: Radius Info */}
+        <div className="bg-card border border-border rounded-xl p-5 shadow-sm flex items-center justify-between">
+          <div>
+            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+              Broadcast Radius
+            </div>
+            <div className="font-bold text-2xl text-foreground font-tabular">
+              {requestData.radiusKm} km
+            </div>
+            <div className="text-[11px] text-muted-foreground mt-0.5">
+              Geospatial 2dsphere filter
+            </div>
+          </div>
+          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+            <Clock className="w-6 h-6" />
+          </div>
+        </div>
+      </div>
+
+      {/* Responding Donors Table */}
+      <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+        <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-card">
+          <div className="flex items-center gap-2">
+            <h2 className="font-semibold text-sm text-foreground uppercase tracking-wider">
+              Responding Donors
+            </h2>
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground font-tabular">
+              {donors.length}
+            </span>
+          </div>
           <span className="text-xs text-muted-foreground font-tabular">
-            Sorted by proximity
+            Sorted by most recent response
           </span>
         </div>
 
         {donors.length === 0 ? (
-          <div className="p-8 text-center text-muted-foreground text-sm">
-            No donors have responded to this emergency request yet.
+          <div className="p-12 text-center text-muted-foreground space-y-2">
+            <Droplet className="w-8 h-8 mx-auto text-muted-foreground/40" />
+            <p className="text-sm font-medium">
+              No donors have responded to this emergency request yet.
+            </p>
+            <p className="text-xs text-muted-foreground/80 max-w-md mx-auto">
+              Notified donors matching {requestData.bloodGroup} within{' '}
+              {requestData.radiusKm} km will appear here as soon as they accept.
+            </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-border text-left bg-muted/50">
-                  <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                <tr className="border-b border-border text-left bg-muted/40">
+                  <th className="px-6 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     Donor
                   </th>
-                  <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  <th className="px-6 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     Proximity
                   </th>
-                  <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  <th className="px-6 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  <th className="px-6 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     Contact
+                  </th>
+                  <th className="px-6 py-3.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider text-right">
+                    Clinical Action
                   </th>
                 </tr>
               </thead>
-              <tbody>
-                {donors.map((d, i) => (
+              <tbody className="divide-y divide-border">
+                {donors.map((d, idx) => (
                   <tr
-                    key={d.name + i}
-                    className={`border-b border-border hover:bg-muted/50 transition-colors ${
-                      i === donors.length - 1 ? 'border-0' : ''
-                    }`}
+                    key={d.donationId || d.donorId + idx}
+                    className="hover:bg-muted/30 transition-colors"
                   >
-                    <td className="px-5 py-3.5">
-                      <div className="font-medium text-foreground">
-                        {d.name}
-                      </div>
-                      {d.verified && (
-                        <span className="text-xs text-muted-foreground">
-                          ✓ Health Verified
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2 font-semibold text-foreground">
+                        <span>{d.name}</span>
+                        <span className="text-xs font-bold text-primary font-tabular">
+                          ({d.bloodGroup})
                         </span>
-                      )}
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
+                        {d.verified ? (
+                          <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
+                            <ShieldCheck className="w-3.5 h-3.5" />
+                            Health Verified
+                          </span>
+                        ) : (
+                          <span>Donor Profile Active</span>
+                        )}
+                      </div>
                     </td>
-                    <td className="px-5 py-3.5 text-muted-foreground font-tabular">
+
+                    <td className="px-6 py-4 text-foreground font-tabular text-sm">
                       {d.distance}
                     </td>
-                    <td className="px-5 py-3.5">
+
+                    <td className="px-6 py-4">
                       <span
-                        className={`text-xs font-medium px-2.5 py-1 rounded-sm capitalize ${statusStyles[d.status] || ''}`}
+                        className={`text-xs font-semibold px-2.5 py-1 rounded-md capitalize inline-flex items-center gap-1 ${
+                          statusBadgeStyles[d.status] ||
+                          statusBadgeStyles.Pending
+                        }`}
                       >
+                        {d.status === 'Completed' && (
+                          <CheckCircle2 className="w-3 h-3" />
+                        )}
                         {d.status}
                       </span>
                     </td>
-                    <td className="px-5 py-3.5 text-muted-foreground font-tabular">
-                      {d.phone}
+
+                    <td className="px-6 py-4">
+                      {d.phone ? (
+                        <a
+                          href={`tel:${d.phone}`}
+                          className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline font-tabular"
+                        >
+                          <Phone className="w-3.5 h-3.5" />
+                          {d.phone}
+                        </a>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">
+                          Pending
+                        </span>
+                      )}
+                    </td>
+
+                    <td className="px-6 py-4 text-right">
+                      {d.status === 'Accepted' && (
+                        <button
+                          type="button"
+                          onClick={() => setSelectedDonorForIntake(d)}
+                          className="inline-flex items-center gap-1.5 bg-primary hover:bg-red-700 text-primary-foreground text-xs font-semibold px-3.5 py-2 rounded-lg transition-colors shadow-sm cursor-pointer"
+                        >
+                          <Droplet className="w-3.5 h-3.5" />
+                          Record Blood Collection
+                        </button>
+                      )}
+
+                      {d.status === 'Completed' && (
+                        <div className="text-right">
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 dark:text-blue-400">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            Collection Recorded
+                          </span>
+                          {d.batchNumber && (
+                            <div className="text-[11px] text-muted-foreground font-tabular flex items-center justify-end gap-1 mt-0.5">
+                              <Barcode className="w-3 h-3" />
+                              {d.batchNumber}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {d.status === 'Declined' && (
+                        <span className="text-xs text-muted-foreground">
+                          Declined by Donor
+                        </span>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -188,6 +347,23 @@ export default function RequestTrackingClient({
           </div>
         )}
       </div>
+
+      {/* Clinical Intake Modal Dialog */}
+      {selectedDonorForIntake && (
+        <BloodIntakeModal
+          isOpen={Boolean(selectedDonorForIntake)}
+          onClose={() => setSelectedDonorForIntake(null)}
+          donationId={selectedDonorForIntake.donationId}
+          donorName={selectedDonorForIntake.name}
+          donorBloodGroup={
+            selectedDonorForIntake.bloodGroup || requestData.bloodGroup
+          }
+          onSuccess={() => {
+            setSelectedDonorForIntake(null);
+            router.refresh();
+          }}
+        />
+      )}
     </div>
   );
 }
