@@ -10,16 +10,63 @@ import {
   Activity,
   AlertCircle,
   Droplet,
+  Navigation,
 } from 'lucide-react';
 import { validateRoleAccess } from '@/lib/auth/guard';
 import { connectToDatabase } from '@/lib/db/connect';
 import { Donor } from '@/lib/models/donor.model';
-import { DonationRequest } from '@/lib/models/donation-request.model';
+import {
+  DonationRequest,
+  type IDonationRequestDocument,
+} from '@/lib/models/donation-request.model';
+import { PushSubscription } from '@/lib/models/push-subscription.model';
+import {
+  buildNearbyRequestsNearSphereQuery,
+  calculateDistanceKm,
+  ensureGeoIndexOnce,
+  getCompatibleRequestBloodGroups,
+} from '@/lib/matching/blood-compatibility';
+import PushSubscriptionToggle from '@/components/notifications/push-subscription-toggle';
 import { calculateClinicalEligibility } from '../requests/data';
 import {
   DonationRequestEntity,
   REQUEST_URGENCY_LEVEL,
 } from '@/types/donor-request.type';
+
+const DEFAULT_COLOMBO_COORDS: [number, number] = [79.8612, 6.9271];
+
+function normalizeCoordinates(coordinates?: number[] | null): [number, number] {
+  if (
+    Array.isArray(coordinates) &&
+    coordinates.length === 2 &&
+    Number.isFinite(coordinates[0]) &&
+    Number.isFinite(coordinates[1])
+  ) {
+    return [coordinates[0], coordinates[1]];
+  }
+  return DEFAULT_COLOMBO_COORDS;
+}
+
+type LeanDonationRequest = Pick<
+  IDonationRequestDocument,
+  | '_id'
+  | 'requestId'
+  | 'hospitalId'
+  | 'hospitalName'
+  | 'address'
+  | 'location'
+  | 'bloodGroup'
+  | 'quantity'
+  | 'urgency'
+  | 'status'
+  | 'radiusKm'
+  | 'notes'
+  | 'matchedDonorsCount'
+  | 'notifiedDonors'
+  | 'fulfilledBy'
+  | 'createdAt'
+  | 'updatedAt'
+>;
 
 export const metadata: Metadata = {
   title: 'Donor Dashboard | Pulse',
@@ -38,6 +85,7 @@ function DashboardSkeleton() {
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="space-y-6 lg:col-span-1">
+          <div className="bg-card border border-border rounded-xl p-5 h-28 bg-muted/40" />
           <div className="bg-card border border-border rounded-xl p-5 h-28 bg-muted/40" />
           <div className="bg-card border border-border rounded-xl p-5 h-44 bg-muted/40" />
         </div>
@@ -66,7 +114,7 @@ async function DonorDashboardContent() {
       bloodGroup: '',
       dateOfBirth: null,
       address: '',
-      location: { type: 'Point', coordinates: [79.8612, 6.9271] },
+      location: { type: 'Point', coordinates: DEFAULT_COLOMBO_COORDS },
       radiusPreferenceKm: 10,
       isEligible: true,
       isAvailable: true,
@@ -80,17 +128,100 @@ async function DonorDashboardContent() {
   // Calculate clinical eligibility (120 days waiting period)
   const isClinicallyEligible = calculateClinicalEligibility(donor);
 
-  // Fetch pending active requests
-  const activeRequestsRaw = await DonationRequest.find({ status: 'pending' })
-    .sort({ createdAt: -1 })
-    .limit(10)
-    .lean();
+  const donorCoordinates = normalizeCoordinates(donor.location?.coordinates);
+  const donorRadiusKm =
+    typeof donor.radiusPreferenceKm === 'number' && donor.radiusPreferenceKm > 0
+      ? donor.radiusPreferenceKm
+      : 10;
 
-  const activeRequests: DonationRequestEntity[] = activeRequestsRaw.map(
-    (req) => ({
-      ...req,
+  const compatibleRequestGroups = getCompatibleRequestBloodGroups(
+    donor.bloodGroup,
+  );
+  const hasBloodGroup =
+    Boolean(donor.bloodGroup) && compatibleRequestGroups.length > 0;
+
+  // Ensure DonationRequest 2dsphere index exists on cold databases (e.g. fresh Docker volumes)
+  await ensureGeoIndexOnce('DonationRequest', () =>
+    DonationRequest.createIndexes(),
+  );
+
+  // Runtime read of VAPID public key keeps Docker builds functional without .env.local in build context
+  const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '';
+
+  const [nearbyRequestsRaw, notifiedRequestsRaw, pushSubscriptionExists] =
+    await Promise.all([
+      hasBloodGroup && donor.bloodGroup
+        ? (DonationRequest.find(
+            buildNearbyRequestsNearSphereQuery({
+              donorBloodGroup: donor.bloodGroup,
+              donorCoordinates,
+              radiusKm: donorRadiusKm,
+            }),
+          )
+            .limit(10)
+            .lean() as Promise<LeanDonationRequest[]>)
+        : Promise.resolve<LeanDonationRequest[]>([]),
+      hasBloodGroup
+        ? (DonationRequest.find({
+            status: 'pending',
+            notifiedDonors: donor._id,
+          })
+            .sort({ createdAt: -1 })
+            .limit(10)
+            .lean() as Promise<LeanDonationRequest[]>)
+        : Promise.resolve<LeanDonationRequest[]>([]),
+      PushSubscription.exists({ donorId: donor._id }),
+    ]);
+
+  // Deduplicate nearby $nearSphere matches and explicitly notified pending requests, sorted nearest-first
+  const mergedRequestsMap = new Map<
+    string,
+    { req: LeanDonationRequest; distanceKm: number }
+  >();
+
+  for (const req of [...nearbyRequestsRaw, ...notifiedRequestsRaw]) {
+    const id = req._id.toString();
+    if (!mergedRequestsMap.has(id)) {
+      const requestCoords = normalizeCoordinates(req.location?.coordinates);
+      const distanceKm = calculateDistanceKm(donorCoordinates, requestCoords);
+      mergedRequestsMap.set(id, { req, distanceKm });
+    }
+  }
+
+  const sortedMatchedRequests = Array.from(mergedRequestsMap.values())
+    .sort((a, b) => {
+      if (a.distanceKm !== b.distanceKm) {
+        return a.distanceKm - b.distanceKm;
+      }
+      const timeA = a.req.createdAt ? new Date(a.req.createdAt).getTime() : 0;
+      const timeB = b.req.createdAt ? new Date(b.req.createdAt).getTime() : 0;
+      return timeB - timeA;
+    })
+    .slice(0, 10);
+
+  const activeRequests: DonationRequestEntity[] = sortedMatchedRequests.map(
+    ({ req, distanceKm }) => ({
       _id: req._id.toString(),
+      requestId: req.requestId,
       hospitalId: req.hospitalId.toString(),
+      hospitalName: req.hospitalName,
+      address: req.address,
+      location: {
+        type: 'Point',
+        coordinates: normalizeCoordinates(req.location?.coordinates),
+      },
+      bloodGroup: req.bloodGroup,
+      quantity: req.quantity,
+      urgency: req.urgency,
+      status: req.status,
+      radiusKm: req.radiusKm,
+      distance: `${distanceKm.toFixed(1)} km`,
+      notes: req.notes || '',
+      matchedDonorsCount: req.matchedDonorsCount ?? 0,
+      notifiedDonors: Array.isArray(req.notifiedDonors)
+        ? req.notifiedDonors.map((donorId) => donorId.toString())
+        : [],
+      fulfilledBy: req.fulfilledBy ? req.fulfilledBy.toString() : undefined,
       timePosted: req.createdAt
         ? new Intl.DateTimeFormat('en-GB', {
             hour: '2-digit',
@@ -106,7 +237,9 @@ async function DonorDashboardContent() {
         ? new Date(req.updatedAt).toISOString()
         : new Date().toISOString(),
     }),
-  ) as unknown as DonationRequestEntity[];
+  );
+
+  const hasPushSubscription = Boolean(pushSubscriptionExists);
 
   return (
     <div className="p-6 md:p-8 max-w-5xl mx-auto w-full space-y-6">
@@ -150,11 +283,18 @@ async function DonorDashboardContent() {
               <div className="text-xs text-muted-foreground leading-relaxed">
                 We will text you the moment{' '}
                 <strong className="text-foreground">{donor.bloodGroup}</strong>{' '}
-                blood is needed within a {donor.radiusPreferenceKm}km radius of{' '}
-                {donor.address}.
+                blood is needed within a{' '}
+                <span className="font-tabular">{donorRadiusKm}</span>km radius
+                of {donor.address}.
               </div>
             </div>
           </div>
+
+          {/* Browser Push Notifications Toggle */}
+          <PushSubscriptionToggle
+            vapidPublicKey={vapidPublicKey}
+            initialSubscribed={hasPushSubscription}
+          />
 
           {/* Eligibility Card */}
           <div className="bg-card border border-border rounded-xl p-5 shadow-sm relative overflow-hidden">
@@ -201,7 +341,7 @@ async function DonorDashboardContent() {
 
             <p className="text-xs text-muted-foreground flex items-start gap-2 pt-4 border-t border-border">
               <Clock className="w-4 h-4 shrink-0" />
-              <span>
+              <span className="font-tabular">
                 Your last donation was on{' '}
                 {donor.lastDonationDate
                   ? new Intl.DateTimeFormat('en-GB', {
@@ -231,9 +371,24 @@ async function DonorDashboardContent() {
           </div>
 
           <div className="flex flex-col gap-3">
-            {activeRequests.length === 0 ? (
+            {!hasBloodGroup ? (
+              <div className="bg-card border border-border rounded-xl p-8 text-center text-muted-foreground shadow-sm space-y-3">
+                <p className="text-sm">
+                  Set your blood group in your profile to see nearby compatible
+                  emergency requests.
+                </p>
+                <Link
+                  href="/donor/profile"
+                  className="inline-block text-xs font-medium text-primary hover:underline underline-offset-4"
+                >
+                  Complete Donor Profile
+                </Link>
+              </div>
+            ) : activeRequests.length === 0 ? (
               <div className="bg-card border border-border rounded-xl p-8 text-center text-muted-foreground shadow-sm">
-                No active emergencies in your area right now.
+                No compatible active emergencies within{' '}
+                <span className="font-tabular">{donorRadiusKm} km</span> right
+                now.
               </div>
             ) : (
               activeRequests.map((request: DonationRequestEntity) => (
@@ -258,16 +413,22 @@ async function DonorDashboardContent() {
                       <h3 className="font-medium text-foreground text-base group-hover:text-primary transition-colors">
                         {request.hospitalName}
                       </h3>
-                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                      <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                         <span className="flex items-center gap-1 bg-secondary px-2 py-0.5 rounded text-foreground font-medium">
                           <Droplet className="w-3 h-3 text-primary" />{' '}
                           {request.bloodGroup}
                         </span>
+                        {request.distance && (
+                          <span className="flex items-center gap-1 text-foreground font-medium font-tabular">
+                            <Navigation className="w-3 h-3 text-primary" />{' '}
+                            {request.distance}
+                          </span>
+                        )}
                         <span className="flex items-center gap-1 hidden sm:flex">
                           <MapPin className="w-3 h-3" />{' '}
                           {request.address || 'Nearby'}
                         </span>
-                        <span className="flex items-center gap-1">
+                        <span className="flex items-center gap-1 font-tabular">
                           <Clock className="w-3 h-3" /> {request.timePosted}
                         </span>
                       </div>
