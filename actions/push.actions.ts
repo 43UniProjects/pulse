@@ -3,11 +3,11 @@
 import { z } from 'zod';
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
-import { auth } from '@/lib/auth/config';
-import { connectToDatabase } from '@/lib/db/connect';
-import { User } from '@/lib/models/user.model';
-import { PushSubscription } from '@/lib/models/push-subscription.model';
-import type { SerializedPushSubscription } from '@/types/push-subscription.type';
+import { auth } from '../lib/auth/config';
+import { connectToDatabase } from '../lib/db/connect';
+import { User } from '../lib/models/user.model';
+import { PushSubscription } from '../lib/models/push-subscription.model';
+import type { SerializedPushSubscription } from '../types/push-subscription.type';
 
 const pushSubscriptionSchema = z.object({
   endpoint: z
