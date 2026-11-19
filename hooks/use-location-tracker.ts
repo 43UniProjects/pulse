@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import {
   GeolocationPermissionState,
   ILocationCoordinates,
@@ -32,6 +32,44 @@ export function useLocationTracker({
   const lastSyncedCoordsRef = useRef<ILocationCoordinates | null>(null);
   const lastSyncedTimeRef = useRef<Date | null>(null);
   const isSyncingRef = useRef<boolean>(false);
+
+  // Safely check and subscribe to browser geolocation permissions
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('navigator' in window)) return;
+
+    let permissionObj: PermissionStatus | null = null;
+
+    const checkPermission = async () => {
+      try {
+        if (
+          'permissions' in navigator &&
+          typeof navigator.permissions.query === 'function'
+        ) {
+          const status = await navigator.permissions.query({
+            name: 'geolocation' as PermissionName,
+          });
+          permissionObj = status;
+          setPermissionStatus(status.state as GeolocationPermissionState);
+
+          status.onchange = () => {
+            setPermissionStatus(status.state as GeolocationPermissionState);
+          };
+        }
+      } catch {
+        // Safari iOS and older browsers may reject geolocation query
+        // Gracefully fallback to 'prompt' without throwing runtime errors
+        setPermissionStatus('prompt');
+      }
+    };
+
+    checkPermission();
+
+    return () => {
+      if (permissionObj) {
+        permissionObj.onchange = null;
+      }
+    };
+  }, []);
 
   // Placeholder for user-triggered location request
   const requestLocation = useCallback(async () => {
