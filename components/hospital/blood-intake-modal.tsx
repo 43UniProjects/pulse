@@ -44,10 +44,10 @@ export default function BloodIntakeModal({
   const [hemoglobinLevel, setHemoglobinLevel] = useState<string>('13.5');
   const [clinicalNotes, setClinicalNotes] = useState<string>('');
 
-  const [hiv, setHiv] = useState<ScreeningStatus>('negative');
-  const [hepatitisB, setHepatitisB] = useState<ScreeningStatus>('negative');
-  const [hepatitisC, setHepatitisC] = useState<ScreeningStatus>('negative');
-  const [syphilis, setSyphilis] = useState<ScreeningStatus>('negative');
+  const [hiv, setHiv] = useState<ScreeningStatus>('pending');
+  const [hepatitisB, setHepatitisB] = useState<ScreeningStatus>('pending');
+  const [hepatitisC, setHepatitisC] = useState<ScreeningStatus>('pending');
+  const [syphilis, setSyphilis] = useState<ScreeningStatus>('pending');
 
   const [error, setError] = useState<string | null>(null);
 
@@ -193,16 +193,23 @@ export default function BloodIntakeModal({
 
             {/* Mandatory Viral Screenings Panel */}
             <div className="bg-muted/30 border border-border rounded-xl p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-primary" />
-                  <span className="text-xs font-bold uppercase tracking-wider text-foreground">
-                    Mandatory Viral Screenings
+              <div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-primary" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-foreground">
+                      Mandatory Viral Screenings
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-muted-foreground">
+                    NBTS Transfusion Protocol
                   </span>
                 </div>
-                <span className="text-[11px] text-muted-foreground">
-                  NBTS Transfusion Protocol
-                </span>
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  Default set to <strong>Pending</strong> awaiting laboratory
+                  analysis. Select <strong>Negative</strong> if verified via
+                  rapid screening assays.
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-3 pt-1">
@@ -215,9 +222,9 @@ export default function BloodIntakeModal({
                     onChange={(e) => setHiv(e.target.value as ScreeningStatus)}
                     className="w-full h-9 px-2.5 rounded-lg border border-border bg-background text-xs font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                   >
-                    <option value="negative">Negative</option>
-                    <option value="pending">Pending</option>
-                    <option value="positive">Positive</option>
+                    <option value="pending">Pending (Awaiting Lab)</option>
+                    <option value="negative">Negative (Rapid / Cleared)</option>
+                    <option value="positive">Positive (Reactive)</option>
                   </select>
                 </div>
 
@@ -232,9 +239,9 @@ export default function BloodIntakeModal({
                     }
                     className="w-full h-9 px-2.5 rounded-lg border border-border bg-background text-xs font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                   >
-                    <option value="negative">Negative</option>
-                    <option value="pending">Pending</option>
-                    <option value="positive">Positive</option>
+                    <option value="pending">Pending (Awaiting Lab)</option>
+                    <option value="negative">Negative (Rapid / Cleared)</option>
+                    <option value="positive">Positive (Reactive)</option>
                   </select>
                 </div>
 
@@ -249,9 +256,9 @@ export default function BloodIntakeModal({
                     }
                     className="w-full h-9 px-2.5 rounded-lg border border-border bg-background text-xs font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                   >
-                    <option value="negative">Negative</option>
-                    <option value="pending">Pending</option>
-                    <option value="positive">Positive</option>
+                    <option value="pending">Pending (Awaiting Lab)</option>
+                    <option value="negative">Negative (Rapid / Cleared)</option>
+                    <option value="positive">Positive (Reactive)</option>
                   </select>
                 </div>
 
@@ -266,9 +273,9 @@ export default function BloodIntakeModal({
                     }
                     className="w-full h-9 px-2.5 rounded-lg border border-border bg-background text-xs font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                   >
-                    <option value="negative">Negative</option>
-                    <option value="pending">Pending</option>
-                    <option value="positive">Positive</option>
+                    <option value="pending">Pending (Awaiting Lab)</option>
+                    <option value="negative">Negative (Rapid / Cleared)</option>
+                    <option value="positive">Positive (Reactive)</option>
                   </select>
                 </div>
               </div>
