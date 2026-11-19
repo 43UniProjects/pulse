@@ -10,8 +10,6 @@ import {
   ILocationCoordinates,
 } from '@/types/location.type';
 
-export { locationCoordSchema };
-
 /**
  * Server action to synchronize donor live coordinates.
  */
