@@ -3,7 +3,11 @@ import { connectToDatabase } from '@/lib/db/connect';
 import { DonationRequest } from '@/lib/models/donation-request.model';
 import { Donation } from '@/lib/models/donation.model';
 import { Donor } from '@/lib/models/donor.model';
-import { DonationRequestEntity } from '@/types/donor-request.type';
+import '@/lib/models/hospital.model';
+import {
+  DonationRequestEntity,
+  RequestStatus,
+} from '@/types/donor-request.type';
 import { DonationEntity } from '@/types/donation.type';
 import { DonorEntity } from '@/types/donor.type';
 
@@ -71,52 +75,110 @@ export async function getDonorProfile(
 }
 
 /**
- * Retrieves a donor's specific donation history.
+ * Retrieves a donor's completed physical donation history.
  */
 export async function getDonationHistory(
   donorId: string,
 ): Promise<DonationEntity[]> {
   await connectToDatabase();
-  const donations = await Donation.find({ donorId })
+  const donations = await Donation.find({
+    donorId,
+    status: 'completed',
+  })
+    .populate('hospitalId', 'name address')
     .sort({ donationDate: -1 })
     .lean();
 
-  return donations.map((d) => ({
-    ...d,
-    _id: d._id.toString(),
-    donorId: d.donorId.toString(),
-    hospitalId: d.hospitalId.toString(),
-    requestId: d.requestId ? d.requestId.toString() : null,
-    donationDate: d.donationDate
-      ? new Date(d.donationDate).toISOString()
-      : new Date().toISOString(),
-    createdAt: d.createdAt
-      ? new Date(d.createdAt).toISOString()
-      : new Date().toISOString(),
-    updatedAt: d.updatedAt
-      ? new Date(d.updatedAt).toISOString()
-      : new Date().toISOString(),
-  })) as unknown as DonationEntity[];
+  return donations.map((d) => {
+    interface PopulatedHospital {
+      name?: string;
+      address?: string;
+    }
+    const hospital = d.hospitalId as unknown as PopulatedHospital | null;
+
+    return {
+      ...d,
+      _id: d._id.toString(),
+      donorId: d.donorId.toString(),
+      hospitalId: hospital?.name || d.hospitalId.toString(),
+      requestId: d.requestId ? d.requestId.toString() : null,
+      donationDate: d.donationDate
+        ? new Date(d.donationDate).toISOString()
+        : new Date().toISOString(),
+      createdAt: d.createdAt
+        ? new Date(d.createdAt).toISOString()
+        : new Date().toISOString(),
+      updatedAt: d.updatedAt
+        ? new Date(d.updatedAt).toISOString()
+        : new Date().toISOString(),
+    } as unknown as DonationEntity;
+  });
 }
 
 /**
- * Retrieves all active, pending requests in the network.
+ * Retrieves active emergency blood requests available for the donor.
+ * Excludes requests the donor has already declined or completed.
+ * Badges requests the donor has currently accepted.
  */
-export async function getDonationRequests(): Promise<DonationRequestEntity[]> {
+export async function getDonationRequests(
+  donorId?: string,
+): Promise<DonationRequestEntity[]> {
   await connectToDatabase();
-  const requests = await DonationRequest.find({ status: 'pending' })
+
+  let userDonations: { requestId?: unknown; status?: string }[] = [];
+  if (donorId) {
+    userDonations = (await Donation.find({ donorId })
+      .select('requestId status')
+      .lean()) as unknown as { requestId?: unknown; status?: string }[];
+  }
+
+  const donationByRequestId = new Map<string, string>();
+  const excludedRequestIds: mongoose.Types.ObjectId[] = [];
+
+  for (const d of userDonations) {
+    if (d.requestId) {
+      const reqIdStr = String(d.requestId);
+      donationByRequestId.set(reqIdStr, d.status || '');
+
+      // Exclude requests this donor has already declined or completed
+      if (d.status === 'declined' || d.status === 'completed') {
+        if (mongoose.Types.ObjectId.isValid(reqIdStr)) {
+          excludedRequestIds.push(new mongoose.Types.ObjectId(reqIdStr));
+        }
+      }
+    }
+  }
+
+  const query: Record<string, unknown> = {
+    status: { $in: ['pending', 'in-progress', 'in_transit'] },
+  };
+
+  if (excludedRequestIds.length > 0) {
+    query._id = { $nin: excludedRequestIds };
+  }
+
+  const requests = await DonationRequest.find(query)
     .sort({ createdAt: -1 })
     .lean();
 
-  return requests.map((req) => ({
-    ...req,
-    _id: req._id.toString(),
-    hospitalId: req.hospitalId.toString(),
-    createdAt: req.createdAt
-      ? new Date(req.createdAt).toISOString()
-      : new Date().toISOString(),
-    updatedAt: req.updatedAt
-      ? new Date(req.updatedAt).toISOString()
-      : new Date().toISOString(),
-  })) as unknown as DonationRequestEntity[];
+  return requests.map((req) => {
+    const reqIdStr = req._id.toString();
+    const donorResponse = donationByRequestId.get(reqIdStr);
+
+    return {
+      ...req,
+      _id: reqIdStr,
+      hospitalId: req.hospitalId.toString(),
+      // If donor accepted this request, show status as 'accepted'
+      status: (donorResponse === 'accepted'
+        ? 'accepted'
+        : req.status) as RequestStatus,
+      createdAt: req.createdAt
+        ? new Date(req.createdAt).toISOString()
+        : new Date().toISOString(),
+      updatedAt: req.updatedAt
+        ? new Date(req.updatedAt).toISOString()
+        : new Date().toISOString(),
+    } as unknown as DonationRequestEntity;
+  });
 }

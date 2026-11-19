@@ -18,7 +18,7 @@ async function DonorRequestsContent() {
   const session = await validateRoleAccess('donor');
 
   const [activeRequests, historyRequests, donorProfile] = await Promise.all([
-    getDonationRequests(),
+    getDonationRequests(session.user.id),
     getDonationHistory(session.user.id),
     getDonorProfile(session.user.id),
   ]);

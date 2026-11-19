@@ -136,7 +136,7 @@ export default function RequestsClient({
             ))
           )
         ) : initialHistoryRequests.length === 0 ? (
-          <EmptyState message="No requests found in your history." />
+          <EmptyState message="No completed blood donations recorded in your history yet." />
         ) : (
           initialHistoryRequests.map((donation: DonationEntity) => (
             <div
@@ -152,15 +152,15 @@ export default function RequestsClient({
 
                 <div className="flex-1 space-y-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-[10px] font-bold uppercase tracking-widest border border-green-200 dark:border-green-900/50">
-                      Physical Donation
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-[10px] font-bold uppercase tracking-widest border border-blue-200 dark:border-blue-900/50">
+                      Fulfilled Donation
                     </span>
                     <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">
                       {donation.donationId || donation._id}
                     </span>
                   </div>
                   <h3 className="font-medium text-foreground text-lg transition-colors">
-                    Donation Completed
+                    {donation.hospitalId || 'Hospital Blood Bank'}
                   </h3>
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <span className="flex items-center gap-1.5 font-tabular">
@@ -173,8 +173,14 @@ export default function RequestsClient({
                     </span>
                     <span className="flex items-center gap-1.5 font-tabular">
                       <Droplet className="w-3.5 h-3.5" />
-                      {donation.units} Unit(s)
+                      {donation.units} Unit{donation.units !== 1 ? 's' : ''}{' '}
+                      Collected
                     </span>
+                    {donation.batchNumber && (
+                      <span className="text-xs font-mono text-muted-foreground font-tabular">
+                        Batch: {donation.batchNumber}
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -229,19 +235,29 @@ function StatusBadge({ status }: { status?: string }) {
   const styles: Record<string, string> = {
     pending:
       'bg-yellow-100/50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-900/50',
-    accepted: 'bg-primary/10 text-primary border-primary/20',
+    accepted:
+      'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30',
     completed:
-      'bg-green-100/50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900/50',
-    declined: 'bg-secondary text-muted-foreground border-border',
+      'bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30',
+    declined: 'bg-destructive/15 text-destructive border border-destructive/30',
   };
 
   const style = styles[safeStatus] || styles.pending;
+
+  const label =
+    safeStatus === 'accepted'
+      ? 'Accepted — En Route'
+      : safeStatus === 'completed'
+        ? 'Fulfilled'
+        : safeStatus === 'declined'
+          ? 'Declined'
+          : 'Pending Response';
 
   return (
     <span
       className={`px-2.5 py-1 rounded-md text-xs font-semibold capitalize border ${style}`}
     >
-      {safeStatus}
+      {label}
     </span>
   );
 }
