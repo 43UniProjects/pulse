@@ -17,6 +17,8 @@ export interface UseLocationTrackerOptions {
   liveLocationSync?: boolean;
 }
 
+const RETRY_BACKOFF_MS = 60 * 1000; // 60 seconds backoff on failed sync
+
 export function useLocationTracker({
   liveLocationSync = false,
 }: UseLocationTrackerOptions = {}) {
@@ -30,10 +32,11 @@ export function useLocationTracker({
   const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Mutable refs to track coordinates and sync timestamps without triggering rerenders
+  // Mutable refs to track coordinates, sync timestamps, and backoff without triggering rerenders
   const lastSyncedCoordsRef = useRef<ILocationCoordinates | null>(null);
   const lastSyncedTimeRef = useRef<Date | null>(null);
   const isSyncingRef = useRef<boolean>(false);
+  const lastFailedSyncTimeRef = useRef<number | null>(null);
 
   // Safely check and subscribe to browser geolocation permissions
   useEffect(() => {
@@ -100,9 +103,14 @@ export function useLocationTracker({
                 const now = new Date();
                 lastSyncedCoordsRef.current = newCoords;
                 lastSyncedTimeRef.current = now;
+                lastFailedSyncTimeRef.current = null;
                 setLastSyncedAt(now);
+              } else if (res.error) {
+                lastFailedSyncTimeRef.current = Date.now();
+                setError(res.error);
               }
             } catch (err: unknown) {
+              lastFailedSyncTimeRef.current = Date.now();
               console.error('[LocationTracker] Initial sync failed:', err);
             } finally {
               setIsSyncing(false);
@@ -125,7 +133,7 @@ export function useLocationTracker({
       });
     }, []);
 
-  // Background Watcher: continuous watching with battery-efficient Haversine throttling
+  // Background Watcher: continuous watching with battery-saving throttling & backoff
   useEffect(() => {
     if (
       !liveLocationSync ||
@@ -155,7 +163,12 @@ export function useLocationTracker({
           15 * 60 * 1000,
         );
 
-        if (shouldSync && !isSyncingRef.current) {
+        // Check 60s backoff cooldown to avoid infinite retry loops on failure
+        const isBackingOff =
+          lastFailedSyncTimeRef.current !== null &&
+          Date.now() - lastFailedSyncTimeRef.current < RETRY_BACKOFF_MS;
+
+        if (shouldSync && !isSyncingRef.current && !isBackingOff) {
           try {
             isSyncingRef.current = true;
             setIsSyncing(true);
@@ -165,9 +178,14 @@ export function useLocationTracker({
               const now = new Date();
               lastSyncedCoordsRef.current = newCoords;
               lastSyncedTimeRef.current = now;
+              lastFailedSyncTimeRef.current = null;
               setLastSyncedAt(now);
+            } else if (res.error) {
+              lastFailedSyncTimeRef.current = Date.now();
+              setError(res.error);
             }
           } catch (syncErr: unknown) {
+            lastFailedSyncTimeRef.current = Date.now();
             console.error('[LocationTracker] Throttled sync failed:', syncErr);
           } finally {
             isSyncingRef.current = false;
