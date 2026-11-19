@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { syncDonorLocation } from '@/actions/location.actions';
 import {
   GeolocationPermissionState,
   ILocationCoordinates,
@@ -56,8 +57,6 @@ export function useLocationTracker({
           };
         }
       } catch {
-        // Safari iOS and older browsers may reject geolocation query
-        // Gracefully fallback to 'prompt' without throwing runtime errors
         setPermissionStatus('prompt');
       }
     };
@@ -71,10 +70,98 @@ export function useLocationTracker({
     };
   }, []);
 
-  // Placeholder for user-triggered location request
-  const requestLocation = useCallback(async () => {
-    // Will be implemented in subsequent commits
-  }, []);
+  // Single-shot GPS position request (for explicit user gesture like "Detect Location" button)
+  const requestLocation =
+    useCallback(async (): Promise<ILocationCoordinates | null> => {
+      if (typeof window === 'undefined' || !('geolocation' in navigator)) {
+        setError('Geolocation is not supported by your browser.');
+        return null;
+      }
+
+      return new Promise((resolve) => {
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            const newCoords: ILocationCoordinates = {
+              longitude: position.coords.longitude,
+              latitude: position.coords.latitude,
+            };
+
+            setCoords(newCoords);
+            setHasGpsFix(true);
+            setError(null);
+
+            // Sync initial fix to MongoDB
+            try {
+              setIsSyncing(true);
+              isSyncingRef.current = true;
+              const res = await syncDonorLocation(newCoords);
+              if (res.success) {
+                const now = new Date();
+                lastSyncedCoordsRef.current = newCoords;
+                lastSyncedTimeRef.current = now;
+                setLastSyncedAt(now);
+              }
+            } catch (err: unknown) {
+              console.error('[LocationTracker] Initial sync failed:', err);
+            } finally {
+              setIsSyncing(false);
+              isSyncingRef.current = false;
+            }
+
+            resolve(newCoords);
+          },
+          (geoError) => {
+            setHasGpsFix(false);
+            setError(geoError.message);
+            resolve(null);
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 300000,
+          },
+        );
+      });
+    }, []);
+
+  // Background Watcher: continuous watching when liveLocationSync is true
+  useEffect(() => {
+    if (
+      !liveLocationSync ||
+      typeof window === 'undefined' ||
+      !('geolocation' in navigator)
+    ) {
+      return;
+    }
+
+    const watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        const newCoords: ILocationCoordinates = {
+          longitude: position.coords.longitude,
+          latitude: position.coords.latitude,
+        };
+        setCoords(newCoords);
+        setHasGpsFix(true);
+        setIsWatching(true);
+        setError(null);
+      },
+      (geoError) => {
+        setHasGpsFix(false);
+        setIsWatching(false);
+        setError(geoError.message);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000,
+      },
+    );
+
+    return () => {
+      navigator.geolocation.clearWatch(watchId);
+      setIsWatching(false);
+    };
+  }, [liveLocationSync]);
 
   const state: ILocationSyncState = {
     coords,
