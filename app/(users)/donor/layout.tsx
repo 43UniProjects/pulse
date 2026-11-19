@@ -2,7 +2,10 @@ import { Suspense } from 'react';
 import Header from '@/components/header/main';
 import DashboardSidebar from '@/components/users/dashboard-sidebar';
 import VerificationToast from '@/components/auth/verification-toast';
+import LocationTracker from '@/components/location/location-tracker';
 import { validateRoleAccess } from '@/lib/auth/guard';
+import { connectToDatabase } from '@/lib/db/connect';
+import { Donor } from '@/lib/models/donor.model';
 
 const DONOR_LINKS = [
   { name: 'Dashboard', href: '/donor/dashboard' },
@@ -12,11 +15,20 @@ const DONOR_LINKS = [
 
 async function DonorLayoutContent({ children }: { children: React.ReactNode }) {
   const session = await validateRoleAccess('donor', { allowInactive: true });
+  await connectToDatabase();
+
+  const donor = await Donor.findById(session.user.id)
+    .select('liveLocationSync')
+    .lean();
+  const liveLocationSync = donor?.liveLocationSync ?? false;
 
   return (
     <div className="min-h-screen flex flex-col bg-background font-sans">
       <Suspense fallback={null}>
         <VerificationToast />
+      </Suspense>
+      <Suspense fallback={null}>
+        <LocationTracker liveLocationSync={liveLocationSync} />
       </Suspense>
       <Header session={session} />
       <div className="flex-1 flex flex-col md:flex-row w-full">

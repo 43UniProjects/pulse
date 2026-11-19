@@ -16,6 +16,7 @@ export interface DonorEntity {
   isEligible: boolean;
   isAvailable: boolean;
   liveLocationSync: boolean;
+  lastLocationUpdatedAt?: Date | null;
   smsAlertsEnabled: boolean;
   emailAlertsEnabled: boolean;
   history: string[] | DonationEntity[];
