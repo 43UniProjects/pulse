@@ -173,6 +173,14 @@ export async function getDonationRequests(
       status: (donorResponse === 'accepted'
         ? 'accepted'
         : req.status) as RequestStatus,
+      timePosted: req.createdAt
+        ? new Intl.DateTimeFormat('en-GB', {
+            hour: '2-digit',
+            minute: '2-digit',
+            day: '2-digit',
+            month: 'short',
+          }).format(new Date(req.createdAt))
+        : 'Recent',
       createdAt: req.createdAt
         ? new Date(req.createdAt).toISOString()
         : new Date().toISOString(),

@@ -14,8 +14,10 @@ import {
 import { validateRoleAccess } from '@/lib/auth/guard';
 import { connectToDatabase } from '@/lib/db/connect';
 import { Donor } from '@/lib/models/donor.model';
-import { DonationRequest } from '@/lib/models/donation-request.model';
-import { calculateClinicalEligibility } from '../requests/data';
+import {
+  calculateClinicalEligibility,
+  getDonationRequests,
+} from '../requests/data';
 import {
   DonationRequestEntity,
   REQUEST_URGENCY_LEVEL,
@@ -80,33 +82,11 @@ async function DonorDashboardContent() {
   // Calculate clinical eligibility (120 days waiting period)
   const isClinicallyEligible = calculateClinicalEligibility(donor);
 
-  // Fetch pending active requests
-  const activeRequestsRaw = await DonationRequest.find({ status: 'pending' })
-    .sort({ createdAt: -1 })
-    .limit(10)
-    .lean();
-
-  const activeRequests: DonationRequestEntity[] = activeRequestsRaw.map(
-    (req) => ({
-      ...req,
-      _id: req._id.toString(),
-      hospitalId: req.hospitalId.toString(),
-      timePosted: req.createdAt
-        ? new Intl.DateTimeFormat('en-GB', {
-            hour: '2-digit',
-            minute: '2-digit',
-            day: '2-digit',
-            month: 'short',
-          }).format(new Date(req.createdAt))
-        : 'Recent',
-      createdAt: req.createdAt
-        ? new Date(req.createdAt).toISOString()
-        : new Date().toISOString(),
-      updatedAt: req.updatedAt
-        ? new Date(req.updatedAt).toISOString()
-        : new Date().toISOString(),
-    }),
-  ) as unknown as DonationRequestEntity[];
+  // Fetch active requests filtered for this donor (excluding declined/completed)
+  const activeRequests = (await getDonationRequests(session.user.id)).slice(
+    0,
+    10,
+  );
 
   return (
     <div className="p-6 md:p-8 max-w-5xl mx-auto w-full space-y-6">
@@ -273,11 +253,17 @@ async function DonorDashboardContent() {
                       </div>
                     </div>
 
-                    <div className="shrink-0 flex flex-col items-end">
-                      <div className="hidden sm:flex items-center text-xs font-medium text-muted-foreground group-hover:text-primary transition-colors">
-                        Respond
-                        <ChevronRight className="w-4 h-4 ml-1" />
-                      </div>
+                    <div className="shrink-0 flex flex-col items-end gap-1">
+                      {request.status === 'accepted' ? (
+                        <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                          Accepted — En Route
+                        </span>
+                      ) : (
+                        <div className="hidden sm:flex items-center text-xs font-medium text-muted-foreground group-hover:text-primary transition-colors">
+                          Respond
+                          <ChevronRight className="w-4 h-4 ml-1" />
+                        </div>
+                      )}
                       {/* Mobile arrow */}
                       <ChevronRight className="w-5 h-5 text-muted-foreground sm:hidden" />
                     </div>
