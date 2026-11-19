@@ -3,6 +3,8 @@
 import { z } from 'zod';
 import { headers } from 'next/headers';
 import { auth } from '@/lib/auth/config';
+import { connectToDatabase } from '@/lib/db/connect';
+import { Donor } from '@/lib/models/donor.model';
 import {
   ILocationActionResponse,
   ILocationCoordinates,
@@ -51,5 +53,28 @@ export async function syncDonorLocation(
     };
   }
 
-  return { success: true };
+  // 3. Persist GeoJSON coordinates into MongoDB
+  try {
+    await connectToDatabase();
+    const { longitude, latitude } = validated.data;
+
+    await Donor.findByIdAndUpdate(session.user.id, {
+      location: {
+        type: 'Point',
+        coordinates: [longitude, latitude],
+      },
+      lastLocationUpdatedAt: new Date(),
+    });
+
+    return {
+      success: true,
+      syncedAt: new Date().toISOString(),
+    };
+  } catch (error: unknown) {
+    console.error('[Action: syncDonorLocation]', error);
+    return {
+      success: false,
+      error: 'Failed to update location coordinates. Please try again.',
+    };
+  }
 }
