@@ -57,6 +57,46 @@ export default function DonorProfileForm({
   }, [state, onSuccess, isIncomplete]);
 
   // Manage slider and toggles state so UI updates immediately
+
+  // Geolocation state for profile coordinates
+  const [coords, setCoords] = useState<{ longitude: number; latitude: number }>(
+    {
+      longitude: initialData.location?.coordinates?.[0] ?? 79.8612,
+      latitude: initialData.location?.coordinates?.[1] ?? 6.9271,
+    },
+  );
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
+  const [detectedTime, setDetectedTime] = useState<Date | null>(null);
+
+  const handleDetectLocation = () => {
+    if (typeof window === 'undefined' || !('geolocation' in navigator)) {
+      toast.error('Geolocation is not supported by your browser.');
+      return;
+    }
+
+    setIsDetectingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setCoords({
+          longitude: position.coords.longitude,
+          latitude: position.coords.latitude,
+        });
+        setDetectedTime(new Date());
+        setIsDetectingLocation(false);
+        toast.success('Current location detected successfully!');
+      },
+      (err) => {
+        setIsDetectingLocation(false);
+        toast.error(`Unable to retrieve location: ${err.message}`);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000,
+      },
+    );
+  };
+
   const [radius, setRadius] = useState(initialData.radiusPreferenceKm);
   const [isAvailable, setIsAvailable] = useState(initialData.isAvailable);
   const [liveLocationSync, setLiveLocationSync] = useState(
@@ -231,9 +271,29 @@ export default function DonorProfileForm({
 
         <div className="bg-card border border-border rounded-xl divide-y divide-border overflow-hidden shadow-sm">
           <div className="p-5">
-            <label className="text-xs font-medium text-foreground block mb-2">
-              Current Address <span className="text-red-500">*</span>
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs font-medium text-foreground block">
+                Current Address <span className="text-red-500">*</span>
+              </label>
+              <button
+                type="button"
+                onClick={handleDetectLocation}
+                disabled={isDetectingLocation}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-primary hover:text-primary/80 bg-primary/10 hover:bg-primary/15 rounded-md transition-colors disabled:opacity-50"
+              >
+                {isDetectingLocation ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    Detecting GPS...
+                  </>
+                ) : (
+                  <>
+                    <Navigation className="w-3.5 h-3.5" />
+                    Detect Current Location
+                  </>
+                )}
+              </button>
+            </div>
             <input
               type="text"
               name="address"
@@ -248,17 +308,26 @@ export default function DonorProfileForm({
               </p>
             )}
 
-            {/* Hidden inputs for GeoJSON coords for now - would use map picker in real life */}
-            <input
-              type="hidden"
-              name="longitude"
-              value={initialData.location?.coordinates?.[0] ?? 79.8612}
-            />
-            <input
-              type="hidden"
-              name="latitude"
-              value={initialData.location?.coordinates?.[1] ?? 6.9271}
-            />
+            {/* Hidden inputs for GeoJSON coords bound to React state */}
+            <input type="hidden" name="longitude" value={coords.longitude} />
+            <input type="hidden" name="latitude" value={coords.latitude} />
+
+            {/* GPS Feedback Badge with font-tabular */}
+            <div className="mt-2.5 flex items-center gap-2 text-[11px] text-muted-foreground">
+              <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
+              <span>
+                Coordinates:{' '}
+                <span className="font-tabular text-foreground font-medium">
+                  {coords.latitude.toFixed(4)}° N, {coords.longitude.toFixed(4)}
+                  ° E
+                </span>
+                {detectedTime && (
+                  <span className="ml-1.5 text-emerald-600 dark:text-emerald-400 font-medium">
+                    (Updated just now)
+                  </span>
+                )}
+              </span>
+            </div>
           </div>
 
           <div className="p-5 hover:bg-secondary/20 transition-colors">
