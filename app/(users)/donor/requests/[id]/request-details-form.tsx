@@ -1,136 +1,350 @@
 'use client';
 
-import { useState } from 'react';
-import { MapPin } from 'lucide-react';
+import { useState, useTransition } from 'react';
+import Link from 'next/link';
+import { MapPin, Navigation, Phone, CheckCircle2, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import {
-  DonationRequestEntity,
-  RequestStatus,
-} from '@/types/donor-request.type';
+  acceptDonationRequest,
+  declineDonationRequest,
+} from '@/actions/fulfillment.actions';
+
+export interface SerializedRequestData {
+  _id: string;
+  requestId: string;
+  hospitalName: string;
+  hospitalAddress: string;
+  hospitalHotline: string;
+  hospitalCoords: {
+    lat: number;
+    lng: number;
+  };
+  bloodGroup: string;
+  quantity: number;
+  urgency: string;
+  status: string;
+  radiusKm: number;
+  notes: string;
+  distance: string;
+  createdAt: string;
+}
+
+interface RequestDetailClientProps {
+  request: SerializedRequestData;
+  initialResponseStatus: string;
+}
 
 export default function RequestDetailClient({
-  initialRequest,
-}: {
-  initialRequest: DonationRequestEntity | null;
-}) {
-  const req = initialRequest;
-  const [status, setStatus] = useState<RequestStatus>(req?.status || 'pending');
+  request,
+  initialResponseStatus,
+}: RequestDetailClientProps) {
+  const [responseStatus, setResponseStatus] = useState<string>(
+    initialResponseStatus,
+  );
+  const [isPending, startTransition] = useTransition();
 
-  if (!req) {
-    return (
-      <div className="p-8 max-w-4xl mx-auto font-sans text-center text-muted-foreground">
-        Request record not found.
-      </div>
-    );
-  }
-
-  const statusStyles: Record<string, string> = {
-    pending: 'bg-secondary text-secondary-foreground border border-border',
-    accepted:
-      'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20',
-    completed:
-      'bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/20',
-    declined: 'bg-destructive/15 text-destructive border border-destructive/20',
-  };
-
-  const urgencyColors: Record<string, string> = {
-    critical: 'bg-destructive/15 text-destructive border border-destructive/20',
-    high: 'bg-orange-500/15 text-orange-600 dark:text-orange-400 border border-orange-500/20',
+  const urgencyStyles: Record<string, string> = {
+    critical:
+      'bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/30',
+    high: 'bg-orange-500/15 text-orange-600 dark:text-orange-400 border border-orange-500/30',
     normal: 'bg-secondary text-secondary-foreground border border-border',
   };
 
+  const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${request.hospitalCoords.lat},${request.hospitalCoords.lng}`;
+
+  const handleAccept = () => {
+    startTransition(async () => {
+      const res = await acceptDonationRequest(request.requestId || request._id);
+      if (res.success) {
+        setResponseStatus('accepted');
+        toast.success(
+          'Donation request accepted! The hospital has been notified of your response.',
+        );
+      } else {
+        toast.error(res.error || 'Failed to accept request.');
+      }
+    });
+  };
+
+  const handleDecline = () => {
+    startTransition(async () => {
+      const res = await declineDonationRequest(
+        request.requestId || request._id,
+      );
+      if (res.success) {
+        setResponseStatus('declined');
+        toast.info('You have declined this emergency request.');
+      } else {
+        toast.error(res.error || 'Failed to decline request.');
+      }
+    });
+  };
+
   return (
-    <div className="p-8 max-w-4xl mx-auto font-sans">
-      {/* Clinical Card Wrapper */}
-      <div className="bg-card border border-border rounded-lg overflow-hidden shadow-sm">
-        {/* Header */}
-        <div className="p-6 border-b border-border flex items-start justify-between bg-card">
-          <div>
-            <h1 className="font-semibold text-xl text-card-foreground mb-1">
-              {req.hospitalName}
-            </h1>
-            <p className="text-sm text-muted-foreground">{req.address}</p>
+    <div className="p-4 md:p-8 max-w-4xl mx-auto font-sans space-y-6">
+      {/* Commitment Banner when Accepted */}
+      {responseStatus === 'accepted' && (
+        <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+            <div>
+              <h3 className="font-semibold text-emerald-800 dark:text-emerald-300 text-sm">
+                Commitment Confirmed — Hospital Awaiting Arrival
+              </h3>
+              <p className="text-xs text-emerald-700/80 dark:text-emerald-400/80 mt-0.5">
+                Thank you for responding. Please report to the hospital blood
+                transfusion unit promptly.
+              </p>
+            </div>
           </div>
-          <span
-            className={`text-xs font-medium px-2.5 py-1 rounded-sm capitalize ${statusStyles[status]}`}
+          <a
+            href={mapsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2.5 rounded-lg transition-colors shrink-0 shadow-sm"
           >
-            {status}
-          </span>
+            <Navigation className="w-4 h-4" />
+            Open Directions
+          </a>
         </div>
+      )}
 
-        {/* Map Placeholder */}
-        <div className="bg-input/50 h-40 flex items-center justify-center border-b border-border">
-          <div className="text-center text-muted-foreground flex flex-col items-center gap-2">
-            <MapPin className="w-6 h-6 opacity-50" />
-            <div className="text-xs uppercase tracking-widest font-medium">
-              Map Integration Pending
-            </div>
-            <div className="text-xs opacity-70 font-tabular">{req.address}</div>
+      {/* Completed Banner */}
+      {responseStatus === 'completed' && (
+        <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-5 flex items-center gap-3">
+          <CheckCircle2 className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0" />
+          <div>
+            <h3 className="font-semibold text-blue-800 dark:text-blue-300 text-sm">
+              Donation Fulfilled & Recorded
+            </h3>
+            <p className="text-xs text-blue-700/80 dark:text-blue-400/80 mt-0.5">
+              Blood collection was successfully completed. Thank you for saving
+              a life!
+            </p>
           </div>
         </div>
+      )}
 
-        {/* Data Grid */}
-        <div className="p-6 grid grid-cols-2 md:grid-cols-4 gap-6 bg-card">
+      {/* Main Clinical Request Card */}
+      <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+        {/* Header */}
+        <div className="p-6 border-b border-border flex flex-col sm:flex-row sm:items-start justify-between gap-4 bg-card">
           <div>
-            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
-              Blood Group
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-xs font-mono font-medium text-muted-foreground uppercase tracking-widest font-tabular">
+                #{request.requestId}
+              </span>
+              <span
+                className={`text-xs font-medium px-2.5 py-0.5 rounded-full capitalize ${
+                  urgencyStyles[request.urgency] || urgencyStyles.normal
+                }`}
+              >
+                {request.urgency} Urgency
+              </span>
             </div>
-            <div className="font-semibold font-tabular text-3xl text-card-foreground">
-              {req.bloodGroup}
-            </div>
+            <h1 className="font-semibold text-2xl text-card-foreground">
+              {request.hospitalName}
+            </h1>
+            <p className="text-sm text-muted-foreground mt-0.5 flex items-center gap-1.5">
+              <MapPin className="w-3.5 h-3.5 shrink-0" />
+              {request.hospitalAddress}
+            </p>
           </div>
-          <div>
-            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
-              Quantity
-            </div>
-            <div className="font-semibold font-tabular text-3xl text-card-foreground">
-              {req.quantity}
-            </div>
-          </div>
-          <div className="col-span-2 md:col-span-1">
-            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
-              Urgency
-            </div>
+
+          <div className="flex items-center gap-2">
             <span
-              className={`inline-block text-xs font-medium px-2.5 py-1 rounded-sm capitalize ${urgencyColors[req.urgency]}`}
+              className={`text-xs font-semibold px-3 py-1 rounded-md uppercase tracking-wider ${
+                responseStatus === 'accepted'
+                  ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+                  : responseStatus === 'declined'
+                    ? 'bg-destructive/15 text-destructive border border-destructive/30'
+                    : responseStatus === 'completed'
+                      ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30'
+                      : 'bg-secondary text-secondary-foreground border border-border'
+              }`}
             >
-              {req.urgency}
+              Status: {responseStatus}
             </span>
           </div>
-          <div className="col-span-2 md:col-span-4 border-t border-border mt-2 pt-6">
-            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
-              Clinical Notes
+        </div>
+
+        {/* Proximity & Navigation Bar */}
+        <div className="bg-muted/40 px-6 py-4 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                <Navigation className="w-4 h-4" />
+              </div>
+              <div>
+                <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                  Proximity
+                </div>
+                <div className="text-sm font-semibold text-foreground font-tabular">
+                  {request.distance} away
+                </div>
+              </div>
             </div>
-            <div className="text-sm text-card-foreground leading-relaxed">
-              {req.notes}
+
+            {request.hospitalHotline && (
+              <div className="flex items-center gap-2 border-l border-border pl-6">
+                <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-foreground">
+                  <Phone className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                    Emergency Hotline
+                  </div>
+                  <a
+                    href={`tel:${request.hospitalHotline}`}
+                    className="text-sm font-semibold text-primary hover:underline font-tabular"
+                  >
+                    {request.hospitalHotline}
+                  </a>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <a
+            href={mapsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-xs font-medium bg-background border border-border hover:bg-secondary px-3.5 py-2 rounded-lg transition-colors shadow-sm text-foreground"
+          >
+            <MapPin className="w-3.5 h-3.5 text-primary" />
+            View on Google Maps
+          </a>
+        </div>
+
+        {/* Clinical Parameters Grid */}
+        <div className="p-6 grid grid-cols-2 md:grid-cols-4 gap-6 bg-card">
+          <div className="bg-secondary/30 p-4 rounded-xl border border-border">
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
+              Blood Group
+            </div>
+            <div className="font-bold text-3xl text-foreground font-tabular">
+              {request.bloodGroup}
+            </div>
+            <div className="text-[11px] text-muted-foreground mt-1">
+              Required Match
+            </div>
+          </div>
+
+          <div className="bg-secondary/30 p-4 rounded-xl border border-border">
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
+              Quantity Needed
+            </div>
+            <div className="font-bold text-3xl text-foreground font-tabular">
+              {request.quantity}{' '}
+              <span className="text-sm font-normal text-muted-foreground">
+                Unit{request.quantity !== 1 ? 's' : ''}
+              </span>
+            </div>
+            <div className="text-[11px] text-muted-foreground mt-1">
+              Whole Blood
+            </div>
+          </div>
+
+          <div className="bg-secondary/30 p-4 rounded-xl border border-border">
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
+              Search Radius
+            </div>
+            <div className="font-bold text-3xl text-foreground font-tabular">
+              {request.radiusKm}{' '}
+              <span className="text-sm font-normal text-muted-foreground">
+                km
+              </span>
+            </div>
+            <div className="text-[11px] text-muted-foreground mt-1">
+              Broadcast Limit
+            </div>
+          </div>
+
+          <div className="bg-secondary/30 p-4 rounded-xl border border-border">
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
+              Posted At
+            </div>
+            <div className="font-semibold text-sm text-foreground font-tabular mt-2">
+              {new Intl.DateTimeFormat('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                hour: '2-digit',
+                minute: '2-digit',
+              }).format(new Date(request.createdAt))}
+            </div>
+            <div className="text-[11px] text-muted-foreground mt-1">
+              Emergency Broadcast
+            </div>
+          </div>
+
+          {/* Clinical Instructions */}
+          <div className="col-span-2 md:col-span-4 border-t border-border pt-5">
+            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+              Clinical Instructions & Patient Notes
+            </div>
+            <div className="text-sm text-card-foreground leading-relaxed bg-muted/30 p-4 rounded-lg border border-border/60">
+              {request.notes ||
+                'Urgent transfusion required. Eligible matching donors are requested to report immediately.'}
             </div>
           </div>
         </div>
 
-        {/* Action Bar */}
-        <div className="px-6 pb-6 pt-2 flex items-center gap-3 bg-card">
-          {status === 'pending' ? (
-            <>
-              <button
-                onClick={() => setStatus('accepted')}
-                className="bg-primary text-primary-foreground font-medium text-sm px-6 py-2.5 rounded-md hover:bg-red-700 transition-colors focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
-              >
-                Accept Request
-              </button>
-              <button
-                onClick={() => setStatus('declined')}
-                className="bg-transparent border border-border text-foreground font-medium text-sm px-6 py-2.5 rounded-md hover:bg-secondary transition-colors"
-              >
-                Decline
-              </button>
-            </>
-          ) : (
-            <button
-              onClick={() => setStatus('pending')}
-              className="text-xs font-medium bg-secondary text-secondary-foreground border border-border px-4 py-2 rounded-md hover:bg-secondary/80 transition-all hover:shadow-md active:scale-[0.98]"
-            >
-              Undo response
-            </button>
-          )}
+        {/* Action Controls */}
+        <div className="px-6 py-4 border-t border-border bg-muted/20 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <Link
+            href="/donor/dashboard"
+            className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            &larr; Back to Dashboard
+          </Link>
+
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            {responseStatus === 'pending' && (
+              <>
+                <button
+                  type="button"
+                  disabled={isPending}
+                  onClick={handleDecline}
+                  className="flex-1 sm:flex-initial text-xs font-semibold px-5 py-2.5 rounded-lg border border-border text-foreground hover:bg-secondary transition-colors disabled:opacity-50"
+                >
+                  {isPending ? (
+                    <Loader2 className="w-4 h-4 animate-spin mx-auto" />
+                  ) : (
+                    'Decline'
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  disabled={isPending}
+                  onClick={handleAccept}
+                  className="flex-1 sm:flex-initial text-xs font-semibold px-6 py-2.5 rounded-lg bg-primary hover:bg-red-700 text-primary-foreground transition-colors shadow-sm disabled:opacity-50 flex items-center justify-center gap-1.5"
+                >
+                  {isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Accepting...
+                    </>
+                  ) : (
+                    'Accept Request'
+                  )}
+                </button>
+              </>
+            )}
+
+            {responseStatus === 'accepted' && (
+              <div className="text-xs text-muted-foreground flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                Response registered. Hospital tracking is active.
+              </div>
+            )}
+
+            {responseStatus === 'declined' && (
+              <div className="text-xs text-muted-foreground">
+                You declined this request.
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
