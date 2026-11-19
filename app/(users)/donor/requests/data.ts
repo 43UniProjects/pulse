@@ -126,10 +126,20 @@ export async function getDonationRequests(
   await connectToDatabase();
 
   let userDonations: { requestId?: unknown; status?: string }[] = [];
+  let donorCreatedAt: Date | null = null;
+
   if (donorId) {
-    userDonations = (await Donation.find({ donorId })
-      .select('requestId status')
-      .lean()) as unknown as { requestId?: unknown; status?: string }[];
+    const [donations, donorDoc] = await Promise.all([
+      Donation.find({ donorId }).select('requestId status').lean(),
+      Donor.findById(donorId).select('createdAt').lean(),
+    ]);
+    userDonations = donations as unknown as {
+      requestId?: unknown;
+      status?: string;
+    }[];
+    if (donorDoc && 'createdAt' in donorDoc && donorDoc.createdAt) {
+      donorCreatedAt = new Date(donorDoc.createdAt);
+    }
   }
 
   const donationByRequestId = new Map<string, string>();
@@ -160,6 +170,10 @@ export async function getDonationRequests(
   };
   if (excludedRequestIds.length > 0) {
     generalCriteria._id = { $nin: excludedRequestIds };
+  }
+  // Only surface emergency requests broadcast after this donor registered
+  if (donorCreatedAt) {
+    generalCriteria.createdAt = { $gte: donorCreatedAt };
   }
 
   // If this donor has accepted requests (whose request status may now be 'accepted' if fully committed),
