@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useEffect, useTransition } from 'react';
+import { useState, useTransition } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { MapPin, Navigation, Phone, CheckCircle2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -39,31 +38,10 @@ export default function RequestDetailClient({
   request,
   initialResponseStatus,
 }: RequestDetailClientProps) {
-  const router = useRouter();
-  const [overrideStatus, setOverrideStatus] = useState<string | null>(null);
-  const [prevInitial, setPrevInitial] = useState(initialResponseStatus);
+  const [responseStatus, setResponseStatus] = useState<string>(
+    initialResponseStatus,
+  );
   const [isPending, startTransition] = useTransition();
-
-  // Reset local override when Server Component sends new database status
-  if (initialResponseStatus !== prevInitial) {
-    setPrevInitial(initialResponseStatus);
-    setOverrideStatus(null);
-  }
-
-  const responseStatus = overrideStatus || initialResponseStatus;
-
-  // Smart background polling for real-time state updates
-  useEffect(() => {
-    if (responseStatus === 'completed' || responseStatus === 'declined') {
-      return;
-    }
-
-    const interval = setInterval(() => {
-      router.refresh();
-    }, 6000);
-
-    return () => clearInterval(interval);
-  }, [router, responseStatus]);
 
   const urgencyStyles: Record<string, string> = {
     critical:
@@ -78,7 +56,7 @@ export default function RequestDetailClient({
     startTransition(async () => {
       const res = await acceptDonationRequest(request.requestId || request._id);
       if (res.success) {
-        setOverrideStatus('accepted');
+        setResponseStatus('accepted');
         toast.success(
           'Donation request accepted! The hospital has been notified of your response.',
         );
@@ -94,7 +72,7 @@ export default function RequestDetailClient({
         request.requestId || request._id,
       );
       if (res.success) {
-        setOverrideStatus('declined');
+        setResponseStatus('declined');
         toast.info('You have declined this emergency request.');
       } else {
         toast.error(res.error || 'Failed to decline request.');
@@ -174,16 +152,6 @@ export default function RequestDetailClient({
           </div>
 
           <div className="flex items-center gap-2">
-            {responseStatus !== 'completed' &&
-              responseStatus !== 'declined' && (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-                  </span>
-                  <span>Live Sync Active</span>
-                </span>
-              )}
             <span
               className={`text-xs font-semibold px-3 py-1 rounded-md uppercase tracking-wider ${
                 responseStatus === 'accepted'
