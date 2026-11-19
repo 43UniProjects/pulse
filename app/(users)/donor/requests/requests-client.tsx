@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   Activity,
   MapPin,
@@ -28,7 +29,19 @@ export default function RequestsClient({
   initialHistoryRequests,
   radiusKm = 10,
 }: RequestsClientProps) {
+  const router = useRouter();
   const [tab, setTab] = useState<'active' | 'history'>('active');
+
+  // Automatically refresh active nearby emergency blood requests in background
+  useEffect(() => {
+    if (tab !== 'active') return;
+
+    const interval = setInterval(() => {
+      router.refresh();
+    }, 8000);
+
+    return () => clearInterval(interval);
+  }, [router, tab]);
 
   return (
     <div className="max-w-4xl mx-auto w-full space-y-6">
@@ -42,9 +55,20 @@ export default function RequestsClient({
             Manage nearby active emergencies and view your past donations.
           </p>
         </div>
-        <div className="flex items-center gap-2 text-sm font-mono text-muted-foreground font-tabular">
-          <MapPin className="w-4 h-4" />
-          <span>RADIUS: {radiusKm} KM</span>
+        <div className="flex items-center gap-3">
+          {tab === 'active' && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+              </span>
+              <span>Live Sync Active</span>
+            </span>
+          )}
+          <div className="flex items-center gap-2 text-sm font-mono text-muted-foreground font-tabular">
+            <MapPin className="w-4 h-4" />
+            <span>RADIUS: {radiusKm} KM</span>
+          </div>
         </div>
       </div>
 

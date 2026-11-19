@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -59,6 +59,22 @@ export default function RequestTrackingClient({
   const [selectedDonorForIntake, setSelectedDonorForIntake] =
     useState<TrackingDetailDonor | null>(null);
 
+  useEffect(() => {
+    // Pause background polling if request is already fully completed or modal dialog is open
+    if (
+      requestData?.status === 'completed' ||
+      Boolean(selectedDonorForIntake)
+    ) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      router.refresh();
+    }, 6000);
+
+    return () => clearInterval(interval);
+  }, [router, requestData?.status, selectedDonorForIntake]);
+
   if (!requestData) {
     return (
       <div className="p-8 max-w-5xl mx-auto text-center text-muted-foreground">
@@ -89,9 +105,20 @@ export default function RequestTrackingClient({
           <ArrowLeft className="w-4 h-4" />
           Back to Hospital Dashboard
         </Link>
-        <span className="text-xs font-mono font-medium text-muted-foreground uppercase tracking-widest font-tabular">
-          #{requestData.requestId || id}
-        </span>
+        <div className="flex items-center gap-3">
+          {requestData.status !== 'completed' && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+              </span>
+              <span>Live Sync Active</span>
+            </span>
+          )}
+          <span className="text-xs font-mono font-medium text-muted-foreground uppercase tracking-widest font-tabular">
+            #{requestData.requestId || id}
+          </span>
+        </div>
       </div>
 
       {/* Header Banner */}
