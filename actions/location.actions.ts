@@ -1,6 +1,8 @@
 'use server';
 
 import { z } from 'zod';
+import { headers } from 'next/headers';
+import { auth } from '@/lib/auth/config';
 import {
   ILocationActionResponse,
   ILocationCoordinates,
@@ -27,12 +29,25 @@ export const locationCoordSchema = z.object({
 export async function syncDonorLocation(
   coords: ILocationCoordinates,
 ): Promise<ILocationActionResponse> {
+  // 1. Validate coordinates boundaries
   const validated = locationCoordSchema.safeParse(coords);
 
   if (!validated.success) {
     return {
       success: false,
       error: validated.error.issues[0]?.message || 'Invalid coordinates',
+    };
+  }
+
+  // 2. Verify authenticated donor session
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session?.user || session.user.role !== 'donor') {
+    return {
+      success: false,
+      error: 'Unauthorized: Donor access required',
     };
   }
 
