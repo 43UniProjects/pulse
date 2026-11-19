@@ -65,6 +65,7 @@ export async function getDonorProfile(
   return {
     ...donor,
     _id: donor._id.toString(),
+    history: (donor.history || []).map((h) => String(h)),
     dateOfBirth: donor.dateOfBirth ? new Date(donor.dateOfBirth) : null,
     lastDonationDate: donor.lastDonationDate
       ? new Date(donor.lastDonationDate)
@@ -200,11 +201,16 @@ export async function getDonationRequests(
   return requests.map((req) => {
     const reqIdStr = req._id.toString();
     const donorResponse = donationByRequestId.get(reqIdStr);
+    const rawReq = req as Record<string, unknown>;
 
     return {
       ...req,
       _id: reqIdStr,
       hospitalId: req.hospitalId.toString(),
+      fulfilledBy: rawReq.fulfilledBy ? String(rawReq.fulfilledBy) : null,
+      notifiedDonors: Array.isArray(rawReq.notifiedDonors)
+        ? rawReq.notifiedDonors.map((id) => String(id))
+        : [],
       // If donor accepted this request, show status as 'accepted'
       status: (donorResponse === 'accepted'
         ? 'accepted'
