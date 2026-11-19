@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { syncDonorLocation } from '@/actions/location.actions';
+import { shouldSyncLocation } from '@/lib/geo';
 import {
   GeolocationPermissionState,
   ILocationCoordinates,
@@ -124,7 +125,7 @@ export function useLocationTracker({
       });
     }, []);
 
-  // Background Watcher: continuous watching when liveLocationSync is true
+  // Background Watcher: continuous watching with battery-efficient Haversine throttling
   useEffect(() => {
     if (
       !liveLocationSync ||
@@ -135,7 +136,7 @@ export function useLocationTracker({
     }
 
     const watchId = navigator.geolocation.watchPosition(
-      (position) => {
+      async (position) => {
         const newCoords: ILocationCoordinates = {
           longitude: position.coords.longitude,
           latitude: position.coords.latitude,
@@ -144,6 +145,35 @@ export function useLocationTracker({
         setHasGpsFix(true);
         setIsWatching(true);
         setError(null);
+
+        // Check 200m or 15-minute battery-saving threshold
+        const shouldSync = shouldSyncLocation(
+          newCoords,
+          lastSyncedCoordsRef.current,
+          lastSyncedTimeRef.current,
+          200,
+          15 * 60 * 1000,
+        );
+
+        if (shouldSync && !isSyncingRef.current) {
+          try {
+            isSyncingRef.current = true;
+            setIsSyncing(true);
+
+            const res = await syncDonorLocation(newCoords);
+            if (res.success) {
+              const now = new Date();
+              lastSyncedCoordsRef.current = newCoords;
+              lastSyncedTimeRef.current = now;
+              setLastSyncedAt(now);
+            }
+          } catch (syncErr: unknown) {
+            console.error('[LocationTracker] Throttled sync failed:', syncErr);
+          } finally {
+            isSyncingRef.current = false;
+            setIsSyncing(false);
+          }
+        }
       },
       (geoError) => {
         setHasGpsFix(false);
