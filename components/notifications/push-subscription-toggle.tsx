@@ -9,8 +9,8 @@ import {
   getDonorPushSubscriptionStatus,
   removePushSubscription,
   savePushSubscription,
-} from '@/actions/push.actions';
-import type { SerializedPushSubscription } from '@/types/push-subscription.type';
+} from '../../actions/push.actions';
+import type { SerializedPushSubscription } from '../../types/push-subscription.type';
 
 export interface PushSubscriptionToggleProps {
   vapidPublicKey?: string;
