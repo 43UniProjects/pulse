@@ -35,6 +35,9 @@ async function DonorProfileContent() {
         lastDonationDate: donorDoc.lastDonationDate
           ? new Date(donorDoc.lastDonationDate)
           : null,
+        lastLocationUpdatedAt: donorDoc.lastLocationUpdatedAt
+          ? new Date(donorDoc.lastLocationUpdatedAt)
+          : null,
         createdAt: donorDoc.createdAt
           ? new Date(donorDoc.createdAt)
           : undefined,
@@ -56,6 +59,7 @@ async function DonorProfileContent() {
         isEligible: true,
         isAvailable: true,
         liveLocationSync: false,
+        lastLocationUpdatedAt: null,
         smsAlertsEnabled: true,
         emailAlertsEnabled: false,
         history: [],
