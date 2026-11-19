@@ -32,12 +32,7 @@ function calculateHaversineDistanceKm(
   return Math.round(R * c * 10) / 10;
 }
 
-export default async function RequestTracking({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
+async function RequestTrackingContent({ id }: { id: string }) {
   await validateRoleAccess('hospital');
   await connectToDatabase();
 
@@ -132,12 +127,24 @@ export default async function RequestTracking({
   });
 
   return (
+    <RequestTrackingClient
+      id={id}
+      requestData={serializedRequest}
+      initialDonors={serializedDonors}
+    />
+  );
+}
+
+export default async function RequestTracking({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+
+  return (
     <Suspense fallback={<GenericFallback />}>
-      <RequestTrackingClient
-        id={id}
-        requestData={serializedRequest}
-        initialDonors={serializedDonors}
-      />
+      <RequestTrackingContent id={id} />
     </Suspense>
   );
 }

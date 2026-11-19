@@ -32,12 +32,7 @@ function calculateHaversineDistanceKm(
   return Math.round(R * c * 10) / 10;
 }
 
-export default async function RequestPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
+async function RequestPageContent({ id }: { id: string }) {
   const session = await validateRoleAccess('donor');
   await connectToDatabase();
 
@@ -135,11 +130,23 @@ export default async function RequestPage({
   };
 
   return (
+    <RequestDetailClient
+      request={serializedRequest}
+      initialResponseStatus={initialResponse}
+    />
+  );
+}
+
+export default async function RequestPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+
+  return (
     <Suspense fallback={<GenericFallback />}>
-      <RequestDetailClient
-        request={serializedRequest}
-        initialResponseStatus={initialResponse}
-      />
+      <RequestPageContent id={id} />
     </Suspense>
   );
 }
