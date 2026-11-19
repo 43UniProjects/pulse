@@ -195,6 +195,66 @@ export async function ensureGeoIndexOnce(
   return pending;
 }
 
+export const DEFAULT_COLOMBO_COORDS: [number, number] = [79.8612, 6.9271];
+
+/**
+ * Normalizes an optional coordinate array into a valid GeoJSON `[longitude, latitude]` tuple,
+ * falling back to Colombo defaults when missing or malformed.
+ */
+export function normalizeGeoCoordinates(
+  coordinates?: number[] | null,
+): [number, number] {
+  if (
+    Array.isArray(coordinates) &&
+    coordinates.length === 2 &&
+    Number.isFinite(coordinates[0]) &&
+    Number.isFinite(coordinates[1])
+  ) {
+    return [coordinates[0], coordinates[1]];
+  }
+  return DEFAULT_COLOMBO_COORDS;
+}
+
+export interface MergeableNearbyRequest {
+  _id: { toString(): string };
+  location?: { coordinates?: number[] } | null;
+  createdAt?: Date | string;
+}
+
+/**
+ * Merges `$nearSphere` matches with explicitly notified pending requests,
+ * deduplicates by `_id`, computes Haversine `distanceKm` from `donorCoordinates`,
+ * and sorts nearest-first (tie-breaking by newest `createdAt`).
+ */
+export function mergeAndSortNearbyRequests<T extends MergeableNearbyRequest>(
+  nearbyRequests: T[],
+  notifiedRequests: T[],
+  donorCoordinates: [number, number],
+  limit = 10,
+): Array<{ req: T; distanceKm: number }> {
+  const mergedMap = new Map<string, { req: T; distanceKm: number }>();
+
+  for (const req of [...nearbyRequests, ...notifiedRequests]) {
+    const id = req._id.toString();
+    if (!mergedMap.has(id)) {
+      const requestCoords = normalizeGeoCoordinates(req.location?.coordinates);
+      const distanceKm = calculateDistanceKm(donorCoordinates, requestCoords);
+      mergedMap.set(id, { req, distanceKm });
+    }
+  }
+
+  return Array.from(mergedMap.values())
+    .sort((a, b) => {
+      if (a.distanceKm !== b.distanceKm) {
+        return a.distanceKm - b.distanceKm;
+      }
+      const timeA = a.req.createdAt ? new Date(a.req.createdAt).getTime() : 0;
+      const timeB = b.req.createdAt ? new Date(b.req.createdAt).getTime() : 0;
+      return timeB - timeA;
+    })
+    .slice(0, limit);
+}
+
 /**
  * Clears the cached index-initialization map (intended for unit tests).
  */

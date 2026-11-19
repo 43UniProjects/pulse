@@ -300,4 +300,71 @@ describe('createDonationRequest server action', () => {
     expect(result.requestObjectId).toBe('req-obj-retry');
     expect(result.suggestExpandRadius).toBe(false);
   });
+
+  it('isolates unexpected push channel failures via Promise.allSettled so email alerts and request creation still succeed', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    mockDonorFindLean.mockResolvedValue([
+      {
+        _id: 'donor-1',
+        fullName: 'Kasun Perera',
+        email: 'kasun@example.lk',
+        emailAlertsEnabled: true,
+        location: { type: 'Point', coordinates: [79.8612, 6.9271] },
+      },
+    ]);
+    mockDonationRequestCreate.mockResolvedValue({
+      _id: 'req-obj-iso',
+      requestId: 'REQ-444555',
+    });
+    mockDispatchPushAlerts.mockRejectedValueOnce(
+      new Error('Push service unavailable'),
+    );
+    mockDispatchEmergencyEmailAlerts.mockResolvedValueOnce({
+      attempted: 1,
+      sent: 1,
+      failed: 0,
+    });
+
+    const result = await createDonationRequest(
+      INITIAL_STATE,
+      makeFormData({
+        bloodGroup: 'O+',
+        quantity: '1',
+        radiusKm: '5',
+        urgency: 'critical',
+      }),
+    );
+
+    expect(result.success).toBe(true);
+    expect(result.matchedCount).toBe(1);
+    expect(result.pushSentCount).toBe(0);
+    expect(result.emailSentCount).toBe(1);
+    expect(result.emailAttemptedCount).toBe(1);
+  });
+
+  it('falls back to default Colombo coordinates when hospital profile document is missing', async () => {
+    mockHospitalFindByIdLean.mockResolvedValueOnce(null);
+    mockDonorFindLean.mockResolvedValue([]);
+    mockDonationRequestCreate.mockResolvedValue({
+      _id: 'req-obj-fallback',
+      requestId: 'REQ-333222',
+    });
+
+    const result = await createDonationRequest(
+      INITIAL_STATE,
+      makeFormData({
+        bloodGroup: 'AB+',
+        quantity: '2',
+        radiusKm: '10',
+        urgency: 'normal',
+      }),
+    );
+
+    expect(result.success).toBe(true);
+    expect(mockDonationRequestCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        location: { type: 'Point', coordinates: [79.8612, 6.9271] },
+      }),
+    );
+  });
 });

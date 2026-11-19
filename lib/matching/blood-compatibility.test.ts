@@ -3,6 +3,7 @@ import { BLOOD_GROUPS, type BloodGroup } from '../../types/common.type';
 import {
   BLOOD_COMPATIBILITY,
   COOLDOWN_DAYS,
+  DEFAULT_COLOMBO_COORDS,
   buildEligibleDonorNearSphereQuery,
   buildNearbyRequestsNearSphereQuery,
   calculateDistanceKm,
@@ -10,6 +11,8 @@ import {
   getCompatibleRequestBloodGroups,
   getCooldownCutoffDate,
   isDonorPastCooldown,
+  mergeAndSortNearbyRequests,
+  normalizeGeoCoordinates,
   resetGeoIndexCacheForTests,
 } from './blood-compatibility';
 
@@ -235,5 +238,68 @@ describe('ensureGeoIndexOnce', () => {
     ).resolves.toBeUndefined();
 
     expect(createIndexes).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('mergeAndSortNearbyRequests & normalizeGeoCoordinates (Donor Dashboard)', () => {
+  it('falls back to Colombo coordinates when location coordinates are missing or malformed', () => {
+    expect(normalizeGeoCoordinates(null)).toEqual(DEFAULT_COLOMBO_COORDS);
+    expect(normalizeGeoCoordinates([79.86])).toEqual(DEFAULT_COLOMBO_COORDS);
+    expect(normalizeGeoCoordinates([Number.NaN, 6.9])).toEqual(
+      DEFAULT_COLOMBO_COORDS,
+    );
+    expect(normalizeGeoCoordinates(DEHIWALA)).toEqual(DEHIWALA);
+  });
+
+  it('merges nearby and notified requests, deduplicates by _id, sorts nearest-first then newest-first, and enforces limit', () => {
+    const nearby = [
+      {
+        _id: 'req-dehiwala',
+        location: { coordinates: DEHIWALA },
+        createdAt: '2026-11-19T08:00:00.000Z',
+      },
+      {
+        _id: 'req-colombo-old',
+        location: { coordinates: COLOMBO },
+        createdAt: '2026-11-19T07:00:00.000Z',
+      },
+    ];
+
+    const notified = [
+      // Duplicate of nearby req-dehiwala
+      {
+        _id: 'req-dehiwala',
+        location: { coordinates: DEHIWALA },
+        createdAt: '2026-11-19T08:00:00.000Z',
+      },
+      // Equidistant to req-colombo-old, but newer -> must sort first
+      {
+        _id: 'req-colombo-new',
+        location: { coordinates: COLOMBO },
+        createdAt: '2026-11-19T09:00:00.000Z',
+      },
+      // Wider 20 km hospital broadcast outside donor's 10 km preference
+      {
+        _id: 'req-moratuwa',
+        location: { coordinates: MORATUWA },
+        createdAt: '2026-11-19T10:00:00.000Z',
+      },
+    ];
+
+    const merged = mergeAndSortNearbyRequests(nearby, notified, COLOMBO, 3);
+
+    expect(merged.map((item) => item.req._id)).toEqual([
+      'req-colombo-new',
+      'req-colombo-old',
+      'req-dehiwala',
+    ]);
+    expect(merged[0].distanceKm).toBe(0);
+    expect(merged[1].distanceKm).toBe(0);
+    expect(merged[2].distanceKm).toBeCloseTo(8.5, 0);
+
+    const mergedAll = mergeAndSortNearbyRequests(nearby, notified, COLOMBO, 10);
+    expect(mergedAll).toHaveLength(4);
+    expect(mergedAll[3].req._id).toBe('req-moratuwa');
+    expect(mergedAll[3].distanceKm).toBeCloseTo(17.3, 0);
   });
 });

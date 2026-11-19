@@ -22,9 +22,11 @@ import {
 import { PushSubscription } from '@/lib/models/push-subscription.model';
 import {
   buildNearbyRequestsNearSphereQuery,
-  calculateDistanceKm,
+  DEFAULT_COLOMBO_COORDS,
   ensureGeoIndexOnce,
   getCompatibleRequestBloodGroups,
+  mergeAndSortNearbyRequests,
+  normalizeGeoCoordinates,
 } from '@/lib/matching/blood-compatibility';
 import PushSubscriptionToggle from '@/components/notifications/push-subscription-toggle';
 import { calculateClinicalEligibility } from '../requests/data';
@@ -32,20 +34,6 @@ import {
   DonationRequestEntity,
   REQUEST_URGENCY_LEVEL,
 } from '@/types/donor-request.type';
-
-const DEFAULT_COLOMBO_COORDS: [number, number] = [79.8612, 6.9271];
-
-function normalizeCoordinates(coordinates?: number[] | null): [number, number] {
-  if (
-    Array.isArray(coordinates) &&
-    coordinates.length === 2 &&
-    Number.isFinite(coordinates[0]) &&
-    Number.isFinite(coordinates[1])
-  ) {
-    return [coordinates[0], coordinates[1]];
-  }
-  return DEFAULT_COLOMBO_COORDS;
-}
 
 type LeanDonationRequest = Pick<
   IDonationRequestDocument,
@@ -128,7 +116,7 @@ async function DonorDashboardContent() {
   // Calculate clinical eligibility (120 days waiting period)
   const isClinicallyEligible = calculateClinicalEligibility(donor);
 
-  const donorCoordinates = normalizeCoordinates(donor.location?.coordinates);
+  const donorCoordinates = normalizeGeoCoordinates(donor.location?.coordinates);
   const donorRadiusKm =
     typeof donor.radiusPreferenceKm === 'number' && donor.radiusPreferenceKm > 0
       ? donor.radiusPreferenceKm
@@ -174,30 +162,12 @@ async function DonorDashboardContent() {
     ]);
 
   // Deduplicate nearby $nearSphere matches and explicitly notified pending requests, sorted nearest-first
-  const mergedRequestsMap = new Map<
-    string,
-    { req: LeanDonationRequest; distanceKm: number }
-  >();
-
-  for (const req of [...nearbyRequestsRaw, ...notifiedRequestsRaw]) {
-    const id = req._id.toString();
-    if (!mergedRequestsMap.has(id)) {
-      const requestCoords = normalizeCoordinates(req.location?.coordinates);
-      const distanceKm = calculateDistanceKm(donorCoordinates, requestCoords);
-      mergedRequestsMap.set(id, { req, distanceKm });
-    }
-  }
-
-  const sortedMatchedRequests = Array.from(mergedRequestsMap.values())
-    .sort((a, b) => {
-      if (a.distanceKm !== b.distanceKm) {
-        return a.distanceKm - b.distanceKm;
-      }
-      const timeA = a.req.createdAt ? new Date(a.req.createdAt).getTime() : 0;
-      const timeB = b.req.createdAt ? new Date(b.req.createdAt).getTime() : 0;
-      return timeB - timeA;
-    })
-    .slice(0, 10);
+  const sortedMatchedRequests = mergeAndSortNearbyRequests(
+    nearbyRequestsRaw,
+    notifiedRequestsRaw,
+    donorCoordinates,
+    10,
+  );
 
   const activeRequests: DonationRequestEntity[] = sortedMatchedRequests.map(
     ({ req, distanceKm }) => ({
@@ -208,7 +178,7 @@ async function DonorDashboardContent() {
       address: req.address,
       location: {
         type: 'Point',
-        coordinates: normalizeCoordinates(req.location?.coordinates),
+        coordinates: normalizeGeoCoordinates(req.location?.coordinates),
       },
       bloodGroup: req.bloodGroup,
       quantity: req.quantity,
