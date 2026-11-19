@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useEffect, useRef } from 'react';
+import { useState, useActionState, useEffect, useRef } from 'react';
 import {
   Building2,
   MapPin,
@@ -12,6 +12,7 @@ import {
   Globe,
   Building,
   AlertTriangle,
+  Navigation,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { updateHospitalProfile } from '@/actions/hospital.actions';
@@ -32,6 +33,45 @@ export default function HospitalProfileForm({
     success: false,
   });
   const lastStateRef = useRef(state);
+
+  // Geolocation state for hospital facility coordinates
+  const [coords, setCoords] = useState<{ longitude: number; latitude: number }>(
+    {
+      longitude: initialData.location?.coordinates?.[0] ?? 79.8612,
+      latitude: initialData.location?.coordinates?.[1] ?? 6.9271,
+    },
+  );
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
+  const [detectedTime, setDetectedTime] = useState<Date | null>(null);
+
+  const handleDetectLocation = () => {
+    if (typeof window === 'undefined' || !('geolocation' in navigator)) {
+      toast.error('Geolocation is not supported by your browser.');
+      return;
+    }
+
+    setIsDetectingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setCoords({
+          longitude: position.coords.longitude,
+          latitude: position.coords.latitude,
+        });
+        setDetectedTime(new Date());
+        setIsDetectingLocation(false);
+        toast.success('Hospital location detected successfully!');
+      },
+      (err) => {
+        setIsDetectingLocation(false);
+        toast.error(`Unable to retrieve location: ${err.message}`);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000,
+      },
+    );
+  };
 
   // Automatically go back to view mode if submission was successful
   useEffect(() => {
@@ -220,9 +260,29 @@ export default function HospitalProfileForm({
             </div>
 
             <div className="space-y-2 sm:col-span-2">
-              <label className="text-xs font-medium text-foreground block">
-                Street Address <span className="text-red-500">*</span>
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs font-medium text-foreground block">
+                  Street Address <span className="text-red-500">*</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={handleDetectLocation}
+                  disabled={isDetectingLocation}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-primary hover:text-primary/80 bg-primary/10 hover:bg-primary/15 rounded-md transition-colors disabled:opacity-50 cursor-pointer"
+                >
+                  {isDetectingLocation ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      Detecting GPS...
+                    </>
+                  ) : (
+                    <>
+                      <Navigation className="w-3.5 h-3.5" />
+                      Detect Current Location
+                    </>
+                  )}
+                </button>
+              </div>
               <input
                 type="text"
                 name="address"
@@ -257,17 +317,26 @@ export default function HospitalProfileForm({
               )}
             </div>
 
-            {/* Hidden GeoJSON fields */}
-            <input
-              type="hidden"
-              name="longitude"
-              value={initialData.location?.coordinates?.[0] ?? 79.8612}
-            />
-            <input
-              type="hidden"
-              name="latitude"
-              value={initialData.location?.coordinates?.[1] ?? 6.9271}
-            />
+            {/* Hidden GeoJSON fields bound to React state */}
+            <input type="hidden" name="longitude" value={coords.longitude} />
+            <input type="hidden" name="latitude" value={coords.latitude} />
+
+            {/* GPS Feedback Badge */}
+            <div className="sm:col-span-2 flex items-center gap-2 text-[11px] text-muted-foreground">
+              <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
+              <span>
+                Coordinates:{' '}
+                <span className="font-tabular text-foreground font-medium">
+                  {coords.latitude.toFixed(4)}° N, {coords.longitude.toFixed(4)}
+                  ° E
+                </span>
+                {detectedTime && (
+                  <span className="ml-1.5 text-emerald-600 dark:text-emerald-400 font-medium">
+                    (Updated just now)
+                  </span>
+                )}
+              </span>
+            </div>
           </div>
         </div>
       </section>
