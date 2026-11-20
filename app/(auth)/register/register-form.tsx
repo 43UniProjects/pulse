@@ -7,8 +7,8 @@ import { Activity, Loader2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 import GenericFallback from '@/components/fallback';
-import { ACCOUNT_TYPE, AccountType } from './types';
-import { registerSchema } from '../_validators/auth.schema';
+import { ACCOUNT_TYPE, AccountType } from '@/app/(auth)/register/types';
+import { registerSchema } from '@/app/(auth)/_validators/auth.schema';
 import { authClient } from '@/lib/auth/client';
 
 function RegisterFormContent() {

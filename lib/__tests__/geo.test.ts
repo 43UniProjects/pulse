@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateHaversineDistance, shouldSyncLocation } from '../geo';
+import { calculateHaversineDistance, shouldSyncLocation } from '@/lib/geo';
 
 describe('Haversine Geolocation Utility (lib/geo.ts)', () => {
   const colombo = { latitude: 6.9271, longitude: 79.8612 };

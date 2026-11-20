@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { BLOOD_GROUPS, type BloodGroup } from '../../types/common.type';
+import { BLOOD_GROUPS, type BloodGroup } from '@/types/common.type';
 import {
   BLOOD_COMPATIBILITY,
   COOLDOWN_DAYS,
@@ -15,7 +15,7 @@ import {
   mergeAndSortNearbyRequests,
   normalizeGeoCoordinates,
   resetGeoIndexCacheForTests,
-} from './blood-compatibility';
+} from '@/lib/matching/blood-compatibility';
 
 const COLOMBO: [number, number] = [79.8612, 6.9271];
 const DEHIWALA: [number, number] = [79.8653, 6.8511];

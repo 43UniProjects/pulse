@@ -1,4 +1,4 @@
-import { BLOOD_GROUPS, type BloodGroup } from '../../types/common.type';
+import { BLOOD_GROUPS, type BloodGroup } from '@/types/common.type';
 
 /**
  * 8-way recipient-to-compatible-donor blood compatibility matrix.

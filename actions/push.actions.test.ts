@@ -22,7 +22,7 @@ vi.mock('next/cache', () => ({
   revalidatePath: (...args: unknown[]) => mockRevalidatePath(...args),
 }));
 
-vi.mock('../lib/auth/config', () => ({
+vi.mock('@/lib/auth/config', () => ({
   auth: {
     api: {
       getSession: (...args: unknown[]) => mockGetSession(...args),
@@ -30,17 +30,17 @@ vi.mock('../lib/auth/config', () => ({
   },
 }));
 
-vi.mock('../lib/db/connect', () => ({
+vi.mock('@/lib/db/connect', () => ({
   connectToDatabase: (...args: unknown[]) => mockConnectToDatabase(...args),
 }));
 
-vi.mock('../lib/models/user.model', () => ({
+vi.mock('@/lib/models/user.model', () => ({
   User: {
     findById: (...args: unknown[]) => mockUserFindById(...args),
   },
 }));
 
-vi.mock('../lib/models/push-subscription.model', () => ({
+vi.mock('@/lib/models/push-subscription.model', () => ({
   PushSubscription: {
     findOneAndUpdate: (...args: unknown[]) => mockFindOneAndUpdate(...args),
     deleteOne: (...args: unknown[]) => mockDeleteOne(...args),
@@ -52,7 +52,7 @@ import {
   getDonorPushSubscriptionStatus,
   removePushSubscription,
   savePushSubscription,
-} from './push.actions';
+} from '@/actions/push.actions';
 
 const VALID_SUBSCRIPTION = {
   endpoint: 'https://fcm.googleapis.com/fcm/send/test-token-123',

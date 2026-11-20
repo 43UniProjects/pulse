@@ -23,22 +23,22 @@ vi.mock('next/cache', () => ({
   revalidatePath: (...args: unknown[]) => mockRevalidatePath(...args),
 }));
 
-vi.mock('../lib/auth/guard', () => ({
+vi.mock('@/lib/auth/guard', () => ({
   validateRoleAccess: (...args: unknown[]) => mockValidateRoleAccess(...args),
 }));
 
-vi.mock('../lib/db/connect', () => ({
+vi.mock('@/lib/db/connect', () => ({
   connectToDatabase: (...args: unknown[]) => mockConnectToDatabase(...args),
 }));
 
-vi.mock('../lib/models/donor.model', () => ({
+vi.mock('@/lib/models/donor.model', () => ({
   Donor: {
     createIndexes: (...args: unknown[]) => mockDonorCreateIndexes(...args),
     find: (...args: unknown[]) => mockDonorFind(...args),
   },
 }));
 
-vi.mock('../lib/models/hospital.model', () => ({
+vi.mock('@/lib/models/hospital.model', () => ({
   Hospital: {
     findById: (...args: unknown[]) => mockHospitalFindById(...args),
     findByIdAndUpdate: (...args: unknown[]) =>
@@ -46,28 +46,28 @@ vi.mock('../lib/models/hospital.model', () => ({
   },
 }));
 
-vi.mock('../lib/models/donation-request.model', () => ({
+vi.mock('@/lib/models/donation-request.model', () => ({
   DonationRequest: {
     create: (...args: unknown[]) => mockDonationRequestCreate(...args),
   },
 }));
 
-vi.mock('../lib/notifications/push-alert', async (importOriginal) => {
+vi.mock('@/lib/notifications/push-alert', async (importOriginal) => {
   const actual =
-    await importOriginal<typeof import('../lib/notifications/push-alert')>();
+    await importOriginal<typeof import('@/lib/notifications/push-alert')>();
   return {
     ...actual,
     dispatchPushAlerts: (...args: unknown[]) => mockDispatchPushAlerts(...args),
   };
 });
 
-vi.mock('../lib/notifications/email-alert', () => ({
+vi.mock('@/lib/notifications/email-alert', () => ({
   dispatchEmergencyEmailAlerts: (...args: unknown[]) =>
     mockDispatchEmergencyEmailAlerts(...args),
 }));
 
-import { createDonationRequest } from './request.actions';
-import { resetGeoIndexCacheForTests } from '../lib/matching/blood-compatibility';
+import { createDonationRequest } from '@/actions/request.actions';
+import { resetGeoIndexCacheForTests } from '@/lib/matching/blood-compatibility';
 
 function makeFormData(entries: Record<string, string>): FormData {
   const fd = new FormData();

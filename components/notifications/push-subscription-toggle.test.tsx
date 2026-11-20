@@ -13,7 +13,7 @@ const mockGetDonorPushSubscriptionStatus = vi.fn();
 const mockToastSuccess = vi.fn();
 const mockToastError = vi.fn();
 
-vi.mock('../../actions/push.actions', () => ({
+vi.mock('@/actions/push.actions', () => ({
   savePushSubscription: (...args: unknown[]) =>
     mockSavePushSubscription(...args),
   removePushSubscription: (...args: unknown[]) =>
@@ -29,7 +29,7 @@ vi.mock('sonner', () => ({
   },
 }));
 
-import PushSubscriptionToggle from './push-subscription-toggle';
+import PushSubscriptionToggle from '@/components/notifications/push-subscription-toggle';
 
 const SAMPLE_VAPID_PUBLIC_KEY =
   'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U';

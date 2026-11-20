@@ -15,14 +15,14 @@ vi.mock('web-push', () => ({
   setVapidDetails: (...args: unknown[]) => mockSetVapidDetails(...args),
 }));
 
-vi.mock('../models/push-subscription.model', () => ({
+vi.mock('@/lib/models/push-subscription.model', () => ({
   PushSubscription: {
     find: (...args: unknown[]) => mockFind(...args),
     deleteMany: (...args: unknown[]) => mockDeleteMany(...args),
   },
 }));
 
-vi.mock('../mail', () => ({
+vi.mock('@/lib/mail', () => ({
   transporter: {
     sendMail: (...args: unknown[]) => mockSendMail(...args),
   },
@@ -33,12 +33,12 @@ import {
   dispatchPushAlerts,
   ensureVapidConfigured,
   resetVapidConfigCacheForTests,
-} from './push-alert';
+} from '@/lib/notifications/push-alert';
 import {
   dispatchEmergencyEmailAlerts,
   escapeHtml,
   sendEmergencyAlertEmail,
-} from './email-alert';
+} from '@/lib/notifications/email-alert';
 
 const ORIGINAL_ENV = { ...process.env };
 

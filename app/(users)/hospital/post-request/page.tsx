@@ -4,7 +4,7 @@ import { validateRoleAccess } from '@/lib/auth/guard';
 import { connectToDatabase } from '@/lib/db/connect';
 import { Hospital } from '@/lib/models/hospital.model';
 import GenericFallback from '@/components/fallback';
-import PostRequestClient from './post-request-client';
+import PostRequestClient from '@/app/(users)/hospital/post-request/post-request-client';
 
 export const metadata: Metadata = {
   title: 'Post Blood Request | Pulse',

@@ -6,7 +6,7 @@ import { Donation } from '@/lib/models/donation.model';
 import HospitalTrackingClient, {
   TrackingRequestItem,
   RespondingDonorItem,
-} from './tracking-client';
+} from '@/app/(users)/hospital/tracking/tracking-client';
 
 export const metadata: Metadata = {
   title: 'Emergency Tracking | Pulse',

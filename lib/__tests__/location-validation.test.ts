@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { locationCoordSchema } from '../geo';
+import { locationCoordSchema } from '@/lib/geo';
 
 describe('Location Coordinate Validation Schema (Zod Boundaries)', () => {
   it('should accept valid geographic coordinates', () => {

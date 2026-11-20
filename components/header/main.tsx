@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useTheme } from 'next-themes';
 import { Sun, Moon, LayoutDashboard } from 'lucide-react';
 
-import MobileMenu from './mobile-menu';
+import MobileMenu from '@/components/header/mobile-menu';
 import { NAV_LINKS } from '@/types/common.type';
 import { authClient } from '@/lib/auth/client';
 

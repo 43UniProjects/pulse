@@ -1,6 +1,6 @@
-import { BloodGroup, IGeoPoint } from './common.type';
-import { DonationEntity } from './donation.type';
-import { UserEntity } from './user.type';
+import { BloodGroup, IGeoPoint } from '@/types/common.type';
+import { DonationEntity } from '@/types/donation.type';
+import { UserEntity } from '@/types/user.type';
 
 export interface DonorEntity {
   _id: string | UserEntity;
