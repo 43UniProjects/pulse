@@ -36,6 +36,7 @@ const DonorSchema = new Schema<IDonorDocument>(
     isEligible: { type: Boolean, default: true, index: true },
     isAvailable: { type: Boolean, default: true },
     liveLocationSync: { type: Boolean, default: false },
+    lastLocationUpdatedAt: { type: Date, default: null },
     smsAlertsEnabled: { type: Boolean, default: true },
     emailAlertsEnabled: { type: Boolean, default: false },
     history: [

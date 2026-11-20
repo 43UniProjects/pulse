@@ -9,6 +9,7 @@ import {
   Clock,
   Activity,
   Users,
+  Navigation,
 } from 'lucide-react';
 import { HospitalEntity } from '@/types/hospital.type';
 
@@ -121,6 +122,20 @@ export default function HospitalProfileView({
                   {hospital.address}
                 </p>
               </div>
+              {hospital.location?.coordinates && (
+                <div className="sm:col-span-2">
+                  <p className="text-xs font-medium text-muted-foreground mb-1">
+                    GPS Coordinates
+                  </p>
+                  <p className="text-sm font-medium text-foreground flex items-center gap-2">
+                    <Navigation className="w-4 h-4 text-primary shrink-0" />
+                    <span className="font-tabular">
+                      {hospital.location.coordinates[1].toFixed(4)}° N,{' '}
+                      {hospital.location.coordinates[0].toFixed(4)}° E
+                    </span>
+                  </p>
+                </div>
+              )}
               {hospital.website && (
                 <div className="sm:col-span-2">
                   <p className="text-xs font-medium text-muted-foreground mb-1">

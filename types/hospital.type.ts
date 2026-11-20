@@ -36,6 +36,7 @@ export interface HospitalEntity {
   address: string;
   city: string;
   location: IGeoPoint;
+  lastLocationUpdatedAt?: Date | null;
   hotline: string;
   email: string;
   website?: string;

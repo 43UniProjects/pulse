@@ -12,10 +12,12 @@ import {
   Globe,
   Building,
   AlertTriangle,
+  Navigation,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { updateHospitalProfile } from '@/actions/hospital.actions';
 import { HospitalEntity, HOSPITAL_TYPE } from '@/types/hospital.type';
+import { useDetectLocation } from '@/hooks/use-detect-location';
 
 export default function HospitalProfileForm({
   initialData,
@@ -32,6 +34,25 @@ export default function HospitalProfileForm({
     success: false,
   });
   const lastStateRef = useRef(state);
+
+  // Geolocation state for hospital facility coordinates
+  const {
+    coords,
+    hasDetectedLocation,
+    isDetectingLocation,
+    detectedTime,
+    locationError,
+    detectButtonRef,
+    handleDetectLocation,
+    requireLocationBeforeSubmit,
+  } = useDetectLocation({
+    initialCoordinates: initialData.location?.coordinates,
+    initiallyCaptured:
+      !isIncomplete && Boolean(initialData.lastLocationUpdatedAt),
+    successMessage: 'Hospital location detected successfully!',
+  });
+
+  const activeLocationError = locationError || state.fieldErrors?.location?.[0];
 
   // Automatically go back to view mode if submission was successful
   useEffect(() => {
@@ -62,7 +83,11 @@ export default function HospitalProfileForm({
   };
 
   return (
-    <form action={formAction} className="space-y-8 pb-12">
+    <form
+      action={formAction}
+      onSubmit={requireLocationBeforeSubmit}
+      className="space-y-8 pb-12"
+    >
       {isIncomplete && (
         <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
@@ -220,9 +245,34 @@ export default function HospitalProfileForm({
             </div>
 
             <div className="space-y-2 sm:col-span-2">
-              <label className="text-xs font-medium text-foreground block">
-                Street Address <span className="text-red-500">*</span>
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs font-medium text-foreground block">
+                  Street Address <span className="text-red-500">*</span>
+                </label>
+                <button
+                  ref={detectButtonRef}
+                  type="button"
+                  onClick={handleDetectLocation}
+                  disabled={isDetectingLocation}
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-primary hover:text-primary/80 bg-primary/10 hover:bg-primary/15 rounded-md transition-colors disabled:opacity-50 cursor-pointer ${
+                    !hasDetectedLocation && activeLocationError
+                      ? 'ring-2 ring-red-500/70 bg-red-500/10 text-red-600 dark:text-red-400'
+                      : ''
+                  }`}
+                >
+                  {isDetectingLocation ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      Detecting GPS...
+                    </>
+                  ) : (
+                    <>
+                      <Navigation className="w-3.5 h-3.5" />
+                      Update Live Location
+                    </>
+                  )}
+                </button>
+              </div>
               <input
                 type="text"
                 name="address"
@@ -257,17 +307,53 @@ export default function HospitalProfileForm({
               )}
             </div>
 
-            {/* Hidden GeoJSON fields */}
+            {/* Hidden GeoJSON fields bound to React state */}
+            <input type="hidden" name="longitude" value={coords.longitude} />
+            <input type="hidden" name="latitude" value={coords.latitude} />
             <input
               type="hidden"
-              name="longitude"
-              value={initialData.location?.coordinates?.[0] ?? 79.8612}
+              name="locationCaptured"
+              value={hasDetectedLocation ? 'true' : 'false'}
             />
-            <input
-              type="hidden"
-              name="latitude"
-              value={initialData.location?.coordinates?.[1] ?? 6.9271}
-            />
+
+            {/* GPS Feedback Badge */}
+            <div className="sm:col-span-2 flex flex-col gap-1.5">
+              <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                <MapPin
+                  className={`w-3.5 h-3.5 shrink-0 ${
+                    hasDetectedLocation ? 'text-primary' : 'text-amber-500'
+                  }`}
+                />
+                {hasDetectedLocation ? (
+                  <span>
+                    Coordinates:{' '}
+                    <span className="font-tabular text-foreground font-medium">
+                      {coords.latitude.toFixed(4)}° N,{' '}
+                      {coords.longitude.toFixed(4)}° E
+                    </span>
+                    {detectedTime ? (
+                      <span className="ml-1.5 text-emerald-600 dark:text-emerald-400 font-medium">
+                        (Updated just now)
+                      </span>
+                    ) : (
+                      <span className="ml-1.5 text-emerald-600 dark:text-emerald-400 font-medium">
+                        (Verified)
+                      </span>
+                    )}
+                  </span>
+                ) : (
+                  <span className="text-amber-600 dark:text-amber-400 font-medium">
+                    Live GPS not captured yet — click &ldquo;Update Live
+                    Location&rdquo; above (Required)
+                  </span>
+                )}
+              </div>
+              {activeLocationError && (
+                <p className="text-xs text-red-500 font-medium">
+                  {activeLocationError}
+                </p>
+              )}
+            </div>
           </div>
         </div>
       </section>

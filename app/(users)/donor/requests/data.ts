@@ -186,7 +186,7 @@ export async function getDonationRequests(
         generalCriteria,
         {
           _id: { $in: acceptedRequestIds },
-          status: { $nin: ['completed', 'declined', 'cancelled'] },
+          status: { $nin: ['completed', 'declined'] },
         },
       ],
     };
@@ -201,7 +201,7 @@ export async function getDonationRequests(
   return requests.map((req) => {
     const reqIdStr = req._id.toString();
     const donorResponse = donationByRequestId.get(reqIdStr);
-    const rawReq = req as Record<string, unknown>;
+    const rawReq = req as unknown as Record<string, unknown>;
 
     return {
       ...req,

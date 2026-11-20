@@ -8,7 +8,7 @@ import GenericFallback from '@/components/fallback';
 import HospitalProfileClient from './hospital-profile-client';
 
 export const metadata: Metadata = {
-  title: 'Facility Profile | Pulse',
+  title: 'Facility Profile',
   description: 'Manage your hospital profile and coordinator details.',
 };
 
@@ -22,6 +22,18 @@ async function HospitalProfileContent() {
     ? ({
         ...hospitalDoc,
         _id: hospitalDoc._id.toString(),
+        location: hospitalDoc.location?.coordinates
+          ? {
+              type: 'Point',
+              coordinates: [
+                hospitalDoc.location.coordinates[0],
+                hospitalDoc.location.coordinates[1],
+              ],
+            }
+          : { type: 'Point', coordinates: [79.8612, 6.9271] },
+        lastLocationUpdatedAt: hospitalDoc.lastLocationUpdatedAt
+          ? new Date(hospitalDoc.lastLocationUpdatedAt)
+          : null,
         verifiedBy: hospitalDoc.verifiedBy
           ? hospitalDoc.verifiedBy.toString()
           : null,
@@ -45,6 +57,7 @@ async function HospitalProfileContent() {
         address: '',
         city: '',
         location: { type: 'Point', coordinates: [79.8612, 6.9271] },
+        lastLocationUpdatedAt: null,
         hotline: '',
         email: session.user.email,
         website: '',
