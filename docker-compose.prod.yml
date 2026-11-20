@@ -1,5 +1,11 @@
 services:
   pulse-app:
     image: ghcr.io/43uniprojects/pulse:latest
-
-    
+    container_name: pulse-app-container
+    env_file:
+      - .env.local
+    environment:
+      - NEXT_TELEMETRY_DISABLED=1
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
