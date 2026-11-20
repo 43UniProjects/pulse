@@ -30,6 +30,7 @@ export interface DonationRequestEntity {
   timePosted: string; // Relative or absolute timestamp (e.g., "10 mins ago")
   notes: string; // Clinical instructions and emergency details
   matchedDonorsCount?: number; // Count of notified donors within the target radius
+  notifiedDonors?: string[]; // References to matched donors notified for this request
   fulfilledBy?: string; // Reference to the donor who accepted/completed the request
   createdAt: string; // ISO timestamp of request creation
   updatedAt: string; // ISO timestamp of last update

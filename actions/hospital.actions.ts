@@ -156,10 +156,10 @@ export async function updateHospitalProfile(
 }
 
 const postRequestSchema = z.object({
-  bloodGroup: z.enum(BLOOD_GROUPS as unknown as [string, ...string[]]),
+  bloodGroup: z.enum(BLOOD_GROUPS),
   quantity: z.coerce.number().min(1).max(20),
   radiusKm: z.coerce.number().default(10),
-  urgency: z.enum(REQUEST_URGENCY_LEVEL as unknown as [string, ...string[]]),
+  urgency: z.enum(REQUEST_URGENCY_LEVEL),
   notes: z.string().optional().default(''),
 });
 

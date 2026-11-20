@@ -1,12 +1,41 @@
-import mongoose, { Schema } from 'mongoose';
+import mongoose, { Schema, Document, Model, Types } from 'mongoose';
 import { PointSchema } from './common.models';
 import { BLOOD_GROUPS } from '@/types/common.type';
 import {
+  DonationRequestEntity,
   REQUEST_URGENCY_LEVEL,
   REQUEST_STATUS,
 } from '@/types/donor-request.type';
 
-const DonationRequestSchema = new Schema(
+export interface IDonationRequestDocument
+  extends
+    Omit<
+      DonationRequestEntity,
+      | '_id'
+      | 'requestId'
+      | 'hospitalId'
+      | 'distance'
+      | 'timePosted'
+      | 'notes'
+      | 'matchedDonorsCount'
+      | 'notifiedDonors'
+      | 'fulfilledBy'
+      | 'createdAt'
+      | 'updatedAt'
+    >,
+    Document {
+  _id: Types.ObjectId;
+  requestId: string;
+  hospitalId: Types.ObjectId;
+  notes?: string;
+  matchedDonorsCount: number;
+  notifiedDonors: Types.ObjectId[];
+  fulfilledBy?: Types.ObjectId | null;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+const DonationRequestSchema = new Schema<IDonationRequestDocument>(
   {
     requestId: { type: String, required: true, unique: true, index: true },
     hospitalId: {
@@ -45,6 +74,8 @@ const DonationRequestSchema = new Schema(
     },
     radiusKm: { type: Number, default: 10 },
     notes: { type: String, trim: true },
+    matchedDonorsCount: { type: Number, default: 0 },
+    notifiedDonors: [{ type: Schema.Types.ObjectId, ref: 'Donor' }],
     fulfilledBy: { type: Schema.Types.ObjectId, ref: 'Donor', default: null },
   },
   {
@@ -56,6 +87,9 @@ const DonationRequestSchema = new Schema(
 DonationRequestSchema.index({ location: '2dsphere' });
 DonationRequestSchema.index({ status: 1, bloodGroup: 1, urgency: -1 });
 
-export const DonationRequest =
+export const DonationRequest: Model<IDonationRequestDocument> =
   mongoose.models.DonationRequest ||
-  mongoose.model('DonationRequest', DonationRequestSchema);
+  mongoose.model<IDonationRequestDocument>(
+    'DonationRequest',
+    DonationRequestSchema,
+  );
