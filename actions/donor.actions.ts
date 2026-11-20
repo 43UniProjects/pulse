@@ -8,6 +8,7 @@ import { connectToDatabase } from '@/lib/db/connect';
 import { Donor } from '@/lib/models/donor.model';
 import { User } from '@/lib/models/user.model';
 import { auth } from '@/lib/auth/config';
+import { verifyProfileLocationCapture } from '@/lib/location/profile-location';
 
 // Zod Schema based on DonorEntity
 const donorSchema = z.object({
@@ -95,6 +96,25 @@ export async function updateDonorProfile(
   try {
     await connectToDatabase();
 
+    const locationCaptured = formData.get('locationCaptured') === 'true';
+    const existingDonor = await Donor.findById(session.user.id)
+      .select('lastLocationUpdatedAt')
+      .lean();
+
+    const locationCheck = await verifyProfileLocationCapture({
+      userId: session.user.id,
+      locationCaptured,
+      existingLastLocationUpdatedAt: existingDonor?.lastLocationUpdatedAt,
+    });
+
+    if (!locationCheck.allowed) {
+      return {
+        success: false,
+        error: locationCheck.error,
+        fieldErrors: locationCheck.fieldErrors,
+      };
+    }
+
     const {
       fullName,
       phone,
@@ -126,6 +146,7 @@ export async function updateDonorProfile(
           type: 'Point',
           coordinates: [longitude, latitude],
         },
+        lastLocationUpdatedAt: locationCheck.nextLocationUpdatedAt,
         radiusPreferenceKm,
         isAvailable,
         liveLocationSync,

@@ -59,6 +59,7 @@ const HospitalSchema = new Schema<IHospitalDocument>(
         default: [79.8612, 6.9271],
       },
     },
+    lastLocationUpdatedAt: { type: Date, default: null },
     hotline: { type: String, default: '' },
     email: { type: String, required: true, lowercase: true },
     website: { type: String, trim: true, default: '' },
