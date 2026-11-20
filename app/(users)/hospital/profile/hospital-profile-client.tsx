@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { HospitalEntity } from '@/types/hospital.type';
-import HospitalProfileView from './hospital-profile-view';
-import HospitalProfileForm from './hospital-profile-form';
+import HospitalProfileView from '@/app/(users)/hospital/profile/hospital-profile-view';
+import HospitalProfileForm from '@/app/(users)/hospital/profile/hospital-profile-form';
 
 export default function HospitalProfileClient({
   initialData,

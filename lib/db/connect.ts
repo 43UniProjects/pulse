@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { getMongoUri } from './config';
+import { getMongoUri } from '@/lib/db/config';
 
 // Define the global cache object shape
 declare global {

@@ -2,7 +2,9 @@ import { validateRoleAccess } from '@/lib/auth/guard';
 import { connectToDatabase } from '@/lib/db/connect';
 import { User } from '@/lib/models/user.model';
 import { UserEntity } from '@/types/user.type';
-import ManageUsersClient, { SerializedUser } from './manage-users-client';
+import ManageUsersClient, {
+  SerializedUser,
+} from '@/app/(users)/admin/manage-users/manage-users-client';
 
 export default async function ManageUsersPage() {
   await validateRoleAccess('admin');

@@ -5,7 +5,7 @@ import { connectToDatabase } from '@/lib/db/connect';
 import { Hospital } from '@/lib/models/hospital.model';
 import { HospitalEntity } from '@/types/hospital.type';
 import GenericFallback from '@/components/fallback';
-import HospitalProfileClient from './hospital-profile-client';
+import HospitalProfileClient from '@/app/(users)/hospital/profile/hospital-profile-client';
 
 export const metadata: Metadata = {
   title: 'Facility Profile',

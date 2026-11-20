@@ -3,9 +3,9 @@
 import { useActionState, useEffect, useRef, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { submitContactMessage } from './actions';
-import { contactSchema } from './schema';
-import { PreFillData } from './data';
+import { submitContactMessage } from '@/app/contact/actions';
+import { contactSchema } from '@/app/contact/schema';
+import { PreFillData } from '@/app/contact/data';
 
 interface ContactFormProps {
   user: PreFillData;

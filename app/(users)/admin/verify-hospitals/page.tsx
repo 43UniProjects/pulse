@@ -5,7 +5,7 @@ import { HospitalEntity } from '@/types/hospital.type';
 import VerifyHospitalsClient, {
   SerializedHospitalVerification,
   HospitalStatus,
-} from './verify-hospitals-client';
+} from '@/app/(users)/admin/verify-hospitals/verify-hospitals-client';
 
 export default async function VerifyHospitalsPage() {
   await validateRoleAccess('admin');

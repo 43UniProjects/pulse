@@ -5,9 +5,9 @@ import {
   type PushSubscription as WebPushSubscription,
   type RequestOptions,
 } from 'web-push';
-import { PushSubscription } from '../models/push-subscription.model';
-import type { BloodGroup } from '../../types/common.type';
-import type { RequestUrgency } from '../../types/donor-request.type';
+import { PushSubscription } from '@/lib/models/push-subscription.model';
+import type { BloodGroup } from '@/types/common.type';
+import type { RequestUrgency } from '@/types/donor-request.type';
 
 export interface PushAlertPayload {
   title: string;

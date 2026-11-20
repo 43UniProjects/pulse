@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import RegisterForm from './register-form';
+import RegisterForm from '@/app/(auth)/register/register-form';
 import Footer from '@/components/footer';
 import Header from '@/components/header/main';
 

@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
-import RequestDetailClient from './request-details-form';
+import RequestDetailClient from '@/app/(users)/donor/requests/[id]/request-details-form';
 import GenericFallback from '@/components/fallback';
-import { getDonationRequest } from '../data';
+import { getDonationRequest } from '@/app/(users)/donor/requests/data';
 
 export default async function RequestPage({
   params,

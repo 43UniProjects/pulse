@@ -3,7 +3,7 @@ import { validateRoleAccess } from '@/lib/auth/guard';
 import { connectToDatabase } from '@/lib/db/connect';
 import { Admin } from '@/lib/models/admin.model';
 import { AdminEntity } from '@/types/admin.type';
-import AdminProfileClient from './admin-profile-client';
+import AdminProfileClient from '@/app/(users)/admin/profile/admin-profile-client';
 
 export const metadata: Metadata = {
   title: 'Admin Profile | Pulse',

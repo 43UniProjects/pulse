@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document, Model, Types } from 'mongoose';
-import { PointSchema } from './common.models';
+import { PointSchema } from '@/lib/models/common.models';
 import { BLOOD_GROUPS } from '@/types/common.type';
 import {
   DonationRequestEntity,

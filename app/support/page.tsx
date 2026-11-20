@@ -14,8 +14,8 @@ import {
 
 import Footer from '@/components/footer';
 import Header from '@/components/header/main';
-import { getFaqs } from './data';
-import FaqClient from './faq-client';
+import { getFaqs } from '@/app/support/data';
+import FaqClient from '@/app/support/faq-client';
 import { auth } from '@/lib/auth/config'; // Import Better Auth
 
 export const metadata: Metadata = {

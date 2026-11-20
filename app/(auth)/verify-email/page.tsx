@@ -4,7 +4,7 @@ import Footer from '@/components/footer';
 import Header from '@/components/header/main';
 import { Suspense } from 'react';
 import GenericFallback from '@/components/fallback';
-import VerifyEmailForm from './verify-email-form';
+import VerifyEmailForm from '@/app/(auth)/verify-email/verify-email-form';
 
 export const metadata: Metadata = {
   title: 'Verify Email',

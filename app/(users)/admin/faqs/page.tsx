@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { connectToDatabase } from '@/lib/db/connect';
 import { Faq } from '@/lib/models/faq.model';
-import FaqClient from './faq-client';
+import FaqClient from '@/app/(users)/admin/faqs/faq-client';
 import { connection } from 'next/server';
 import GenericFallback from '@/components/fallback';
 

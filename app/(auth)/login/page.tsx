@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
-import LoginForm from './login-form';
+import LoginForm from '@/app/(auth)/login/login-form';
 import Footer from '@/components/footer';
 import Header from '@/components/header/main';
 import GenericFallback from '@/components/fallback';

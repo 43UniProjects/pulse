@@ -2,7 +2,12 @@
 
 import { useState, useActionState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Loader2, AlertCircle, X } from 'lucide-react';
-import { addFaq, updateFaq, deleteFaq, FaqActionState } from './actions';
+import {
+  addFaq,
+  updateFaq,
+  deleteFaq,
+  FaqActionState,
+} from '@/app/(users)/admin/faqs/actions';
 import { toast } from 'sonner';
 
 type FaqData = {
