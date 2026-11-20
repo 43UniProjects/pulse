@@ -20,6 +20,7 @@ import { toast } from 'sonner';
 import { updateDonorProfile } from '@/actions/donor.actions';
 import { DonorEntity } from '@/types/donor.type';
 import { BLOOD_GROUPS } from '@/types/common.type';
+import { useDetectLocation } from '@/hooks/use-detect-location';
 
 export default function DonorProfileForm({
   initialData,
@@ -59,43 +60,21 @@ export default function DonorProfileForm({
   // Manage slider and toggles state so UI updates immediately
 
   // Geolocation state for profile coordinates
-  const [coords, setCoords] = useState<{ longitude: number; latitude: number }>(
-    {
-      longitude: initialData.location?.coordinates?.[0] ?? 79.8612,
-      latitude: initialData.location?.coordinates?.[1] ?? 6.9271,
-    },
-  );
-  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
-  const [detectedTime, setDetectedTime] = useState<Date | null>(null);
-
-  const handleDetectLocation = () => {
-    if (typeof window === 'undefined' || !('geolocation' in navigator)) {
-      toast.error('Geolocation is not supported by your browser.');
-      return;
-    }
-
-    setIsDetectingLocation(true);
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setCoords({
-          longitude: position.coords.longitude,
-          latitude: position.coords.latitude,
-        });
-        setDetectedTime(new Date());
-        setIsDetectingLocation(false);
-        toast.success('Current location detected successfully!');
-      },
-      (err) => {
-        setIsDetectingLocation(false);
-        toast.error(`Unable to retrieve location: ${err.message}`);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 300000,
-      },
-    );
-  };
+  const {
+    coords,
+    hasDetectedLocation,
+    isDetectingLocation,
+    detectedTime,
+    locationError,
+    detectButtonRef,
+    handleDetectLocation,
+    requireLocationBeforeSubmit,
+  } = useDetectLocation({
+    initialCoordinates: initialData.location?.coordinates,
+    initiallyCaptured:
+      !isIncomplete && Boolean(initialData.lastLocationUpdatedAt),
+    successMessage: 'Current location detected successfully!',
+  });
 
   const [radius, setRadius] = useState(initialData.radiusPreferenceKm);
   const [isAvailable, setIsAvailable] = useState(initialData.isAvailable);
@@ -109,8 +88,14 @@ export default function DonorProfileForm({
     initialData.emailAlertsEnabled,
   );
 
+  const activeLocationError = locationError || state.fieldErrors?.location?.[0];
+
   return (
-    <form action={formAction} className="space-y-8 pb-12">
+    <form
+      action={formAction}
+      onSubmit={requireLocationBeforeSubmit}
+      className="space-y-8 pb-12"
+    >
       {isIncomplete && (
         <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
@@ -276,10 +261,15 @@ export default function DonorProfileForm({
                 Current Address <span className="text-red-500">*</span>
               </label>
               <button
+                ref={detectButtonRef}
                 type="button"
                 onClick={handleDetectLocation}
                 disabled={isDetectingLocation}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-primary hover:text-primary/80 bg-primary/10 hover:bg-primary/15 rounded-md transition-colors disabled:opacity-50"
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-primary hover:text-primary/80 bg-primary/10 hover:bg-primary/15 rounded-md transition-colors disabled:opacity-50 cursor-pointer ${
+                  !hasDetectedLocation && activeLocationError
+                    ? 'ring-2 ring-red-500/70 bg-red-500/10 text-red-600 dark:text-red-400'
+                    : ''
+                }`}
               >
                 {isDetectingLocation ? (
                   <>
@@ -289,7 +279,7 @@ export default function DonorProfileForm({
                 ) : (
                   <>
                     <Navigation className="w-3.5 h-3.5" />
-                    Detect Current Location
+                    Update Live Location
                   </>
                 )}
               </button>
@@ -311,23 +301,48 @@ export default function DonorProfileForm({
             {/* Hidden inputs for GeoJSON coords bound to React state */}
             <input type="hidden" name="longitude" value={coords.longitude} />
             <input type="hidden" name="latitude" value={coords.latitude} />
+            <input
+              type="hidden"
+              name="locationCaptured"
+              value={hasDetectedLocation ? 'true' : 'false'}
+            />
 
             {/* GPS Feedback Badge with font-tabular */}
             <div className="mt-2.5 flex items-center gap-2 text-[11px] text-muted-foreground">
-              <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
-              <span>
-                Coordinates:{' '}
-                <span className="font-tabular text-foreground font-medium">
-                  {coords.latitude.toFixed(4)}° N, {coords.longitude.toFixed(4)}
-                  ° E
-                </span>
-                {detectedTime && (
-                  <span className="ml-1.5 text-emerald-600 dark:text-emerald-400 font-medium">
-                    (Updated just now)
+              <MapPin
+                className={`w-3.5 h-3.5 shrink-0 ${
+                  hasDetectedLocation ? 'text-primary' : 'text-amber-500'
+                }`}
+              />
+              {hasDetectedLocation ? (
+                <span>
+                  Coordinates:{' '}
+                  <span className="font-tabular text-foreground font-medium">
+                    {coords.latitude.toFixed(4)}° N,{' '}
+                    {coords.longitude.toFixed(4)}° E
                   </span>
-                )}
-              </span>
+                  {detectedTime ? (
+                    <span className="ml-1.5 text-emerald-600 dark:text-emerald-400 font-medium">
+                      (Updated just now)
+                    </span>
+                  ) : (
+                    <span className="ml-1.5 text-emerald-600 dark:text-emerald-400 font-medium">
+                      (Verified)
+                    </span>
+                  )}
+                </span>
+              ) : (
+                <span className="text-amber-600 dark:text-amber-400 font-medium">
+                  Live GPS not captured yet — click &ldquo;Update Live
+                  Location&rdquo; above (Required)
+                </span>
+              )}
             </div>
+            {activeLocationError && (
+              <p className="text-xs text-red-500 mt-1.5 font-medium">
+                {activeLocationError}
+              </p>
+            )}
           </div>
 
           <div className="p-5 hover:bg-secondary/20 transition-colors">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useActionState, useEffect, useRef } from 'react';
+import { useActionState, useEffect, useRef } from 'react';
 import {
   Building2,
   MapPin,
@@ -17,6 +17,7 @@ import {
 import { toast } from 'sonner';
 import { updateHospitalProfile } from '@/actions/hospital.actions';
 import { HospitalEntity, HOSPITAL_TYPE } from '@/types/hospital.type';
+import { useDetectLocation } from '@/hooks/use-detect-location';
 
 export default function HospitalProfileForm({
   initialData,
@@ -35,43 +36,23 @@ export default function HospitalProfileForm({
   const lastStateRef = useRef(state);
 
   // Geolocation state for hospital facility coordinates
-  const [coords, setCoords] = useState<{ longitude: number; latitude: number }>(
-    {
-      longitude: initialData.location?.coordinates?.[0] ?? 79.8612,
-      latitude: initialData.location?.coordinates?.[1] ?? 6.9271,
-    },
-  );
-  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
-  const [detectedTime, setDetectedTime] = useState<Date | null>(null);
+  const {
+    coords,
+    hasDetectedLocation,
+    isDetectingLocation,
+    detectedTime,
+    locationError,
+    detectButtonRef,
+    handleDetectLocation,
+    requireLocationBeforeSubmit,
+  } = useDetectLocation({
+    initialCoordinates: initialData.location?.coordinates,
+    initiallyCaptured:
+      !isIncomplete && Boolean(initialData.lastLocationUpdatedAt),
+    successMessage: 'Hospital location detected successfully!',
+  });
 
-  const handleDetectLocation = () => {
-    if (typeof window === 'undefined' || !('geolocation' in navigator)) {
-      toast.error('Geolocation is not supported by your browser.');
-      return;
-    }
-
-    setIsDetectingLocation(true);
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setCoords({
-          longitude: position.coords.longitude,
-          latitude: position.coords.latitude,
-        });
-        setDetectedTime(new Date());
-        setIsDetectingLocation(false);
-        toast.success('Hospital location detected successfully!');
-      },
-      (err) => {
-        setIsDetectingLocation(false);
-        toast.error(`Unable to retrieve location: ${err.message}`);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 300000,
-      },
-    );
-  };
+  const activeLocationError = locationError || state.fieldErrors?.location?.[0];
 
   // Automatically go back to view mode if submission was successful
   useEffect(() => {
@@ -102,7 +83,11 @@ export default function HospitalProfileForm({
   };
 
   return (
-    <form action={formAction} className="space-y-8 pb-12">
+    <form
+      action={formAction}
+      onSubmit={requireLocationBeforeSubmit}
+      className="space-y-8 pb-12"
+    >
       {isIncomplete && (
         <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
@@ -265,10 +250,15 @@ export default function HospitalProfileForm({
                   Street Address <span className="text-red-500">*</span>
                 </label>
                 <button
+                  ref={detectButtonRef}
                   type="button"
                   onClick={handleDetectLocation}
                   disabled={isDetectingLocation}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-primary hover:text-primary/80 bg-primary/10 hover:bg-primary/15 rounded-md transition-colors disabled:opacity-50 cursor-pointer"
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-primary hover:text-primary/80 bg-primary/10 hover:bg-primary/15 rounded-md transition-colors disabled:opacity-50 cursor-pointer ${
+                    !hasDetectedLocation && activeLocationError
+                      ? 'ring-2 ring-red-500/70 bg-red-500/10 text-red-600 dark:text-red-400'
+                      : ''
+                  }`}
                 >
                   {isDetectingLocation ? (
                     <>
@@ -278,7 +268,7 @@ export default function HospitalProfileForm({
                   ) : (
                     <>
                       <Navigation className="w-3.5 h-3.5" />
-                      Detect Current Location
+                      Update Live Location
                     </>
                   )}
                 </button>
@@ -320,22 +310,49 @@ export default function HospitalProfileForm({
             {/* Hidden GeoJSON fields bound to React state */}
             <input type="hidden" name="longitude" value={coords.longitude} />
             <input type="hidden" name="latitude" value={coords.latitude} />
+            <input
+              type="hidden"
+              name="locationCaptured"
+              value={hasDetectedLocation ? 'true' : 'false'}
+            />
 
             {/* GPS Feedback Badge */}
-            <div className="sm:col-span-2 flex items-center gap-2 text-[11px] text-muted-foreground">
-              <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
-              <span>
-                Coordinates:{' '}
-                <span className="font-tabular text-foreground font-medium">
-                  {coords.latitude.toFixed(4)}° N, {coords.longitude.toFixed(4)}
-                  ° E
-                </span>
-                {detectedTime && (
-                  <span className="ml-1.5 text-emerald-600 dark:text-emerald-400 font-medium">
-                    (Updated just now)
+            <div className="sm:col-span-2 flex flex-col gap-1.5">
+              <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                <MapPin
+                  className={`w-3.5 h-3.5 shrink-0 ${
+                    hasDetectedLocation ? 'text-primary' : 'text-amber-500'
+                  }`}
+                />
+                {hasDetectedLocation ? (
+                  <span>
+                    Coordinates:{' '}
+                    <span className="font-tabular text-foreground font-medium">
+                      {coords.latitude.toFixed(4)}° N,{' '}
+                      {coords.longitude.toFixed(4)}° E
+                    </span>
+                    {detectedTime ? (
+                      <span className="ml-1.5 text-emerald-600 dark:text-emerald-400 font-medium">
+                        (Updated just now)
+                      </span>
+                    ) : (
+                      <span className="ml-1.5 text-emerald-600 dark:text-emerald-400 font-medium">
+                        (Verified)
+                      </span>
+                    )}
+                  </span>
+                ) : (
+                  <span className="text-amber-600 dark:text-amber-400 font-medium">
+                    Live GPS not captured yet — click &ldquo;Update Live
+                    Location&rdquo; above (Required)
                   </span>
                 )}
-              </span>
+              </div>
+              {activeLocationError && (
+                <p className="text-xs text-red-500 font-medium">
+                  {activeLocationError}
+                </p>
+              )}
             </div>
           </div>
         </div>

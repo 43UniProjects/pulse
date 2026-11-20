@@ -31,6 +31,9 @@ async function HospitalProfileContent() {
               ],
             }
           : { type: 'Point', coordinates: [79.8612, 6.9271] },
+        lastLocationUpdatedAt: hospitalDoc.lastLocationUpdatedAt
+          ? new Date(hospitalDoc.lastLocationUpdatedAt)
+          : null,
         verifiedBy: hospitalDoc.verifiedBy
           ? hospitalDoc.verifiedBy.toString()
           : null,
@@ -54,6 +57,7 @@ async function HospitalProfileContent() {
         address: '',
         city: '',
         location: { type: 'Point', coordinates: [79.8612, 6.9271] },
+        lastLocationUpdatedAt: null,
         hotline: '',
         email: session.user.email,
         website: '',
