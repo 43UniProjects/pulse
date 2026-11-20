@@ -1,0 +1,5 @@
+services:
+  pulse-app:
+    image: ghcr.io/43uniprojects/pulse:latest
+
+    
