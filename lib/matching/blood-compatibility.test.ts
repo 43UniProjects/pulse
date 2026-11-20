@@ -8,6 +8,7 @@ import {
   buildNearbyRequestsNearSphereQuery,
   calculateDistanceKm,
   ensureGeoIndexOnce,
+  evaluateDonorDashboardEligibility,
   getCompatibleRequestBloodGroups,
   getCooldownCutoffDate,
   isDonorPastCooldown,
@@ -301,5 +302,127 @@ describe('mergeAndSortNearbyRequests & normalizeGeoCoordinates (Donor Dashboard)
     expect(mergedAll).toHaveLength(4);
     expect(mergedAll[3].req._id).toBe('req-moratuwa');
     expect(mergedAll[3].distanceKm).toBeCloseTo(17.3, 0);
+  });
+});
+
+describe('evaluateDonorDashboardEligibility (120-day cooldown & availability guard)', () => {
+  const dayMs = 24 * 60 * 60 * 1000;
+  const fixedNow = new Date('2026-11-20T10:00:00.000Z');
+
+  it('blocks a donor who donated yesterday (Akila scenario: 2026-11-19 on 2026-11-20) and returns next eligible date', () => {
+    const result = evaluateDonorDashboardEligibility(
+      {
+        bloodGroup: 'A+',
+        isAvailable: true,
+        isEligible: true,
+        lastDonationDate: '2026-11-19T00:00:00.000Z',
+      },
+      fixedNow,
+    );
+
+    expect(result.eligible).toBe(false);
+    expect(result.reason).toBe('cooldown');
+    expect(result.nextEligibleDate?.toISOString()).toBe(
+      new Date(
+        new Date('2026-11-19T00:00:00.000Z').getTime() + 120 * dayMs,
+      ).toISOString(),
+    );
+  });
+
+  it('enforces the exact 119-day vs 120-day cooldown boundary', () => {
+    const at119Days = evaluateDonorDashboardEligibility(
+      {
+        bloodGroup: 'O-',
+        isAvailable: true,
+        isEligible: true,
+        lastDonationDate: new Date(fixedNow.getTime() - 119 * dayMs),
+      },
+      fixedNow,
+    );
+    const at120Days = evaluateDonorDashboardEligibility(
+      {
+        bloodGroup: 'O-',
+        isAvailable: true,
+        isEligible: true,
+        lastDonationDate: new Date(fixedNow.getTime() - 120 * dayMs),
+      },
+      fixedNow,
+    );
+
+    expect(at119Days.eligible).toBe(false);
+    expect(at119Days.reason).toBe('cooldown');
+    expect(at120Days).toEqual({
+      eligible: true,
+      reason: 'eligible',
+      nextEligibleDate: null,
+    });
+  });
+
+  it('blocks donors marked clinically ineligible, unavailable, or missing blood group', () => {
+    expect(
+      evaluateDonorDashboardEligibility(
+        {
+          bloodGroup: 'A+',
+          isAvailable: true,
+          isEligible: false,
+          lastDonationDate: null,
+        },
+        fixedNow,
+      ),
+    ).toEqual({
+      eligible: false,
+      reason: 'ineligible',
+      nextEligibleDate: null,
+    });
+
+    expect(
+      evaluateDonorDashboardEligibility(
+        {
+          bloodGroup: 'A+',
+          isAvailable: false,
+          isEligible: true,
+          lastDonationDate: null,
+        },
+        fixedNow,
+      ),
+    ).toEqual({
+      eligible: false,
+      reason: 'unavailable',
+      nextEligibleDate: null,
+    });
+
+    expect(
+      evaluateDonorDashboardEligibility(
+        {
+          bloodGroup: '',
+          isAvailable: true,
+          isEligible: true,
+          lastDonationDate: null,
+        },
+        fixedNow,
+      ),
+    ).toEqual({
+      eligible: false,
+      reason: 'missing_blood_group',
+      nextEligibleDate: null,
+    });
+  });
+
+  it('allows normal eligible and available donors with no prior donation', () => {
+    expect(
+      evaluateDonorDashboardEligibility(
+        {
+          bloodGroup: 'A+',
+          isAvailable: true,
+          isEligible: true,
+          lastDonationDate: null,
+        },
+        fixedNow,
+      ),
+    ).toEqual({
+      eligible: true,
+      reason: 'eligible',
+      nextEligibleDate: null,
+    });
   });
 });

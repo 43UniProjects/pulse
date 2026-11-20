@@ -70,6 +70,86 @@ export function isDonorPastCooldown(
   return parsed.getTime() <= getCooldownCutoffDate(now).getTime();
 }
 
+export type DonorDashboardEligibilityReason =
+  | 'eligible'
+  | 'missing_blood_group'
+  | 'ineligible'
+  | 'cooldown'
+  | 'unavailable';
+
+export interface DonorDashboardEligibilityInput {
+  bloodGroup: BloodGroup | '';
+  isEligible: boolean;
+  isAvailable: boolean;
+  lastDonationDate?: Date | string | null;
+}
+
+export interface DonorDashboardEligibilityResult {
+  eligible: boolean;
+  reason: DonorDashboardEligibilityReason;
+  nextEligibleDate: Date | null;
+}
+
+/**
+ * Evaluates whether a donor can view and respond to actionable nearby emergency
+ * requests on the Donor Dashboard, reusing the 120-day cooldown and compatibility rules.
+ */
+export function evaluateDonorDashboardEligibility(
+  donor: DonorDashboardEligibilityInput,
+  now: Date = new Date(),
+): DonorDashboardEligibilityResult {
+  if (
+    !donor.bloodGroup ||
+    getCompatibleRequestBloodGroups(donor.bloodGroup).length === 0
+  ) {
+    return {
+      eligible: false,
+      reason: 'missing_blood_group',
+      nextEligibleDate: null,
+    };
+  }
+
+  if (!donor.isEligible) {
+    return {
+      eligible: false,
+      reason: 'ineligible',
+      nextEligibleDate: null,
+    };
+  }
+
+  if (!isDonorPastCooldown(donor.lastDonationDate, now)) {
+    const parsed = donor.lastDonationDate
+      ? donor.lastDonationDate instanceof Date
+        ? donor.lastDonationDate
+        : new Date(donor.lastDonationDate)
+      : null;
+    const nextEligibleDate =
+      parsed && !Number.isNaN(parsed.getTime())
+        ? new Date(parsed.getTime() + COOLDOWN_MS)
+        : null;
+
+    return {
+      eligible: false,
+      reason: 'cooldown',
+      nextEligibleDate,
+    };
+  }
+
+  if (!donor.isAvailable) {
+    return {
+      eligible: false,
+      reason: 'unavailable',
+      nextEligibleDate: null,
+    };
+  }
+
+  return {
+    eligible: true,
+    reason: 'eligible',
+    nextEligibleDate: null,
+  };
+}
+
 function toRadians(degrees: number): number {
   return (degrees * Math.PI) / 180;
 }

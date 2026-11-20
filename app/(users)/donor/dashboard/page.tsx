@@ -24,7 +24,7 @@ import {
   buildNearbyRequestsNearSphereQuery,
   DEFAULT_COLOMBO_COORDS,
   ensureGeoIndexOnce,
-  getCompatibleRequestBloodGroups,
+  evaluateDonorDashboardEligibility,
   mergeAndSortNearbyRequests,
   normalizeGeoCoordinates,
 } from '@/lib/matching/blood-compatibility';
@@ -122,23 +122,23 @@ async function DonorDashboardContent() {
       ? donor.radiusPreferenceKm
       : 10;
 
-  const compatibleRequestGroups = getCompatibleRequestBloodGroups(
-    donor.bloodGroup,
-  );
-  const hasBloodGroup =
-    Boolean(donor.bloodGroup) && compatibleRequestGroups.length > 0;
+  const dashboardEligibility = evaluateDonorDashboardEligibility(donor);
+  const canRespondToRequests =
+    dashboardEligibility.eligible && Boolean(donor.bloodGroup);
 
   // Ensure DonationRequest 2dsphere index exists on cold databases (e.g. fresh Docker volumes)
-  await ensureGeoIndexOnce('DonationRequest', () =>
-    DonationRequest.createIndexes(),
-  );
+  if (canRespondToRequests) {
+    await ensureGeoIndexOnce('DonationRequest', () =>
+      DonationRequest.createIndexes(),
+    );
+  }
 
   // Runtime read of VAPID public key keeps Docker builds functional without .env.local in build context
   const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '';
 
   const [nearbyRequestsRaw, notifiedRequestsRaw, pushSubscriptionExists] =
     await Promise.all([
-      hasBloodGroup && donor.bloodGroup
+      canRespondToRequests && donor.bloodGroup
         ? (DonationRequest.find(
             buildNearbyRequestsNearSphereQuery({
               donorBloodGroup: donor.bloodGroup,
@@ -149,7 +149,7 @@ async function DonorDashboardContent() {
             .limit(10)
             .lean() as Promise<LeanDonationRequest[]>)
         : Promise.resolve<LeanDonationRequest[]>([]),
-      hasBloodGroup
+      canRespondToRequests
         ? (DonationRequest.find({
             status: 'pending',
             notifiedDonors: donor._id,
@@ -341,7 +341,7 @@ async function DonorDashboardContent() {
           </div>
 
           <div className="flex flex-col gap-3">
-            {!hasBloodGroup ? (
+            {dashboardEligibility.reason === 'missing_blood_group' ? (
               <div className="bg-card border border-border rounded-xl p-8 text-center text-muted-foreground shadow-sm space-y-3">
                 <p className="text-sm">
                   Set your blood group in your profile to see nearby compatible
@@ -352,6 +352,63 @@ async function DonorDashboardContent() {
                   className="inline-block text-xs font-medium text-primary hover:underline underline-offset-4"
                 >
                   Complete Donor Profile
+                </Link>
+              </div>
+            ) : dashboardEligibility.reason === 'cooldown' ? (
+              <div className="bg-card border border-amber-500/30 rounded-xl p-8 text-center text-muted-foreground shadow-sm space-y-2">
+                <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 mx-auto mb-1">
+                  <Clock className="w-5 h-5" />
+                </div>
+                <p className="text-sm font-medium text-foreground">
+                  Emergency Requests Paused During Waiting Period
+                </p>
+                <p className="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">
+                  For your clinical safety, you cannot respond to blood requests
+                  during the mandatory 120-day post-donation recovery interval.
+                  {dashboardEligibility.nextEligibleDate && (
+                    <>
+                      {' '}
+                      You will be eligible to donate again on{' '}
+                      <strong className="text-foreground font-tabular">
+                        {new Intl.DateTimeFormat('en-GB', {
+                          day: '2-digit',
+                          month: 'short',
+                          year: 'numeric',
+                        }).format(dashboardEligibility.nextEligibleDate)}
+                      </strong>
+                      .
+                    </>
+                  )}
+                </p>
+              </div>
+            ) : dashboardEligibility.reason === 'ineligible' ? (
+              <div className="bg-card border border-amber-500/30 rounded-xl p-8 text-center text-muted-foreground shadow-sm space-y-2">
+                <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 mx-auto mb-1">
+                  <AlertCircle className="w-5 h-5" />
+                </div>
+                <p className="text-sm font-medium text-foreground">
+                  Account Currently Marked Clinically Ineligible
+                </p>
+                <p className="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">
+                  Nearby emergency requests are paused until your clinical
+                  eligibility clearance is restored.
+                </p>
+              </div>
+            ) : dashboardEligibility.reason === 'unavailable' ? (
+              <div className="bg-card border border-border rounded-xl p-8 text-center text-muted-foreground shadow-sm space-y-3">
+                <p className="text-sm font-medium text-foreground">
+                  Availability Currently Paused
+                </p>
+                <p className="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">
+                  You are currently marked unavailable to donate. Turn
+                  availability back on in your profile to view and respond to
+                  nearby emergency requests.
+                </p>
+                <Link
+                  href="/donor/profile"
+                  className="inline-block text-xs font-medium text-primary hover:underline underline-offset-4"
+                >
+                  Update Availability in Profile
                 </Link>
               </div>
             ) : activeRequests.length === 0 ? (
