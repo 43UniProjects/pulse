@@ -1,16 +1,13 @@
 'use server';
 
+import mongoose from 'mongoose';
 import { z } from 'zod';
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
 import { HOSPITAL_TYPE } from '@/types/hospital.type';
-import { BLOOD_GROUPS } from '@/types/common.type';
-import { REQUEST_URGENCY_LEVEL } from '@/types/donor-request.type';
 import { connectToDatabase } from '@/lib/db/connect';
 import { Hospital } from '@/lib/models/hospital.model';
 import { Donor } from '@/lib/models/donor.model';
-import { DonationRequest } from '@/lib/models/donation-request.model';
 import { User } from '@/lib/models/user.model';
 import { auth } from '@/lib/auth/config';
 import { verifyProfileLocationCapture } from '@/lib/location/profile-location';
@@ -176,82 +173,6 @@ export async function updateHospitalProfile(
   }
 }
 
-const postRequestSchema = z.object({
-  bloodGroup: z.enum(BLOOD_GROUPS),
-  quantity: z.coerce.number().min(1).max(20),
-  radiusKm: z.coerce.number().default(10),
-  urgency: z.enum(REQUEST_URGENCY_LEVEL),
-  notes: z.string().optional().default(''),
-});
-
-export async function createHospitalDonationRequest(formData: FormData) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session?.user || session.user.role !== 'hospital') {
-    throw new Error('Unauthorized');
-  }
-
-  await connectToDatabase();
-
-  if (!session.user.isActive) {
-    const user = await User.findById(session.user.id).select('isActive').lean();
-    if (!user?.isActive) {
-      throw new Error(
-        'Your facility account is deactivated. Please complete your profile to activate your account.',
-      );
-    }
-  }
-
-  const rawData = {
-    bloodGroup: formData.get('bloodGroup'),
-    quantity: formData.get('quantity'),
-    radiusKm: formData.get('radiusKm'),
-    urgency: formData.get('urgency'),
-    notes: formData.get('notes'),
-  };
-
-  const validated = postRequestSchema.safeParse(rawData);
-  if (!validated.success) {
-    throw new Error('Invalid request parameters');
-  }
-
-  await connectToDatabase();
-
-  const hospital = await Hospital.findById(session.user.id).lean();
-  const hospitalName =
-    hospital?.name || session.user.name || 'Hospital Facility';
-  const hospitalAddress = hospital?.address || 'Colombo, Sri Lanka';
-  const hospitalLocation = hospital?.location || {
-    type: 'Point',
-    coordinates: [79.8612, 6.9271],
-  };
-
-  const requestIdCode = `REQ-${Date.now().toString().slice(-6)}`;
-
-  await DonationRequest.create({
-    requestId: requestIdCode,
-    hospitalId: session.user.id,
-    hospitalName,
-    address: hospitalAddress,
-    location: hospitalLocation,
-    bloodGroup: validated.data.bloodGroup,
-    quantity: validated.data.quantity,
-    urgency: validated.data.urgency,
-    status: 'pending',
-    radiusKm: validated.data.radiusKm,
-    notes: validated.data.notes,
-  });
-
-  await Hospital.findByIdAndUpdate(session.user.id, {
-    $inc: { activeRequestsCount: 1 },
-  });
-
-  revalidatePath('/hospital/dashboard');
-  redirect('/hospital/dashboard');
-}
-
 export async function toggleDonorVerification(
   donorId: string,
   newStatus: boolean,
@@ -264,10 +185,23 @@ export async function toggleDonorVerification(
     return { success: false, error: 'Unauthorized' };
   }
 
-  await connectToDatabase();
+  if (!mongoose.Types.ObjectId.isValid(donorId)) {
+    return { success: false, error: 'Invalid donor identifier.' };
+  }
 
-  if (!session.user.isActive) {
-    const user = await User.findById(session.user.id).select('isActive').lean();
+  if (typeof newStatus !== 'boolean') {
+    return { success: false, error: 'Invalid verification status.' };
+  }
+
+  try {
+    await connectToDatabase();
+
+    // Always verify live DB activation and hospital verification status
+    const [user, hospital] = await Promise.all([
+      User.findById(session.user.id).select('isActive').lean(),
+      Hospital.findById(session.user.id).select('verificationStatus').lean(),
+    ]);
+
     if (!user?.isActive) {
       return {
         success: false,
@@ -275,12 +209,30 @@ export async function toggleDonorVerification(
           'Your facility account is deactivated. Please complete your profile to activate your account.',
       };
     }
+
+    if (hospital?.verificationStatus !== 'verified') {
+      return {
+        success: false,
+        error:
+          'Your facility must be verified by an administrator before updating donor eligibility.',
+      };
+    }
+
+    const updated = await Donor.findByIdAndUpdate(donorId, {
+      isEligible: newStatus,
+    });
+
+    if (!updated) {
+      return { success: false, error: 'Donor record not found.' };
+    }
+
+    revalidatePath('/hospital/donors');
+    return { success: true };
+  } catch (error: unknown) {
+    console.error('[Action: toggleDonorVerification]', error);
+    return {
+      success: false,
+      error: 'Failed to update donor eligibility status.',
+    };
   }
-
-  await Donor.findByIdAndUpdate(donorId, {
-    isEligible: newStatus,
-  });
-
-  revalidatePath('/hospital/donors');
-  return { success: true };
 }

@@ -62,23 +62,28 @@ function RegisterFormContent() {
 
     const { email, password, username, role } = validation.data;
 
-    const { error } = await authClient.signUp.email({
-      email,
-      password,
-      name: username,
-      role: role,
-      isActive: false,
-    });
+    try {
+      const { error } = await authClient.signUp.email({
+        email,
+        password,
+        name: username,
+        role: role,
+      });
 
-    if (error) {
-      setGlobalError(error.message || 'Registration failed.');
-      toast.error(error.message || 'Failed to create account.');
+      if (error) {
+        setGlobalError(error.message || 'Registration failed.');
+        toast.error(error.message || 'Failed to create account.');
+        setIsPending(false);
+        return;
+      }
+
+      toast.success('Account created! Please check your email to verify.');
+      router.push(`/verify-email?email=${encodeURIComponent(email)}`);
+    } catch {
+      setGlobalError('An unexpected network error occurred. Please try again.');
+      toast.error('An unexpected network error occurred.');
       setIsPending(false);
-      return;
     }
-
-    toast.success('Account created! Please check your email to verify.');
-    router.push(`/verify-email?email=${encodeURIComponent(email)}`);
   };
 
   return (

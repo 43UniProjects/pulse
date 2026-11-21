@@ -5,14 +5,51 @@ import path from 'path';
 const port = Number(process.env.SMTP_PORT) || 465;
 
 export const transporter = nodemailer.createTransport({
+  pool: true,
+  maxConnections: 3,
+  maxMessages: 50,
   host: process.env.SMTP_HOST || 'smtp.gmail.com',
   port,
   secure: port === 465,
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 15000,
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASSWORD,
   },
 });
+
+const HTML_ESCAPE_MAP: Record<string, string> = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+};
+
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (char) => HTML_ESCAPE_MAP[char] ?? char);
+}
+
+let cachedLogoBase64: string | null = null;
+
+function getLogoBase64(): string {
+  if (cachedLogoBase64 !== null) {
+    return cachedLogoBase64;
+  }
+
+  try {
+    const logoPath = path.join(process.cwd(), 'public', 'logo', 'logo.png');
+    const logoBuffer = fs.readFileSync(logoPath);
+    cachedLogoBase64 = `data:image/png;base64,${logoBuffer.toString('base64')}`;
+  } catch (err) {
+    console.error('[Auth] Failed to read logo file for email:', err);
+    cachedLogoBase64 = '';
+  }
+
+  return cachedLogoBase64;
+}
 
 interface SendVerificationEmailParams {
   to: string;
@@ -25,14 +62,9 @@ export async function sendVerificationEmail({
   name,
   url,
 }: SendVerificationEmailParams): Promise<void> {
-  const logoPath = path.join(process.cwd(), 'public', 'logo', 'logo.png');
-  let logoBase64 = '';
-  try {
-    const logoBuffer = fs.readFileSync(logoPath);
-    logoBase64 = `data:image/png;base64,${logoBuffer.toString('base64')}`;
-  } catch (err) {
-    console.error('[Auth] Failed to read logo file for email:', err);
-  }
+  const logoBase64 = getLogoBase64();
+  const safeName = escapeHtml(name);
+  const safeUrl = escapeHtml(url);
 
   const mailOptions = {
     from:
@@ -76,7 +108,7 @@ export async function sendVerificationEmail({
                 <tr>
                   <td style="padding-bottom: 24px;">
                     <p style="margin: 0 0 16px 0; color: #e4e4e7; font-size: 15px; line-height: 1.5;">
-                      Hello <strong>${name}</strong>,
+                      Hello <strong>${safeName}</strong>,
                     </p>
                     <p style="margin: 0; color: #a1a1aa; font-size: 14px; line-height: 1.6;">
                       Thank you for registering on Pulse. Click the link below to verify your email address and activate your account.
@@ -85,7 +117,7 @@ export async function sendVerificationEmail({
                 </tr>
                 <tr>
                   <td align="center" style="padding-bottom: 28px;">
-                    <a href="${url}" style="display: inline-block; background-color: #dc2626; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 12px 28px; border-radius: 6px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);">
+                    <a href="${safeUrl}" style="display: inline-block; background-color: #dc2626; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 12px 28px; border-radius: 6px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);">
                       Verify Account
                     </a>
                   </td>
@@ -96,7 +128,7 @@ export async function sendVerificationEmail({
                       If the button doesn&apos;t work, copy and paste this link into your browser:
                     </p>
                     <p style="margin: 0; word-break: break-all;">
-                      <a href="${url}" style="color: #dc2626; font-size: 12px; text-decoration: underline;">${url}</a>
+                      <a href="${safeUrl}" style="color: #dc2626; font-size: 12px; text-decoration: underline;">${safeUrl}</a>
                     </p>
                   </td>
                 </tr>

@@ -1,5 +1,6 @@
 'use server';
 
+import mongoose from 'mongoose';
 import { z } from 'zod';
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
@@ -8,6 +9,8 @@ import { Admin } from '@/lib/models/admin.model';
 import { Hospital } from '@/lib/models/hospital.model';
 import { User } from '@/lib/models/user.model';
 import { auth } from '@/lib/auth/config';
+
+const verifyHospitalActionSchema = z.enum(['approve', 'reject', 'pending']);
 
 // Zod Schema based on AdminEntity Form requirements
 const adminSchema = z.object({
@@ -113,29 +116,50 @@ export async function verifyHospitalAction(
     return { success: false, error: 'Unauthorized' };
   }
 
-  await connectToDatabase();
+  if (!mongoose.Types.ObjectId.isValid(hospitalId)) {
+    return { success: false, error: 'Invalid hospital identifier.' };
+  }
 
-  const newStatus =
-    action === 'approve'
-      ? 'verified'
-      : action === 'reject'
-        ? 'rejected'
-        : 'pending';
+  const parsedAction = verifyHospitalActionSchema.safeParse(action);
+  if (!parsedAction.success) {
+    return { success: false, error: 'Invalid verification action.' };
+  }
 
-  await Hospital.findByIdAndUpdate(hospitalId, {
-    verificationStatus: newStatus,
-    verifiedAt: newStatus === 'verified' ? new Date() : null,
-    verifiedBy: newStatus === 'verified' ? session.user.id : null,
-  });
+  try {
+    await connectToDatabase();
 
-  await Admin.findByIdAndUpdate(session.user.id, {
-    $inc: { actionsLogged: 1 },
-  });
+    const newStatus =
+      parsedAction.data === 'approve'
+        ? 'verified'
+        : parsedAction.data === 'reject'
+          ? 'rejected'
+          : 'pending';
 
-  revalidatePath('/admin/verify-hospitals');
-  revalidatePath('/admin/dashboard');
+    const updated = await Hospital.findByIdAndUpdate(hospitalId, {
+      verificationStatus: newStatus,
+      verifiedAt: newStatus === 'verified' ? new Date() : null,
+      verifiedBy: newStatus === 'verified' ? session.user.id : null,
+    });
 
-  return { success: true };
+    if (!updated) {
+      return { success: false, error: 'Hospital record not found.' };
+    }
+
+    await Admin.findByIdAndUpdate(session.user.id, {
+      $inc: { actionsLogged: 1 },
+    });
+
+    revalidatePath('/admin/verify-hospitals');
+    revalidatePath('/admin/dashboard');
+
+    return { success: true };
+  } catch (error: unknown) {
+    console.error('[Action: verifyHospitalAction]', error);
+    return {
+      success: false,
+      error: 'Failed to update hospital verification status.',
+    };
+  }
 }
 
 export async function toggleUserStatusAction(
@@ -150,18 +174,42 @@ export async function toggleUserStatusAction(
     return { success: false, error: 'Unauthorized' };
   }
 
-  await connectToDatabase();
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    return { success: false, error: 'Invalid user identifier.' };
+  }
 
-  await User.findByIdAndUpdate(userId, {
-    isActive,
-  });
+  if (typeof isActive !== 'boolean') {
+    return { success: false, error: 'Invalid status value.' };
+  }
 
-  await Admin.findByIdAndUpdate(session.user.id, {
-    $inc: { actionsLogged: 1 },
-  });
+  if (userId === session.user.id && !isActive) {
+    return {
+      success: false,
+      error: 'Administrators cannot suspend their own account.',
+    };
+  }
 
-  revalidatePath('/admin/manage-users');
-  revalidatePath('/admin/dashboard');
+  try {
+    await connectToDatabase();
 
-  return { success: true };
+    const updated = await User.findByIdAndUpdate(userId, {
+      isActive,
+    });
+
+    if (!updated) {
+      return { success: false, error: 'User not found.' };
+    }
+
+    await Admin.findByIdAndUpdate(session.user.id, {
+      $inc: { actionsLogged: 1 },
+    });
+
+    revalidatePath('/admin/manage-users');
+    revalidatePath('/admin/dashboard');
+
+    return { success: true };
+  } catch (error: unknown) {
+    console.error('[Action: toggleUserStatusAction]', error);
+    return { success: false, error: 'Failed to update user status.' };
+  }
 }

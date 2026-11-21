@@ -17,18 +17,28 @@ if (!cached) {
 }
 
 export async function connectToDatabase() {
-  if (cached.conn) {
+  if (cached.conn && cached.conn.readyState === 1) {
     return cached.conn;
+  }
+
+  if (cached.conn && cached.conn.readyState !== 1) {
+    cached.conn = null;
+    cached.promise = null;
   }
 
   if (!cached.promise) {
     const uri = getMongoUri();
-    console.log('Connecting to MongoDB with URI:', uri);
 
     cached.promise = mongoose
       .connect(uri, {
         bufferCommands: false,
         dbName: process.env.MONGO_DATABASE_NAME || 'pulse_db',
+        maxPoolSize: 10,
+        minPoolSize: 2,
+        serverSelectionTimeoutMS: 5000,
+        connectTimeoutMS: 5000,
+        socketTimeoutMS: 20000,
+        maxIdleTimeMS: 60000,
       })
       .then((mongooseInstance) => {
         return mongooseInstance.connection;
@@ -39,6 +49,7 @@ export async function connectToDatabase() {
     cached.conn = await cached.promise;
   } catch (e) {
     cached.promise = null;
+    cached.conn = null;
     throw e;
   }
 

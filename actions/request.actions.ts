@@ -194,7 +194,18 @@ export async function createDonationRequest(
 
     const { bloodGroup, quantity, radiusKm, urgency, notes } = validated.data;
 
-    const hospital = await Hospital.findById(session.user.id).lean();
+    const hospital = await Hospital.findById(session.user.id)
+      .select('name address hotline location verificationStatus')
+      .lean();
+
+    if (hospital?.verificationStatus !== 'verified') {
+      return {
+        success: false,
+        error:
+          'Your facility must be verified by an administrator before broadcasting emergency blood requests.',
+      };
+    }
+
     const hospitalName =
       hospital?.name?.trim() || session.user.name || 'Hospital Facility';
     const hospitalAddress = hospital?.address?.trim() || 'Colombo, Sri Lanka';

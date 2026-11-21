@@ -5,23 +5,24 @@ import RequestTrackingClient, {
   TrackingDetailRequest,
 } from '@/app/(users)/hospital/tracking/[id]/request-tracking';
 import GenericFallback from '@/components/fallback';
+import { validateRoleAccess } from '@/lib/auth/guard';
 import { connectToDatabase } from '@/lib/db/connect';
 import { DonationRequest } from '@/lib/models/donation-request.model';
 import { Donation } from '@/lib/models/donation.model';
 
-export default async function RequestTracking({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
+async function RequestTrackingContent({ id }: { id: string }) {
+  const session = await validateRoleAccess('hospital');
   await connectToDatabase();
 
-  const query = mongoose.Types.ObjectId.isValid(id)
+  const idFilter = mongoose.Types.ObjectId.isValid(id)
     ? { $or: [{ _id: new mongoose.Types.ObjectId(id) }, { requestId: id }] }
     : { requestId: id };
 
-  const request = await DonationRequest.findOne(query).lean();
+  // Enforce strict hospital ownership to prevent cross-hospital IDOR
+  const request = await DonationRequest.findOne({
+    hospitalId: session.user.id,
+    ...idFilter,
+  }).lean();
 
   interface PopulatedDonation {
     _id: unknown;
@@ -39,6 +40,7 @@ export default async function RequestTracking({
   if (request) {
     donationsRaw = (await Donation.find({ requestId: request._id })
       .populate('donorId', 'fullName phone bloodGroup isEligible')
+      .limit(100)
       .lean()) as unknown as PopulatedDonation[];
   }
 
@@ -68,12 +70,24 @@ export default async function RequestTracking({
   }));
 
   return (
+    <RequestTrackingClient
+      id={id}
+      requestData={serializedRequest}
+      initialDonors={serializedDonors}
+    />
+  );
+}
+
+export default async function RequestTracking({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+
+  return (
     <Suspense fallback={<GenericFallback />}>
-      <RequestTrackingClient
-        id={id}
-        requestData={serializedRequest}
-        initialDonors={serializedDonors}
-      />
+      <RequestTrackingContent id={id} />
     </Suspense>
   );
 }

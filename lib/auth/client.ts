@@ -10,7 +10,7 @@ export const authClient = createAuthClient({
     inferAdditionalFields({
       user: {
         role: { type: 'string' },
-        isActive: { type: 'boolean' },
+        isActive: { type: 'boolean', input: false },
       },
     }),
   ],
