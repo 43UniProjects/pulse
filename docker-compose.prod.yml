@@ -7,5 +7,12 @@ services:
     environment:
       - NEXT_TELEMETRY_DISABLED=1
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
+    mem_limit: 650m
+    memswap_limit: 1400m
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     restart: unless-stopped

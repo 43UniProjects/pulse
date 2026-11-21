@@ -10,17 +10,9 @@ const nextConfig: NextConfig = {
   // Replaces legacy partial prerendering (PPR) for aggressive static/dynamic hybrid delivery.
   cacheComponents: true,
 
-  // 3. Image Optimization Security & Best Practices
+  // 3. Image Optimization Security & Resource Protection (1 GB RAM VPS)
   images: {
-    formats: ['image/avif', 'image/webp'], // Delivers highly compressed modern formats first
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'example.com', // Replace with your production asset CDN/domain
-        port: '',
-        pathname: '/**',
-      },
-    ],
+    unoptimized: true,
   },
 
   // 4. Compiler & Bundler Performance
@@ -33,7 +25,7 @@ const nextConfig: NextConfig = {
     cssChunking: true,
 
     // Prevents large third-party modular packages from ballooning build times
-    optimizePackageImports: ['lucide-react', '@headlessui/react'],
+    optimizePackageImports: ['lucide-react', '@base-ui/react'],
   },
 
   // 5. Build Safety & Cleanliness
