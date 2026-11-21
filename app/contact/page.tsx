@@ -5,7 +5,7 @@ import { Phone } from 'lucide-react';
 import Footer from '@/components/footer';
 import Header from '@/components/header/main';
 import GenericFallback from '@/components/fallback';
-import ContactForm from './contact-form';
+import ContactForm from '@/app/contact/contact-form';
 import { auth } from '@/lib/auth/config';
 
 async function ContactFormWrapper() {

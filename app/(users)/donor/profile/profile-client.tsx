@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { DonorEntity } from '@/types/donor.type';
-import DonorProfileView from './profile-view';
-import DonorProfileForm from './profile-form';
+import DonorProfileView from '@/app/(users)/donor/profile/profile-view';
+import DonorProfileForm from '@/app/(users)/donor/profile/profile-form';
 
 export default function DonorProfileClient({
   initialData,

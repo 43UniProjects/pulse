@@ -1,4 +1,4 @@
-import { BloodGroup, IGeoPoint } from './common.type';
+import { BloodGroup, IGeoPoint } from '@/types/common.type';
 
 export const REQUEST_URGENCY_LEVEL = ['critical', 'high', 'normal'] as const;
 export const REQUEST_STATUS = [

@@ -30,7 +30,7 @@ import {
   normalizeGeoCoordinates,
 } from '@/lib/matching/blood-compatibility';
 import PushSubscriptionToggle from '@/components/notifications/push-subscription-toggle';
-import { calculateClinicalEligibility } from '../requests/data';
+import { calculateClinicalEligibility } from '@/app/(users)/donor/requests/data';
 import {
   DonationRequestEntity,
   REQUEST_URGENCY_LEVEL,

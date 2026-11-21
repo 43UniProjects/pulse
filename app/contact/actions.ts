@@ -1,8 +1,8 @@
 'use server';
 
 import { headers } from 'next/headers';
-import { saveContactMessage } from './data';
-import { contactSchema } from './schema';
+import { saveContactMessage } from '@/app/contact/data';
+import { contactSchema } from '@/app/contact/schema';
 import { auth } from '@/lib/auth/config';
 
 export interface ContactActionState {

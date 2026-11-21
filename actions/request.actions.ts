@@ -3,26 +3,26 @@
 import { z } from 'zod';
 import type { Types } from 'mongoose';
 import { revalidatePath } from 'next/cache';
-import { validateRoleAccess } from '../lib/auth/guard';
-import { connectToDatabase } from '../lib/db/connect';
-import { Donor } from '../lib/models/donor.model';
-import { Hospital } from '../lib/models/hospital.model';
-import { DonationRequest } from '../lib/models/donation-request.model';
+import { validateRoleAccess } from '@/lib/auth/guard';
+import { connectToDatabase } from '@/lib/db/connect';
+import { Donor } from '@/lib/models/donor.model';
+import { Hospital } from '@/lib/models/hospital.model';
+import { DonationRequest } from '@/lib/models/donation-request.model';
 import {
   buildEligibleDonorNearSphereQuery,
   calculateDistanceKm,
   ensureGeoIndexOnce,
-} from '../lib/matching/blood-compatibility';
+} from '@/lib/matching/blood-compatibility';
 import {
   buildEmergencyPushPayload,
   dispatchPushAlerts,
-} from '../lib/notifications/push-alert';
+} from '@/lib/notifications/push-alert';
 import {
   dispatchEmergencyEmailAlerts,
   type DonorWithDistance,
-} from '../lib/notifications/email-alert';
-import { BLOOD_GROUPS, type BloodGroup } from '../types/common.type';
-import { REQUEST_URGENCY_LEVEL } from '../types/donor-request.type';
+} from '@/lib/notifications/email-alert';
+import { BLOOD_GROUPS, type BloodGroup } from '@/types/common.type';
+import { REQUEST_URGENCY_LEVEL } from '@/types/donor-request.type';
 
 const DEFAULT_COLOMBO_COORDS: [number, number] = [79.8612, 6.9271];
 const ALLOWED_RADII_KM = [5, 10, 20] as const;

@@ -7,7 +7,7 @@ import { Activity, Loader2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { authClient } from '@/lib/auth/client';
-import { loginSchema } from '../_validators/auth.schema';
+import { loginSchema } from '@/app/(auth)/_validators/auth.schema';
 import GenericFallback from '@/components/fallback';
 
 function LoginFormContent() {

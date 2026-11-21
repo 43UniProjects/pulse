@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import RequestTrackingClient, {
   TrackingDetailDonor,
   TrackingDetailRequest,
-} from './request-tracking';
+} from '@/app/(users)/hospital/tracking/[id]/request-tracking';
 import GenericFallback from '@/components/fallback';
 import { validateRoleAccess } from '@/lib/auth/guard';
 import { connectToDatabase } from '@/lib/db/connect';

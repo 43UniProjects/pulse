@@ -1,8 +1,8 @@
 import fs from 'fs';
 import path from 'path';
-import { transporter } from '../mail';
-import type { BloodGroup } from '../../types/common.type';
-import type { RequestUrgency } from '../../types/donor-request.type';
+import { transporter } from '@/lib/mail';
+import type { BloodGroup } from '@/types/common.type';
+import type { RequestUrgency } from '@/types/donor-request.type';
 
 export interface EmailAlertDonor {
   _id?: string | { toString(): string };

@@ -2,8 +2,8 @@ import { betterAuth } from 'better-auth';
 import { mongodbAdapter } from '@better-auth/mongo-adapter';
 import { nextCookies } from 'better-auth/next-js';
 import mongoose from 'mongoose';
-import { connectToDatabase } from '../db/connect';
-import { sendVerificationEmail } from '../mail';
+import { connectToDatabase } from '@/lib/db/connect';
+import { sendVerificationEmail } from '@/lib/mail';
 
 let client: unknown = {};
 let db: unknown = {};

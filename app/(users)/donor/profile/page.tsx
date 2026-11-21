@@ -7,7 +7,7 @@ import { Donation } from '@/lib/models/donation.model';
 import { DONATION_STATUS } from '@/types/donation.type';
 import { DonorEntity } from '@/types/donor.type';
 import GenericFallback from '@/components/fallback';
-import DonorProfileClient from './profile-client';
+import DonorProfileClient from '@/app/(users)/donor/profile/profile-client';
 
 export const metadata: Metadata = {
   title: 'My Profile',
