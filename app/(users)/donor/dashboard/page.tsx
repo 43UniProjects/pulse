@@ -15,6 +15,7 @@ import {
 import { validateRoleAccess } from '@/lib/auth/guard';
 import { connectToDatabase } from '@/lib/db/connect';
 import { Donor } from '@/lib/models/donor.model';
+import { Donation } from '@/lib/models/donation.model';
 import {
   DonationRequest,
   type IDonationRequestDocument,
@@ -33,6 +34,7 @@ import { calculateClinicalEligibility } from '@/app/(users)/donor/requests/data'
 import {
   DonationRequestEntity,
   REQUEST_URGENCY_LEVEL,
+  RequestStatus,
 } from '@/types/donor-request.type';
 
 type LeanDonationRequest = Pick<
@@ -136,77 +138,133 @@ async function DonorDashboardContent() {
   // Runtime read of VAPID public key keeps Docker builds functional without .env.local in build context
   const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '';
 
-  const [nearbyRequestsRaw, notifiedRequestsRaw, pushSubscriptionExists] =
-    await Promise.all([
-      canRespondToRequests && donor.bloodGroup
-        ? (DonationRequest.find(
-            buildNearbyRequestsNearSphereQuery({
-              donorBloodGroup: donor.bloodGroup,
-              donorCoordinates,
-              radiusKm: donorRadiusKm,
-            }),
-          )
-            .limit(10)
-            .lean() as Promise<LeanDonationRequest[]>)
-        : Promise.resolve<LeanDonationRequest[]>([]),
-      canRespondToRequests
-        ? (DonationRequest.find({
-            status: 'pending',
-            notifiedDonors: donor._id,
-          })
-            .sort({ createdAt: -1 })
-            .limit(10)
-            .lean() as Promise<LeanDonationRequest[]>)
-        : Promise.resolve<LeanDonationRequest[]>([]),
-      PushSubscription.exists({ donorId: donor._id }),
-    ]);
-
-  // Deduplicate nearby $nearSphere matches and explicitly notified pending requests, sorted nearest-first
-  const sortedMatchedRequests = mergeAndSortNearbyRequests(
+  const [
     nearbyRequestsRaw,
+    notifiedRequestsRaw,
+    pushSubscriptionExists,
+    userDonationsRaw,
+  ] = await Promise.all([
+    canRespondToRequests && donor.bloodGroup
+      ? (DonationRequest.find(
+          buildNearbyRequestsNearSphereQuery({
+            donorBloodGroup: donor.bloodGroup,
+            donorCoordinates,
+            radiusKm: donorRadiusKm,
+          }),
+        )
+          .limit(10)
+          .lean() as Promise<LeanDonationRequest[]>)
+      : Promise.resolve<LeanDonationRequest[]>([]),
+    canRespondToRequests
+      ? (DonationRequest.find({
+          status: 'pending',
+          notifiedDonors: donor._id,
+        })
+          .sort({ createdAt: -1 })
+          .limit(10)
+          .lean() as Promise<LeanDonationRequest[]>)
+      : Promise.resolve<LeanDonationRequest[]>([]),
+    PushSubscription.exists({ donorId: donor._id }),
+    Donation.find({ donorId: session.user.id })
+      .select('requestId status')
+      .lean(),
+  ]);
+
+  const donationByRequestId = new Map<string, string>();
+  const excludedRequestIds = new Set<string>();
+
+  for (const d of userDonationsRaw) {
+    if (d.requestId) {
+      const reqIdStr = String(d.requestId);
+      donationByRequestId.set(reqIdStr, d.status || '');
+      if (d.status === 'declined' || d.status === 'completed') {
+        excludedRequestIds.add(reqIdStr);
+      }
+    }
+  }
+
+  // Also include any active request this donor has accepted
+  const acceptedCommitmentIds = Array.from(donationByRequestId.entries())
+    .filter(([, status]) => status === 'accepted')
+    .map(([id]) => id);
+
+  const acceptedRequestsRaw =
+    acceptedCommitmentIds.length > 0
+      ? ((await DonationRequest.find({
+          _id: { $in: acceptedCommitmentIds },
+          status: { $nin: ['completed', 'declined'] },
+        }).lean()) as LeanDonationRequest[])
+      : [];
+
+  // Deduplicate nearby $nearSphere matches, explicitly notified pending requests, and accepted commitments
+  const sortedMatchedRequests = mergeAndSortNearbyRequests(
+    [...nearbyRequestsRaw, ...acceptedRequestsRaw],
     notifiedRequestsRaw,
     donorCoordinates,
     10,
   );
 
-  const activeRequests: DonationRequestEntity[] = sortedMatchedRequests.map(
-    ({ req, distanceKm }) => ({
-      _id: req._id.toString(),
-      requestId: req.requestId,
-      hospitalId: req.hospitalId.toString(),
-      hospitalName: req.hospitalName,
-      address: req.address,
-      location: {
-        type: 'Point',
-        coordinates: normalizeGeoCoordinates(req.location?.coordinates),
-      },
-      bloodGroup: req.bloodGroup,
-      quantity: req.quantity,
-      urgency: req.urgency,
-      status: req.status,
-      radiusKm: req.radiusKm,
-      distance: `${distanceKm.toFixed(1)} km`,
-      notes: req.notes || '',
-      matchedDonorsCount: req.matchedDonorsCount ?? 0,
-      notifiedDonors: Array.isArray(req.notifiedDonors)
-        ? req.notifiedDonors.map((donorId) => donorId.toString())
-        : [],
-      fulfilledBy: req.fulfilledBy ? req.fulfilledBy.toString() : undefined,
-      timePosted: req.createdAt
-        ? new Intl.DateTimeFormat('en-GB', {
-            hour: '2-digit',
-            minute: '2-digit',
-            day: '2-digit',
-            month: 'short',
-          }).format(new Date(req.createdAt))
-        : 'Recent',
-      createdAt: req.createdAt
-        ? new Date(req.createdAt).toISOString()
-        : new Date().toISOString(),
-      updatedAt: req.updatedAt
-        ? new Date(req.updatedAt).toISOString()
-        : new Date().toISOString(),
-    }),
+  // Filter out requests this donor already declined or completed, or created before donor registration
+  const donorCreatedAtTime = donor.createdAt
+    ? new Date(donor.createdAt).getTime()
+    : 0;
+
+  const filteredMatchedRequests = sortedMatchedRequests.filter(({ req }) => {
+    const reqIdStr = req._id.toString();
+    if (excludedRequestIds.has(reqIdStr)) return false;
+
+    const isAcceptedByDonor = donationByRequestId.get(reqIdStr) === 'accepted';
+    if (!isAcceptedByDonor && donorCreatedAtTime > 0 && req.createdAt) {
+      const reqCreatedTime = new Date(req.createdAt).getTime();
+      if (reqCreatedTime < donorCreatedAtTime) return false;
+    }
+    return true;
+  });
+
+  const activeRequests: DonationRequestEntity[] = filteredMatchedRequests.map(
+    ({ req, distanceKm }) => {
+      const reqIdStr = req._id.toString();
+      const donorResponse = donationByRequestId.get(reqIdStr);
+      return {
+        _id: reqIdStr,
+        requestId: req.requestId,
+        hospitalId: req.hospitalId.toString(),
+        hospitalName: req.hospitalName,
+        address: req.address,
+        location: {
+          type: 'Point',
+          coordinates: normalizeGeoCoordinates(req.location?.coordinates),
+        },
+        bloodGroup: req.bloodGroup,
+        quantity: req.quantity,
+        urgency: req.urgency,
+        status: (donorResponse === 'accepted'
+          ? 'accepted'
+          : req.status) as RequestStatus,
+        radiusKm: req.radiusKm,
+        distance: `${distanceKm.toFixed(1)} km`,
+        notes: req.notes || '',
+        matchedDonorsCount: req.matchedDonorsCount ?? 0,
+        notifiedDonors: Array.isArray(req.notifiedDonors)
+          ? req.notifiedDonors.map((donorId) => donorId.toString())
+          : [],
+        fulfilledBy: req.fulfilledBy ? req.fulfilledBy.toString() : undefined,
+        timePosted: req.createdAt
+          ? new Intl.DateTimeFormat('en-GB', {
+              hour: '2-digit',
+              minute: '2-digit',
+              day: '2-digit',
+              month: 'short',
+            }).format(new Date(req.createdAt))
+          : 'Recent',
+        createdAt: req.createdAt
+          ? new Date(req.createdAt).toISOString()
+          : new Date().toISOString(),
+        updatedAt: req.updatedAt
+          ? new Date(req.updatedAt).toISOString()
+          : new Date().toISOString(),
+      };
+    },
   );
 
   const hasPushSubscription = Boolean(pushSubscriptionExists);
@@ -461,11 +519,17 @@ async function DonorDashboardContent() {
                       </div>
                     </div>
 
-                    <div className="shrink-0 flex flex-col items-end">
-                      <div className="hidden sm:flex items-center text-xs font-medium text-muted-foreground group-hover:text-primary transition-colors">
-                        Respond
-                        <ChevronRight className="w-4 h-4 ml-1" />
-                      </div>
+                    <div className="shrink-0 flex flex-col items-end gap-1">
+                      {request.status === 'accepted' ? (
+                        <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                          Accepted — En Route
+                        </span>
+                      ) : (
+                        <div className="hidden sm:flex items-center text-xs font-medium text-muted-foreground group-hover:text-primary transition-colors">
+                          Respond
+                          <ChevronRight className="w-4 h-4 ml-1" />
+                        </div>
+                      )}
                       {/* Mobile arrow */}
                       <ChevronRight className="w-5 h-5 text-muted-foreground sm:hidden" />
                     </div>

@@ -29,6 +29,11 @@ async function DonorProfileContent() {
     ? ({
         ...donorDoc,
         _id: donorDoc._id.toString(),
+        history: (donorDoc.history || []).map((h) =>
+          typeof h === 'object' && h && '_id' in h
+            ? String((h as { _id: unknown })._id)
+            : String(h),
+        ),
         dateOfBirth: donorDoc.dateOfBirth
           ? new Date(donorDoc.dateOfBirth)
           : null,
