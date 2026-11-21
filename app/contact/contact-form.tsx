@@ -1,7 +1,15 @@
 'use client';
 
 import { useActionState, useEffect, useRef, useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import {
+  Loader2,
+  User,
+  Mail,
+  Building,
+  Tag,
+  Send,
+  ChevronDown,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { submitContactMessage } from '@/app/contact/actions';
 import { contactSchema } from '@/app/contact/schema';
@@ -64,9 +72,32 @@ export default function ContactForm({ user }: ContactFormProps) {
 
   return (
     <div className="bg-card border border-border rounded-xl p-6 sm:p-8 shadow-sm">
-      <h2 className="text-xl font-semibold text-foreground mb-6">
-        {formTitle}
-      </h2>
+      <div className="mb-6">
+        <h2 className="text-xl font-semibold text-foreground tracking-tight">
+          {formTitle}
+        </h2>
+        <p className="text-xs text-muted-foreground mt-1">
+          Send us your message and our team will get back to you promptly.
+        </p>
+      </div>
+
+      {/* Authenticated user indicator badge */}
+      {!isGuest && (
+        <div className="bg-secondary/50 border border-border rounded-lg p-3.5 mb-5 flex items-center justify-between text-xs text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <User className="w-4 h-4 text-primary shrink-0" />
+            <span>
+              Signed in as{' '}
+              <strong className="text-foreground">{user.name}</strong> (
+              {user.email})
+            </span>
+          </div>
+          <span className="capitalize font-mono text-[11px] bg-primary/10 text-primary px-2 py-0.5 rounded border border-primary/20">
+            {user.role}
+          </span>
+        </div>
+      )}
+
       <form
         ref={formRef}
         action={formAction}
@@ -86,20 +117,24 @@ export default function ContactForm({ user }: ContactFormProps) {
         )}
 
         {isGuest && (
-          <>
-            <div className="space-y-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
               <label
                 htmlFor="name"
-                className="text-sm font-medium text-foreground"
+                className="text-xs font-medium text-foreground block"
               >
-                Full Name
+                Full Name <span className="text-red-500">*</span>
               </label>
-              <input
-                id="name"
-                name="name"
-                type="text"
-                className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
-              />
+              <div className="relative">
+                <input
+                  id="name"
+                  name="name"
+                  type="text"
+                  placeholder="e.g. John Doe"
+                  className="w-full h-10 pl-9 pr-3 rounded-md border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
+                />
+                <User className="w-4 h-4 text-muted-foreground absolute left-3 top-3 opacity-70 pointer-events-none" />
+              </div>
               {(clientErrors.name || state?.fieldErrors?.name) && (
                 <p className="text-xs text-red-500">
                   {clientErrors.name?.[0] || state?.fieldErrors?.name?.[0]}
@@ -107,45 +142,56 @@ export default function ContactForm({ user }: ContactFormProps) {
               )}
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <label
                 htmlFor="email"
-                className="text-sm font-medium text-foreground"
+                className="text-xs font-medium text-foreground block"
               >
-                Email Address
+                Email Address <span className="text-red-500">*</span>
               </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
-              />
+              <div className="relative">
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  className="w-full h-10 pl-9 pr-3 rounded-md border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
+                />
+                <Mail className="w-4 h-4 text-muted-foreground absolute left-3 top-3 opacity-70 pointer-events-none" />
+              </div>
               {(clientErrors.email || state?.fieldErrors?.email) && (
                 <p className="text-xs text-red-500">
                   {clientErrors.email?.[0] || state?.fieldErrors?.email?.[0]}
                 </p>
               )}
             </div>
-          </>
+          </div>
         )}
 
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <label
             htmlFor="targetAudience"
-            className="text-sm font-medium text-foreground"
+            className="text-xs font-medium text-foreground block"
           >
-            Department
+            Department <span className="text-red-500">*</span>
           </label>
-          <select
-            id="targetAudience"
-            name="targetAudience"
-            className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
-          >
-            <option value="">Select a department...</option>
-            <option value="support">General Support</option>
-            <option value="technical">Technical Assistance</option>
-            <option value="billing">Partnerships & Billing</option>
-          </select>
+          <div className="relative">
+            <select
+              id="targetAudience"
+              name="targetAudience"
+              defaultValue=""
+              className="w-full h-10 pl-9 pr-9 appearance-none rounded-md border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all cursor-pointer"
+            >
+              <option value="" disabled>
+                Select a department...
+              </option>
+              <option value="support">General Support</option>
+              <option value="technical">Technical Assistance</option>
+              <option value="billing">Partnerships & Billing</option>
+            </select>
+            <Building className="w-4 h-4 text-muted-foreground absolute left-3 top-3 opacity-70 pointer-events-none" />
+            <ChevronDown className="w-4 h-4 text-muted-foreground absolute right-3 top-3 opacity-70 pointer-events-none" />
+          </div>
           {(clientErrors.targetAudience ||
             state?.fieldErrors?.targetAudience) && (
             <p className="text-xs text-red-500">
@@ -155,20 +201,23 @@ export default function ContactForm({ user }: ContactFormProps) {
           )}
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <label
             htmlFor="subject"
-            className="text-sm font-medium text-foreground"
+            className="text-xs font-medium text-foreground block"
           >
-            Subject
+            Subject <span className="text-red-500">*</span>
           </label>
-          <input
-            id="subject"
-            name="subject"
-            type="text"
-            placeholder="e.g., General Inquiry or Bug Report"
-            className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
-          />
+          <div className="relative">
+            <input
+              id="subject"
+              name="subject"
+              type="text"
+              placeholder="e.g. General Inquiry or Hospital Integration"
+              className="w-full h-10 pl-9 pr-3 rounded-md border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
+            />
+            <Tag className="w-4 h-4 text-muted-foreground absolute left-3 top-3 opacity-70 pointer-events-none" />
+          </div>
           {(clientErrors.subject || state?.fieldErrors?.subject) && (
             <p className="text-xs text-red-500">
               {clientErrors.subject?.[0] || state?.fieldErrors?.subject?.[0]}
@@ -176,19 +225,20 @@ export default function ContactForm({ user }: ContactFormProps) {
           )}
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <label
             htmlFor="message"
-            className="text-sm font-medium text-foreground"
+            className="text-xs font-medium text-foreground block"
           >
-            Message
+            Message <span className="text-red-500">*</span>
           </label>
           <textarea
             id="message"
             name="message"
             rows={4}
-            className="w-full p-3 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all resize-none"
-          ></textarea>
+            placeholder="Write your message here in detail..."
+            className="w-full p-3 rounded-md border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all resize-none"
+          />
           {(clientErrors.message || state?.fieldErrors?.message) && (
             <p className="text-xs text-red-500">
               {clientErrors.message?.[0] || state?.fieldErrors?.message?.[0]}
@@ -199,14 +249,16 @@ export default function ContactForm({ user }: ContactFormProps) {
         <button
           type="submit"
           disabled={isPending}
-          className="w-full h-10 mt-2 flex items-center justify-center rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background disabled:opacity-50"
+          className="w-full h-10 mt-2 flex items-center justify-center rounded-md bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background disabled:opacity-50 disabled:cursor-not-allowed shadow-sm cursor-pointer"
         >
           {isPending ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Sending...
             </>
           ) : (
-            'Send Message'
+            <>
+              <Send className="w-4 h-4 mr-2" /> Send Message
+            </>
           )}
         </button>
       </form>

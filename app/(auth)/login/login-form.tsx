@@ -17,8 +17,8 @@ function LoginFormContent() {
   const { data: session } = authClient.useSession();
   const verifiedToastShown = useRef(false);
   const redirectInitiated = useRef(false);
+  const formRef = useRef<HTMLFormElement>(null);
 
-  const [role, setRole] = useState<'donor' | 'hospital' | 'admin'>('donor');
   const [isPending, setIsPending] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [globalError, setGlobalError] = useState<string | null>(null);
@@ -32,9 +32,11 @@ function LoginFormContent() {
     }
   }, [session, router]);
 
-  // Detect unauthenticated redirect from protected routes (only when accessing without logging in)
+  // Detect unauthenticated redirect from protected routes (or upon explicit logout)
   useEffect(() => {
     if (searchParams.get('logged_out') === 'true') {
+      redirectInitiated.current = false;
+      formRef.current?.reset();
       router.replace('/login', { scroll: false });
       return;
     }
@@ -82,8 +84,6 @@ function LoginFormContent() {
     const formData = new FormData(e.currentTarget);
     const rawData = Object.fromEntries(formData.entries());
 
-    rawData.role = role;
-
     const validation = loginSchema.safeParse(rawData);
 
     if (!validation.success) {
@@ -116,6 +116,8 @@ function LoginFormContent() {
       }
 
       toast.success('Logged in successfully!');
+      setIsPending(false);
+      formRef.current?.reset();
 
       const userRole = data?.user?.role;
       const isActive = data?.user?.isActive;
@@ -153,32 +155,11 @@ function LoginFormContent() {
         <p className="text-sm text-muted-foreground">Sign in to your account</p>
       </div>
 
-      <form onSubmit={handleLogin} className="flex flex-col gap-5">
-        <div>
-          <label className="text-xs font-mono uppercase tracking-widest text-muted-foreground block mb-2">
-            Account Type
-          </label>
-          <div className="flex p-1 gap-1 bg-secondary border border-border rounded-lg">
-            {(['donor', 'hospital', 'admin'] as const).map((r) => (
-              <button
-                key={r}
-                type="button"
-                onClick={() => setRole(r)}
-                className={`flex-1 text-xs font-medium py-2 rounded-md transition-all capitalize ${
-                  role === r
-                    ? 'bg-background text-foreground shadow-sm border border-border/50'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-background/50 border border-transparent'
-                }`}
-              >
-                {r}
-              </button>
-            ))}
-          </div>
-          {fieldErrors.role && (
-            <p className="text-xs text-red-500 mt-2">{fieldErrors.role[0]}</p>
-          )}
-        </div>
-
+      <form
+        ref={formRef}
+        onSubmit={handleLogin}
+        className="flex flex-col gap-5"
+      >
         <div className="space-y-2">
           <label className="text-xs font-medium text-foreground block">
             Email Address
