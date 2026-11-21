@@ -23,7 +23,8 @@
     "prepare": "husky",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "seed:admin": "bun run scripts/seed-admin.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
