@@ -1,6 +1,6 @@
-import { IGeoPoint } from './common.type';
-import { UserEntity } from './user.type';
-import { AdminEntity } from './admin.type';
+import { IGeoPoint } from '@/types/common.type';
+import { UserEntity } from '@/types/user.type';
+import { AdminEntity } from '@/types/admin.type';
 
 export const HOSPITAL_TYPE = [
   'government_hospital',
@@ -36,6 +36,7 @@ export interface HospitalEntity {
   address: string;
   city: string;
   location: IGeoPoint;
+  lastLocationUpdatedAt?: Date | null;
   hotline: string;
   email: string;
   website?: string;

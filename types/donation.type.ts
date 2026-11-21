@@ -1,4 +1,4 @@
-import { BloodGroup } from './common.type';
+import { BloodGroup } from '@/types/common.type';
 
 export const DONATION_STATUS = [
   'pending',

@@ -1,4 +1,4 @@
-import { UserEntity } from './user.type';
+import { UserEntity } from '@/types/user.type';
 
 export const ADMIN_ROLES = [
   'superadmin',

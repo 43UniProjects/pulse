@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { AdminEntity } from '@/types/admin.type';
-import AdminProfileView from './admin-profile-view';
-import AdminProfileForm from './admin-profile-form';
+import AdminProfileView from '@/app/(users)/admin/profile/admin-profile-view';
+import AdminProfileForm from '@/app/(users)/admin/profile/admin-profile-form';
 
 export default function AdminProfileClient({
   initialData,

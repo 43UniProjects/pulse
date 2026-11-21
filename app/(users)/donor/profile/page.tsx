@@ -7,7 +7,7 @@ import { Donation } from '@/lib/models/donation.model';
 import { DONATION_STATUS } from '@/types/donation.type';
 import { DonorEntity } from '@/types/donor.type';
 import GenericFallback from '@/components/fallback';
-import DonorProfileClient from './profile-client';
+import DonorProfileClient from '@/app/(users)/donor/profile/profile-client';
 
 export const metadata: Metadata = {
   title: 'My Profile',
@@ -29,6 +29,11 @@ async function DonorProfileContent() {
     ? ({
         ...donorDoc,
         _id: donorDoc._id.toString(),
+        history: (donorDoc.history || []).map((h) =>
+          typeof h === 'object' && h && '_id' in h
+            ? String((h as { _id: unknown })._id)
+            : String(h),
+        ),
         dateOfBirth: donorDoc.dateOfBirth
           ? new Date(donorDoc.dateOfBirth)
           : null,

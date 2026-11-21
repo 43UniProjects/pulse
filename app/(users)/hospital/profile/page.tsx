@@ -5,7 +5,7 @@ import { connectToDatabase } from '@/lib/db/connect';
 import { Hospital } from '@/lib/models/hospital.model';
 import { HospitalEntity } from '@/types/hospital.type';
 import GenericFallback from '@/components/fallback';
-import HospitalProfileClient from './hospital-profile-client';
+import HospitalProfileClient from '@/app/(users)/hospital/profile/hospital-profile-client';
 
 export const metadata: Metadata = {
   title: 'Facility Profile',
@@ -31,6 +31,9 @@ async function HospitalProfileContent() {
               ],
             }
           : { type: 'Point', coordinates: [79.8612, 6.9271] },
+        lastLocationUpdatedAt: hospitalDoc.lastLocationUpdatedAt
+          ? new Date(hospitalDoc.lastLocationUpdatedAt)
+          : null,
         verifiedBy: hospitalDoc.verifiedBy
           ? hospitalDoc.verifiedBy.toString()
           : null,
@@ -54,6 +57,7 @@ async function HospitalProfileContent() {
         address: '',
         city: '',
         location: { type: 'Point', coordinates: [79.8612, 6.9271] },
+        lastLocationUpdatedAt: null,
         hotline: '',
         email: session.user.email,
         website: '',

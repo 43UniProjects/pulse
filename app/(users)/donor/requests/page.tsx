@@ -5,9 +5,9 @@ import {
   getDonationRequests,
   getDonationHistory,
   getDonorProfile,
-} from './data';
+} from '@/app/(users)/donor/requests/data';
 import GenericFallback from '@/components/fallback';
-import RequestsClient from './requests-client';
+import RequestsClient from '@/app/(users)/donor/requests/requests-client';
 
 export const metadata: Metadata = {
   title: 'Emergency Requests | Pulse',
@@ -18,7 +18,7 @@ async function DonorRequestsContent() {
   const session = await validateRoleAccess('donor');
 
   const [activeRequests, historyRequests, donorProfile] = await Promise.all([
-    getDonationRequests(),
+    getDonationRequests(session.user.id),
     getDonationHistory(session.user.id),
     getDonorProfile(session.user.id),
   ]);

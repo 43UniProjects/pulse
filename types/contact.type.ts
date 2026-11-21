@@ -1,4 +1,4 @@
-import { UserEntity, UserRole } from './user.type';
+import { UserEntity, UserRole } from '@/types/user.type';
 
 export const CONTACT_STATUS = ['pending', 'reviewed', 'resolved'] as const;
 export const CONTACT_TARGET = ['admin', 'developer'] as const;

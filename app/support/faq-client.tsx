@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Search } from 'lucide-react';
-import { SerializedFaq } from './data';
+import { SerializedFaq } from '@/app/support/data';
 
 interface FaqClientProps {
   initialFaqs: SerializedFaq[];

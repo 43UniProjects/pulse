@@ -4,7 +4,9 @@ import { validateRoleAccess } from '@/lib/auth/guard';
 import { connectToDatabase } from '@/lib/db/connect';
 import { Donor } from '@/lib/models/donor.model';
 import GenericFallback from '@/components/fallback';
-import DonorsClient, { SerializedDonor } from './donors-client';
+import DonorsClient, {
+  SerializedDonor,
+} from '@/app/(users)/hospital/donors/donors-client';
 
 export const metadata: Metadata = {
   title: 'Registered Donors | Pulse',
