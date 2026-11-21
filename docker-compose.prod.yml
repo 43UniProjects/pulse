@@ -1,6 +1,6 @@
 services:
   pulse-app:
-    image: ghcr.io/43uniprojects/pulse:latest
+    image: ghcr.io/43uniprojects/pulse:${IMAGE_TAG:-latest}
     container_name: pulse-app-container
     env_file:
       - .env.local
@@ -9,3 +9,9 @@ services:
     ports:
       - "3000:3000"
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "bun", "-e", "fetch('http://127.0.0.1:3000/api/health').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 15s

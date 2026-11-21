@@ -10,7 +10,28 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run lint
+        run: bun run lint
+
+      - name: Run type checks
+        run: bun run typecheck
+
   build:
+    needs: test
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -33,7 +54,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=latest
-            type=sha
+            type=raw,value=sha-${{ github.sha }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
@@ -42,6 +63,7 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
   deploy:
     needs: build
     runs-on: ubuntu-latest
@@ -54,17 +76,86 @@ jobs:
         env:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GHCR_USER: ${{ github.actor }}
+          IMAGE_TAG: sha-${{ github.sha }}
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          envs: GHCR_TOKEN,GHCR_USER
+          envs: GHCR_TOKEN,GHCR_USER,IMAGE_TAG
           script: |
             set -e
             trap 'docker logout ghcr.io >/dev/null 2>&1 || true' EXIT
+
+            COMPOSE_FILE="docker-compose.prod.yml"
+            CONTAINER_NAME="pulse-app-container"
+            IMAGE_REPO="ghcr.io/43uniprojects/pulse"
+
             cd /home/ubuntu/pulse
             git pull origin main
+
+            # Record and tag the currently running image for instant local rollback
+            PREV_IMAGE_ID=$(docker inspect --format='{{.Image}}' "$CONTAINER_NAME" 2>/dev/null || true)
+            if [ -n "$PREV_IMAGE_ID" ]; then
+              echo "Tagging current image ($PREV_IMAGE_ID) as rollback fallback..."
+              docker tag "$PREV_IMAGE_ID" "${IMAGE_REPO}:rollback"
+            fi
+
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
-            docker compose -f docker-compose.prod.yml pull pulse-app
-            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+
+            echo "Pulling new image ${IMAGE_REPO}:${IMAGE_TAG}..."
+            IMAGE_TAG="$IMAGE_TAG" docker compose -f "$COMPOSE_FILE" pull pulse-app
+
+            echo "Starting new container with tag ${IMAGE_TAG}..."
+            set +e
+            IMAGE_TAG="$IMAGE_TAG" docker compose -f "$COMPOSE_FILE" up -d --no-build --remove-orphans
+            UP_EXIT=$?
+            set -e
+
+            HEALTHY="false"
+            if [ "$UP_EXIT" -eq 0 ]; then
+              echo "Waiting for container health check..."
+              for i in $(seq 1 20); do
+                STATUS=$(docker inspect --format='{{.State.Status}}' "$CONTAINER_NAME" 2>/dev/null || echo "missing")
+                HEALTH=$(docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$CONTAINER_NAME" 2>/dev/null || echo "none")
+                RESTARTS=$(docker inspect --format='{{.RestartCount}}' "$CONTAINER_NAME" 2>/dev/null || echo "0")
+
+                echo "Attempt $i/20: status=$STATUS health=$HEALTH restarts=$RESTARTS"
+
+                if [ "$STATUS" = "running" ] && [ "$HEALTH" = "healthy" ]; then
+                  HEALTHY="true"
+                  break
+                fi
+
+                if [ "$STATUS" = "exited" ] || [ "$STATUS" = "dead" ] || [ "$HEALTH" = "unhealthy" ] || [ "$RESTARTS" -ge 2 ]; then
+                  echo "Container crash or unhealthy state detected."
+                  break
+                fi
+
+                sleep 3
+              done
+            fi
+
+            if [ "$HEALTHY" != "true" ]; then
+              echo "Deployment failed! Recent container logs:"
+              docker logs --tail 50 "$CONTAINER_NAME" 2>&1 || true
+
+              if [ -n "$PREV_IMAGE_ID" ]; then
+                echo "Rolling back to previous image (${PREV_IMAGE_ID})..."
+                IMAGE_TAG="rollback" docker compose -f "$COMPOSE_FILE" up -d --no-build --remove-orphans
+                sleep 5
+                ROLLBACK_STATUS=$(docker inspect --format='{{.State.Status}}' "$CONTAINER_NAME" 2>/dev/null || echo "missing")
+                echo "Rollback container status: $ROLLBACK_STATUS"
+              else
+                echo "No previous image found to roll back to."
+              fi
+
+              exit 1
+            fi
+
+            echo "Deployment verified healthy! Cleaning up old images..."
+            docker images "$IMAGE_REPO" --format "{{.Repository}}:{{.Tag}}" \
+              | grep -E ':sha-' \
+              | grep -v ":${IMAGE_TAG}$" \
+              | xargs -r docker rmi || true
             docker image prune -f
+            echo "Deployment completed successfully."
