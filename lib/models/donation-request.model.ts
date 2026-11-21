@@ -37,7 +37,7 @@ export interface IDonationRequestDocument
 
 const DonationRequestSchema = new Schema<IDonationRequestDocument>(
   {
-    requestId: { type: String, required: true, unique: true, index: true },
+    requestId: { type: String, required: true, unique: true },
     hospitalId: {
       type: Schema.Types.ObjectId,
       ref: 'Hospital',
@@ -86,6 +86,9 @@ const DonationRequestSchema = new Schema<IDonationRequestDocument>(
 // Geospatial index for fast proximity lookups matching donors to requests
 DonationRequestSchema.index({ location: '2dsphere' });
 DonationRequestSchema.index({ status: 1, bloodGroup: 1, urgency: -1 });
+DonationRequestSchema.index({ hospitalId: 1, createdAt: -1 });
+DonationRequestSchema.index({ status: 1, createdAt: -1 });
+DonationRequestSchema.index({ status: 1, notifiedDonors: 1 });
 
 export const DonationRequest: Model<IDonationRequestDocument> =
   mongoose.models.DonationRequest ||

@@ -220,9 +220,10 @@ export async function createDonationRequest(
       radiusKm,
     });
 
-    const eligibleDonors = (await Donor.find(
-      donorQuery,
-    ).lean()) as unknown as MatchedDonorRecord[];
+    const eligibleDonors = (await Donor.find(donorQuery)
+      .select('_id fullName email emailAlertsEnabled location')
+      .limit(200)
+      .lean()) as unknown as MatchedDonorRecord[];
 
     const matchedDonorIds = eligibleDonors.map((donor) => donor._id);
 

@@ -103,12 +103,15 @@ function LoginFormContent() {
     const { email, password } = validation.data;
 
     try {
+      // Prevent useSession effect from racing with post-login redirect
+      redirectInitiated.current = true;
       const { data, error } = await authClient.signIn.email({
         email,
         password,
       });
 
       if (error) {
+        redirectInitiated.current = false;
         setGlobalError(error.message || 'Invalid credentials.');
         toast.error(error.message || 'Failed to sign in');
         setIsPending(false);
@@ -136,6 +139,7 @@ function LoginFormContent() {
         router.push('/admin/dashboard');
       }
     } catch {
+      redirectInitiated.current = false;
       toast.error('An unexpected error occurred.');
       setIsPending(false);
     }

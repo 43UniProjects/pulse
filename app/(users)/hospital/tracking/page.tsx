@@ -1,8 +1,10 @@
 import { Metadata } from 'next';
+import { Suspense } from 'react';
 import { validateRoleAccess } from '@/lib/auth/guard';
 import { connectToDatabase } from '@/lib/db/connect';
 import { DonationRequest } from '@/lib/models/donation-request.model';
 import { Donation } from '@/lib/models/donation.model';
+import GenericFallback from '@/components/fallback';
 import HospitalTrackingClient, {
   TrackingRequestItem,
   RespondingDonorItem,
@@ -14,7 +16,7 @@ export const metadata: Metadata = {
     'Monitor active blood requests and incoming donors in real-time.',
 };
 
-export default async function HospitalTrackingPage() {
+async function HospitalTrackingContent() {
   const session = await validateRoleAccess('hospital');
   await connectToDatabase();
 
@@ -22,6 +24,7 @@ export default async function HospitalTrackingPage() {
     hospitalId: session.user.id,
   })
     .sort({ createdAt: -1 })
+    .limit(50)
     .lean();
 
   const requestIds = requestsRaw.map((r) => r._id);
@@ -38,11 +41,15 @@ export default async function HospitalTrackingPage() {
     status: string;
   }
 
-  const donationsRaw = (await Donation.find({
-    requestId: { $in: requestIds },
-  })
-    .populate('donorId', 'fullName phone bloodGroup')
-    .lean()) as unknown as PopulatedDonation[];
+  const donationsRaw =
+    requestIds.length > 0
+      ? ((await Donation.find({
+          requestId: { $in: requestIds },
+        })
+          .populate('donorId', 'fullName phone bloodGroup')
+          .limit(300)
+          .lean()) as unknown as PopulatedDonation[])
+      : [];
 
   const donationsByRequest: Record<string, RespondingDonorItem[]> = {};
 
@@ -83,4 +90,12 @@ export default async function HospitalTrackingPage() {
   });
 
   return <HospitalTrackingClient initialRequests={trackingRequests} />;
+}
+
+export default function HospitalTrackingPage() {
+  return (
+    <Suspense fallback={<GenericFallback />}>
+      <HospitalTrackingContent />
+    </Suspense>
+  );
 }

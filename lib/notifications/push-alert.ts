@@ -165,7 +165,10 @@ export async function dispatchPushAlerts({
 
   const subscriptions = await PushSubscription.find({
     donorId: { $in: normalizedDonorIds },
-  }).lean();
+  })
+    .select('_id endpoint expirationTime keys')
+    .limit(500)
+    .lean();
 
   if (subscriptions.length === 0) {
     return { attempted: 0, sent: 0, failed: 0, removedStale: 0 };
@@ -175,45 +178,50 @@ export async function dispatchPushAlerts({
   const requestOptions: RequestOptions = {
     TTL: EMERGENCY_PUSH_TTL_SECONDS,
     urgency: payload.urgency === 'normal' ? 'normal' : 'high',
+    timeout: 10000,
   };
 
-  const results = await Promise.allSettled(
-    subscriptions.map((sub) => {
-      const target: WebPushSubscription = {
-        endpoint: sub.endpoint,
-        expirationTime: sub.expirationTime ?? null,
-        keys: {
-          p256dh: sub.keys.p256dh,
-          auth: sub.keys.auth,
-        },
-      };
-      return sendNotification(target, serializedPayload, requestOptions);
-    }),
-  );
-
+  const PUSH_BATCH_SIZE = 15;
   let sent = 0;
   let failed = 0;
   const staleIds: Array<Types.ObjectId | string> = [];
 
-  results.forEach((result, index) => {
-    if (result.status === 'fulfilled') {
-      sent += 1;
-      return;
-    }
+  for (let i = 0; i < subscriptions.length; i += PUSH_BATCH_SIZE) {
+    const batch = subscriptions.slice(i, i + PUSH_BATCH_SIZE);
+    const results = await Promise.allSettled(
+      batch.map((sub) => {
+        const target: WebPushSubscription = {
+          endpoint: sub.endpoint,
+          expirationTime: sub.expirationTime ?? null,
+          keys: {
+            p256dh: sub.keys.p256dh,
+            auth: sub.keys.auth,
+          },
+        };
+        return sendNotification(target, serializedPayload, requestOptions);
+      }),
+    );
 
-    failed += 1;
-    const statusCode = getPushErrorStatusCode(result.reason);
-    if (statusCode !== null && STALE_HTTP_STATUS_CODES.has(statusCode)) {
-      staleIds.push(subscriptions[index]._id);
-    } else {
-      console.error(
-        `[PushAlert] Failed to send push notification (status=${statusCode ?? 'unknown'}):`,
-        result.reason instanceof Error
-          ? result.reason.message
-          : 'Unknown error',
-      );
-    }
-  });
+    results.forEach((result, index) => {
+      if (result.status === 'fulfilled') {
+        sent += 1;
+        return;
+      }
+
+      failed += 1;
+      const statusCode = getPushErrorStatusCode(result.reason);
+      if (statusCode !== null && STALE_HTTP_STATUS_CODES.has(statusCode)) {
+        staleIds.push(batch[index]._id);
+      } else {
+        console.error(
+          `[PushAlert] Failed to send push notification (status=${statusCode ?? 'unknown'}):`,
+          result.reason instanceof Error
+            ? result.reason.message
+            : 'Unknown error',
+        );
+      }
+    });
+  }
 
   let removedStale = 0;
   if (staleIds.length > 0) {

@@ -1,18 +1,22 @@
+import { Suspense } from 'react';
 import { validateRoleAccess } from '@/lib/auth/guard';
 import { connectToDatabase } from '@/lib/db/connect';
 import { Hospital } from '@/lib/models/hospital.model';
 import { HospitalEntity } from '@/types/hospital.type';
+import GenericFallback from '@/components/fallback';
 import VerifyHospitalsClient, {
   SerializedHospitalVerification,
   HospitalStatus,
 } from '@/app/(users)/admin/verify-hospitals/verify-hospitals-client';
 
-export default async function VerifyHospitalsPage() {
+async function VerifyHospitalsContent() {
   await validateRoleAccess('admin');
   await connectToDatabase();
 
   const rawHospitals = await Hospital.find()
+    .select('name email verificationStatus createdAt')
     .sort({ createdAt: -1 })
+    .limit(200)
     .lean<HospitalEntity[]>();
 
   const initialHospitals: SerializedHospitalVerification[] = rawHospitals.map(
@@ -45,4 +49,12 @@ export default async function VerifyHospitalsPage() {
   );
 
   return <VerifyHospitalsClient initialHospitals={initialHospitals} />;
+}
+
+export default function VerifyHospitalsPage() {
+  return (
+    <Suspense fallback={<GenericFallback />}>
+      <VerifyHospitalsContent />
+    </Suspense>
+  );
 }

@@ -1,16 +1,26 @@
+import { cache } from 'react';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth/config';
 import { connectToDatabase } from '@/lib/db/connect';
 import { User } from '@/lib/models/user.model';
 
+const getCachedSession = cache(async () => {
+  return auth.api.getSession({
+    headers: await headers(),
+  });
+});
+
+const getCachedLiveUser = cache(async (userId: string) => {
+  await connectToDatabase();
+  return User.findById(userId).select('isActive name').lean();
+});
+
 export async function validateRoleAccess(
   requiredRole: 'donor' | 'hospital' | 'admin',
   options?: { allowInactive?: boolean },
 ) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const session = await getCachedSession();
 
   // 1. If not authenticated at all -> redirect to login with query param to trigger "Please login first" toast
   if (!session?.user) {
@@ -24,10 +34,7 @@ export async function validateRoleAccess(
 
   // 3. Always sync live activation status from MongoDB for donor/hospital so layouts & routes never use stale session cookies
   if (session.user.role !== 'admin') {
-    await connectToDatabase();
-    const dbUser = await User.findById(session.user.id)
-      .select('isActive name')
-      .lean();
+    const dbUser = await getCachedLiveUser(session.user.id);
     const isActuallyActive = Boolean(dbUser?.isActive);
 
     if (!options?.allowInactive && !isActuallyActive) {

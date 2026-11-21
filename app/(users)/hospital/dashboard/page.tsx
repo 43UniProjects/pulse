@@ -43,6 +43,7 @@ async function HospitalDashboardContent() {
     hospitalId: session.user.id,
   })
     .sort({ createdAt: -1 })
+    .limit(100)
     .lean();
 
   const requestIds = requestsRaw.map((r) => r._id);

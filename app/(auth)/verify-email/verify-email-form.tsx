@@ -19,11 +19,11 @@ export default function VerifyEmailForm() {
   useEffect(() => {
     if (cooldown <= 0) return;
 
-    const timer = setInterval(() => {
-      setCooldown((prev) => prev - 1);
+    const timer = setTimeout(() => {
+      setCooldown((prev) => Math.max(0, prev - 1));
     }, 1000);
 
-    return () => clearInterval(timer);
+    return () => clearTimeout(timer);
   }, [cooldown]);
 
   const handleResendEmail = async () => {

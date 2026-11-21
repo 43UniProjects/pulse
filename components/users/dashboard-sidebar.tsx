@@ -40,21 +40,15 @@ function SidebarContent({
     try {
       await authClient.signOut({
         fetchOptions: {
-          onSuccess: () => {
-            router.push('/login?logged_out=true');
-            router.refresh();
-          },
           onError: (ctx) => {
             console.error('[Logout Error]', ctx.error);
-            router.push('/login?logged_out=true');
-            router.refresh();
           },
         },
       });
     } catch (err) {
       console.error('[Logout Exception]', err);
     } finally {
-      // Guaranteed fallback so the user is never stranded
+      // Single clean redirect after sign-out completes
       router.push('/login?logged_out=true');
       router.refresh();
     }

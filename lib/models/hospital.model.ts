@@ -81,6 +81,7 @@ const HospitalSchema = new Schema<IHospitalDocument>(
 
 HospitalSchema.index({ location: '2dsphere' });
 HospitalSchema.index({ verificationStatus: 1, city: 1 });
+HospitalSchema.index({ verificationStatus: 1, createdAt: -1 });
 
 export const Hospital: Model<IHospitalDocument> =
   mongoose.models.Hospital ||

@@ -65,7 +65,7 @@ const ScreeningResultsSchema = new Schema<ScreeningResults>(
 // 4. Schema Definition
 const DonationSchema = new Schema<IDonationDocument>(
   {
-    donationId: { type: String, required: true, unique: true, index: true },
+    donationId: { type: String, required: true, unique: true },
     requestId: {
       type: Schema.Types.ObjectId,
       ref: 'DonationRequest',
@@ -116,6 +116,7 @@ const DonationSchema = new Schema<IDonationDocument>(
 
 DonationSchema.index({ donorId: 1, donationDate: -1 });
 DonationSchema.index({ hospitalId: 1, status: 1 });
+DonationSchema.index({ requestId: 1, status: 1 });
 
 export const Donation: Model<IDonationDocument> =
   mongoose.models.Donation ||

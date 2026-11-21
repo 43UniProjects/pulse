@@ -17,7 +17,6 @@ const UserSchema = new Schema<IUserDocument>(
       unique: true,
       lowercase: true,
       trim: true,
-      index: true,
     },
     emailVerified: {
       type: Schema.Types.Mixed,
@@ -65,6 +64,8 @@ UserSchema.pre('findOneAndUpdate', async function () {
     update.password = await bcrypt.hash(update.password, 12);
   }
 });
+
+UserSchema.index({ createdAt: -1 });
 
 export const User: Model<IUserDocument> =
   mongoose.models.User || mongoose.model<IUserDocument>('User', UserSchema);

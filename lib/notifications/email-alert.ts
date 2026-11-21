@@ -343,27 +343,33 @@ export async function dispatchEmergencyEmailAlerts({
     return { attempted: 0, sent: 0, failed: 0, skipped: true };
   }
 
-  const results = await Promise.allSettled(
-    validRecipients.map(({ donor, distanceKm }) =>
-      sendEmergencyAlertEmail({ donor, request, hospital, distanceKm }),
-    ),
-  );
-
+  const EMAIL_BATCH_SIZE = 5;
   let sent = 0;
   let failed = 0;
 
-  results.forEach((result) => {
-    if (result.status === 'fulfilled') {
-      sent += 1;
-      return;
-    }
-
-    failed += 1;
-    console.error(
-      '[EmailAlert] Failed to send emergency alert email:',
-      result.reason instanceof Error ? result.reason.message : 'Unknown error',
+  for (let i = 0; i < validRecipients.length; i += EMAIL_BATCH_SIZE) {
+    const batch = validRecipients.slice(i, i + EMAIL_BATCH_SIZE);
+    const results = await Promise.allSettled(
+      batch.map(({ donor, distanceKm }) =>
+        sendEmergencyAlertEmail({ donor, request, hospital, distanceKm }),
+      ),
     );
-  });
+
+    results.forEach((result) => {
+      if (result.status === 'fulfilled') {
+        sent += 1;
+        return;
+      }
+
+      failed += 1;
+      console.error(
+        '[EmailAlert] Failed to send emergency alert email:',
+        result.reason instanceof Error
+          ? result.reason.message
+          : 'Unknown error',
+      );
+    });
+  }
 
   return {
     attempted: validRecipients.length,

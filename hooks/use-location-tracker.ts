@@ -42,6 +42,7 @@ export function useLocationTracker({
   useEffect(() => {
     if (typeof window === 'undefined' || !('navigator' in window)) return;
 
+    let cancelled = false;
     let permissionObj: PermissionStatus | null = null;
 
     const checkPermission = async () => {
@@ -53,21 +54,27 @@ export function useLocationTracker({
           const status = await navigator.permissions.query({
             name: 'geolocation' as PermissionName,
           });
+          if (cancelled) return;
           permissionObj = status;
           setPermissionStatus(status.state as GeolocationPermissionState);
 
           status.onchange = () => {
-            setPermissionStatus(status.state as GeolocationPermissionState);
+            if (!cancelled) {
+              setPermissionStatus(status.state as GeolocationPermissionState);
+            }
           };
         }
       } catch {
-        setPermissionStatus('prompt');
+        if (!cancelled) {
+          setPermissionStatus('prompt');
+        }
       }
     };
 
     checkPermission();
 
     return () => {
+      cancelled = true;
       if (permissionObj) {
         permissionObj.onchange = null;
       }
@@ -143,8 +150,12 @@ export function useLocationTracker({
       return;
     }
 
+    let isMounted = true;
+
     const watchId = navigator.geolocation.watchPosition(
       async (position) => {
+        if (!isMounted) return;
+
         const newCoords: ILocationCoordinates = {
           longitude: position.coords.longitude,
           latitude: position.coords.latitude,
@@ -174,6 +185,7 @@ export function useLocationTracker({
             setIsSyncing(true);
 
             const res = await syncDonorLocation(newCoords);
+            if (!isMounted) return;
             if (res.success) {
               const now = new Date();
               lastSyncedCoordsRef.current = newCoords;
@@ -189,11 +201,14 @@ export function useLocationTracker({
             console.error('[LocationTracker] Throttled sync failed:', syncErr);
           } finally {
             isSyncingRef.current = false;
-            setIsSyncing(false);
+            if (isMounted) {
+              setIsSyncing(false);
+            }
           }
         }
       },
       (geoError) => {
+        if (!isMounted) return;
         setHasGpsFix(false);
         setIsWatching(false);
         setError(geoError.message);
@@ -206,6 +221,7 @@ export function useLocationTracker({
     );
 
     return () => {
+      isMounted = false;
       navigator.geolocation.clearWatch(watchId);
       setIsWatching(false);
     };
