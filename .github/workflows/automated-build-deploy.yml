@@ -70,10 +70,8 @@ jobs:
     permissions:
       contents: read
       packages: read
-      issues: write
     steps:
       - name: Execute deployment commands via SSH
-        id: deploy_ssh
         uses: appleboy/ssh-action@v1.0.3
         env:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -162,10 +160,21 @@ jobs:
             docker image prune -f
             echo "Deployment completed successfully."
 
-      - name: Create rollback issue on failure
-        id: rollback_issue
-        if: failure()
+  report:
+    needs: [test, build, deploy]
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Create issue on failure
+        id: failure_issue
+        if: ${{ needs.test.result == 'failure' || needs.build.result == 'failure' || needs.deploy.result == 'failure' }}
         uses: actions/github-script@v7
+        env:
+          TEST_RESULT: ${{ needs.test.result }}
+          BUILD_RESULT: ${{ needs.build.result }}
+          DEPLOY_RESULT: ${{ needs.deploy.result }}
         with:
           result-encoding: string
           script: |
@@ -173,62 +182,108 @@ jobs:
             const shortSha = sha.slice(0, 7);
             const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
             const commitUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/commit/${sha}`;
+            const testResult = process.env.TEST_RESULT;
+            const buildResult = process.env.BUILD_RESULT;
+            const deployResult = process.env.DEPLOY_RESULT;
+
+            let title;
+            let labels;
+            let heading;
+            let impact;
+
+            if (deployResult === 'failure') {
+              title = `Production deploy failed & rolled back (${shortSha})`;
+              labels = ['rollback', 'production'];
+              heading = '## ⚠️ Production Deployment Rollback Triggered';
+              impact = 'The automated production deployment failed health checks and triggered an automatic rollback to the previous working image (`:rollback`).';
+            } else if (buildResult === 'failure') {
+              title = `Production Docker build failed (${shortSha})`;
+              labels = ['ci', 'build-failure'];
+              heading = '## ❌ Production Build Failed';
+              impact = 'The Docker image build failed. No broken image was pushed and **production was not touched**.';
+            } else {
+              title = `Production CI checks failed (${shortSha})`;
+              labels = ['ci', 'build-failure'];
+              heading = '## ❌ CI Test Gate Failed (Lint / Typecheck)';
+              impact = 'Lint or typecheck failed before building. No image was built or pushed and **production was not touched**.';
+            }
 
             const { data: issue } = await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: `Production deploy failed & rolled back (${shortSha})`,
-              labels: ['rollback', 'production'],
+              title,
+              labels,
               body: [
-                '## ⚠️ Production Deployment Rollback Triggered',
+                heading,
                 '',
-                'The automated production deployment failed health checks and triggered an automatic rollback to the previous working image (`:rollback`).',
+                impact,
+                '',
+                '| Stage | Result |',
+                '| --- | --- |',
+                `| **test** | \`${testResult}\` |`,
+                `| **build** | \`${buildResult}\` |`,
+                `| **deploy** | \`${deployResult}\` |`,
                 '',
                 '| Field | Value |',
                 '| --- | --- |',
-                `| **Failed Commit** | [\`${shortSha}\`](${commitUrl}) (\`${sha}\`) |`,
-                `| **Failed Image Tag** | \`sha-${sha}\` |`,
+                `| **Commit** | [\`${shortSha}\`](${commitUrl}) (\`${sha}\`) |`,
+                `| **Image Tag** | \`sha-${sha}\` |`,
                 `| **Author / Actor** | @${context.actor} |`,
-                `| **Workflow Run** | [View deployment logs](${runUrl}) |`,
+                `| **Workflow Run** | [View pipeline logs](${runUrl}) |`,
                 '',
                 '### Next Steps',
-                '1. Review the container crash logs in the failed workflow run above.',
-                '2. Fix the issue on a feature branch and merge to `main` to redeploy.',
+                '1. Inspect the failed stage logs in the workflow run above.',
+                '2. Push a fix via PR to `main` to trigger a clean build and deploy.',
               ].join('\n'),
             });
 
             return issue.html_url;
 
-      - name: Write deployment summary
+      - name: Write pipeline summary
         if: always()
         env:
-          DEPLOY_OUTCOME: ${{ steps.deploy_ssh.outcome }}
+          TEST_RESULT: ${{ needs.test.result }}
+          BUILD_RESULT: ${{ needs.build.result }}
+          DEPLOY_RESULT: ${{ needs.deploy.result }}
           IMAGE_TAG: sha-${{ github.sha }}
-          ROLLBACK_ISSUE_URL: ${{ steps.rollback_issue.outputs.result }}
+          ISSUE_URL: ${{ steps.failure_issue.outputs.result }}
         run: |
           {
-            if [ "$DEPLOY_OUTCOME" = "success" ]; then
-              echo "## ✅ Healthy Production Deploy"
+            if [ "$DEPLOY_RESULT" = "success" ]; then
+              echo "## ✅ Production Build & Deploy Succeeded"
               echo ""
-              echo "| Field | Value |"
-              echo "| --- | --- |"
-              echo "| **Status** | Healthy |"
-              echo "| **Image Tag** | \`${IMAGE_TAG}\` |"
-              echo "| **Commit** | [\`${GITHUB_SHA::7}\`](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}) |"
-              echo "| **Triggered By** | @${GITHUB_ACTOR} |"
+              echo "Production is running \`${IMAGE_TAG}\` and passed health checks."
+            elif [ "$DEPLOY_RESULT" = "failure" ]; then
+              echo "## ⚠️ Deploy Failed — Rollback Triggered for \`${IMAGE_TAG}\`"
+              echo ""
+              echo "The new container failed health checks and production was reverted to \`:rollback\`."
+            elif [ "$BUILD_RESULT" = "failure" ]; then
+              echo "## ❌ Build Failed — Production Untouched"
+              echo ""
+              echo "Docker build failed before pushing \`${IMAGE_TAG}\`. Production was not modified."
+            elif [ "$TEST_RESULT" = "failure" ]; then
+              echo "## ❌ Test Gate Failed — Production Untouched"
+              echo ""
+              echo "Lint or typecheck failed before building. Production was not modified."
             else
-              echo "## ⚠️ Rollback Triggered for \`${IMAGE_TAG}\`"
+              echo "## ⏹️ Pipeline Did Not Complete"
               echo ""
-              echo "| Field | Value |"
-              echo "| --- | --- |"
-              echo "| **Status** | Failed (\`${DEPLOY_OUTCOME}\`) — Rolled back to \`:rollback\` |"
-              echo "| **Failed Image Tag** | \`${IMAGE_TAG}\` |"
-              echo "| **Commit** | [\`${GITHUB_SHA::7}\`](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}) |"
-              echo "| **Triggered By** | @${GITHUB_ACTOR} |"
-              if [ -n "$ROLLBACK_ISSUE_URL" ]; then
-                echo "| **Tracking Issue** | [View Rollback Issue](${ROLLBACK_ISSUE_URL}) |"
-              fi
-              echo ""
-              echo "> Check the **Execute deployment commands via SSH** step logs for container crash output and rollback status."
+              echo "One or more jobs were cancelled or skipped."
+            fi
+
+            echo ""
+            echo "| Stage | Result |"
+            echo "| --- | --- |"
+            echo "| **test** | \`${TEST_RESULT}\` |"
+            echo "| **build** | \`${BUILD_RESULT}\` |"
+            echo "| **deploy** | \`${DEPLOY_RESULT}\` |"
+            echo ""
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| **Commit** | [\`${GITHUB_SHA::7}\`](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}) |"
+            echo "| **Image Tag** | \`${IMAGE_TAG}\` |"
+            echo "| **Triggered By** | @${GITHUB_ACTOR} |"
+            if [ -n "$ISSUE_URL" ]; then
+              echo "| **Tracking Issue** | [View Failure Issue](${ISSUE_URL}) |"
             fi
           } >> "$GITHUB_STEP_SUMMARY"
