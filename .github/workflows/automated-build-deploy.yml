@@ -70,8 +70,10 @@ jobs:
     permissions:
       contents: read
       packages: read
+      issues: write
     steps:
       - name: Execute deployment commands via SSH
+        id: deploy_ssh
         uses: appleboy/ssh-action@v1.0.3
         env:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -159,3 +161,74 @@ jobs:
               | xargs -r docker rmi || true
             docker image prune -f
             echo "Deployment completed successfully."
+
+      - name: Create rollback issue on failure
+        id: rollback_issue
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          result-encoding: string
+          script: |
+            const sha = context.sha;
+            const shortSha = sha.slice(0, 7);
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const commitUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/commit/${sha}`;
+
+            const { data: issue } = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Production deploy failed & rolled back (${shortSha})`,
+              labels: ['rollback', 'production'],
+              body: [
+                '## ⚠️ Production Deployment Rollback Triggered',
+                '',
+                'The automated production deployment failed health checks and triggered an automatic rollback to the previous working image (`:rollback`).',
+                '',
+                '| Field | Value |',
+                '| --- | --- |',
+                `| **Failed Commit** | [\`${shortSha}\`](${commitUrl}) (\`${sha}\`) |`,
+                `| **Failed Image Tag** | \`sha-${sha}\` |`,
+                `| **Author / Actor** | @${context.actor} |`,
+                `| **Workflow Run** | [View deployment logs](${runUrl}) |`,
+                '',
+                '### Next Steps',
+                '1. Review the container crash logs in the failed workflow run above.',
+                '2. Fix the issue on a feature branch and merge to `main` to redeploy.',
+              ].join('\n'),
+            });
+
+            return issue.html_url;
+
+      - name: Write deployment summary
+        if: always()
+        env:
+          DEPLOY_OUTCOME: ${{ steps.deploy_ssh.outcome }}
+          IMAGE_TAG: sha-${{ github.sha }}
+          ROLLBACK_ISSUE_URL: ${{ steps.rollback_issue.outputs.result }}
+        run: |
+          {
+            if [ "$DEPLOY_OUTCOME" = "success" ]; then
+              echo "## ✅ Healthy Production Deploy"
+              echo ""
+              echo "| Field | Value |"
+              echo "| --- | --- |"
+              echo "| **Status** | Healthy |"
+              echo "| **Image Tag** | \`${IMAGE_TAG}\` |"
+              echo "| **Commit** | [\`${GITHUB_SHA::7}\`](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}) |"
+              echo "| **Triggered By** | @${GITHUB_ACTOR} |"
+            else
+              echo "## ⚠️ Rollback Triggered for \`${IMAGE_TAG}\`"
+              echo ""
+              echo "| Field | Value |"
+              echo "| --- | --- |"
+              echo "| **Status** | Failed (\`${DEPLOY_OUTCOME}\`) — Rolled back to \`:rollback\` |"
+              echo "| **Failed Image Tag** | \`${IMAGE_TAG}\` |"
+              echo "| **Commit** | [\`${GITHUB_SHA::7}\`](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}) |"
+              echo "| **Triggered By** | @${GITHUB_ACTOR} |"
+              if [ -n "$ROLLBACK_ISSUE_URL" ]; then
+                echo "| **Tracking Issue** | [View Rollback Issue](${ROLLBACK_ISSUE_URL}) |"
+              fi
+              echo ""
+              echo "> Check the **Execute deployment commands via SSH** step logs for container crash output and rollback status."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
