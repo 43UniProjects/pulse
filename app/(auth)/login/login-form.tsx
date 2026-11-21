@@ -17,6 +17,7 @@ function LoginFormContent() {
   const { data: session } = authClient.useSession();
   const verifiedToastShown = useRef(false);
   const redirectInitiated = useRef(false);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const [role, setRole] = useState<'donor' | 'hospital' | 'admin'>('donor');
   const [isPending, setIsPending] = useState(false);
@@ -32,9 +33,11 @@ function LoginFormContent() {
     }
   }, [session, router]);
 
-  // Detect unauthenticated redirect from protected routes (only when accessing without logging in)
+  // Detect unauthenticated redirect from protected routes (or upon explicit logout)
   useEffect(() => {
     if (searchParams.get('logged_out') === 'true') {
+      redirectInitiated.current = false;
+      formRef.current?.reset();
       router.replace('/login', { scroll: false });
       return;
     }
@@ -116,6 +119,8 @@ function LoginFormContent() {
       }
 
       toast.success('Logged in successfully!');
+      setIsPending(false);
+      formRef.current?.reset();
 
       const userRole = data?.user?.role;
       const isActive = data?.user?.isActive;
@@ -153,7 +158,11 @@ function LoginFormContent() {
         <p className="text-sm text-muted-foreground">Sign in to your account</p>
       </div>
 
-      <form onSubmit={handleLogin} className="flex flex-col gap-5">
+      <form
+        ref={formRef}
+        onSubmit={handleLogin}
+        className="flex flex-col gap-5"
+      >
         <div>
           <label className="text-xs font-mono uppercase tracking-widest text-muted-foreground block mb-2">
             Account Type
