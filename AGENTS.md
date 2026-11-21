@@ -65,6 +65,14 @@ const tickets = await Contact.find().lean();
 
 - **Dates:** Format dates on the client using `Intl.DateTimeFormat` (e.g., 'en-GB').
 
+### Import Conventions
+
+- Always use the `@/` path alias for absolute imports instead of deep relative paths (e.g., use `import { Button } from '@/components/ui/button'` instead of `../../components/ui/button`).
+
+- Only use relative imports (`./`) when importing files located in the exact same directory.
+
+- Do not mix relative and aliased imports within the same file unless importing a sibling file.
+
 # Git Workflow
 
 - **Branch Naming:** Follow `<name>/<feature-slug>` standard.
