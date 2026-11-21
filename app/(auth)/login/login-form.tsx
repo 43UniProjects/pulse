@@ -19,7 +19,6 @@ function LoginFormContent() {
   const redirectInitiated = useRef(false);
   const formRef = useRef<HTMLFormElement>(null);
 
-  const [role, setRole] = useState<'donor' | 'hospital' | 'admin'>('donor');
   const [isPending, setIsPending] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [globalError, setGlobalError] = useState<string | null>(null);
@@ -84,8 +83,6 @@ function LoginFormContent() {
 
     const formData = new FormData(e.currentTarget);
     const rawData = Object.fromEntries(formData.entries());
-
-    rawData.role = role;
 
     const validation = loginSchema.safeParse(rawData);
 
@@ -163,31 +160,6 @@ function LoginFormContent() {
         onSubmit={handleLogin}
         className="flex flex-col gap-5"
       >
-        <div>
-          <label className="text-xs font-mono uppercase tracking-widest text-muted-foreground block mb-2">
-            Account Type
-          </label>
-          <div className="flex p-1 gap-1 bg-secondary border border-border rounded-lg">
-            {(['donor', 'hospital', 'admin'] as const).map((r) => (
-              <button
-                key={r}
-                type="button"
-                onClick={() => setRole(r)}
-                className={`flex-1 text-xs font-medium py-2 rounded-md transition-all capitalize ${
-                  role === r
-                    ? 'bg-background text-foreground shadow-sm border border-border/50'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-background/50 border border-transparent'
-                }`}
-              >
-                {r}
-              </button>
-            ))}
-          </div>
-          {fieldErrors.role && (
-            <p className="text-xs text-red-500 mt-2">{fieldErrors.role[0]}</p>
-          )}
-        </div>
-
         <div className="space-y-2">
           <label className="text-xs font-medium text-foreground block">
             Email Address

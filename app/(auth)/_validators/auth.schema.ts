@@ -30,9 +30,6 @@ export const registerSchema = z
   });
 
 export const loginSchema = z.object({
-  role: z.enum(USER_ROLE, {
-    error: 'Invalid account type selected',
-  }),
   email: z.email('Invalid email address'),
   password: passwordSchema,
 });
