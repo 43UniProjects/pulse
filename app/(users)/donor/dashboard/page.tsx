@@ -91,27 +91,25 @@ async function DonorDashboardContent() {
   const session = await validateRoleAccess('donor');
   await connectToDatabase();
 
-  let donor = await Donor.findById(session.user.id).lean();
+  const donorDoc = await Donor.findById(session.user.id).lean();
 
-  if (!donor) {
-    const created = await Donor.create({
-      _id: session.user.id,
-      fullName: session.user.name || '',
-      email: session.user.email,
-      phone: '',
-      bloodGroup: '',
-      dateOfBirth: null,
-      address: '',
-      location: { type: 'Point', coordinates: DEFAULT_COLOMBO_COORDS },
-      radiusPreferenceKm: 10,
-      isEligible: true,
-      isAvailable: true,
-      liveLocationSync: false,
-      smsAlertsEnabled: true,
-      emailAlertsEnabled: false,
-    });
-    donor = created.toObject();
-  }
+  const donor = donorDoc ?? {
+    _id: session.user.id,
+    fullName: session.user.name || '',
+    email: session.user.email,
+    phone: '',
+    bloodGroup: '' as const,
+    dateOfBirth: null,
+    address: '',
+    location: { type: 'Point' as const, coordinates: DEFAULT_COLOMBO_COORDS },
+    radiusPreferenceKm: 10,
+    lastDonationDate: null,
+    isEligible: true,
+    isAvailable: true,
+    liveLocationSync: false,
+    smsAlertsEnabled: true,
+    emailAlertsEnabled: false,
+  };
 
   // Calculate clinical eligibility (120 days waiting period)
   const isClinicallyEligible = calculateClinicalEligibility(donor);

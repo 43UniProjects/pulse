@@ -22,6 +22,7 @@ export default function DonorsClient({
   const [donors, setDonors] = useState<SerializedDonor[]>(initialDonors);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('All');
+  const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
 
   const filtered = donors.filter((d) => {
     const matchSearch =
@@ -37,23 +38,43 @@ export default function DonorsClient({
   const pending = donors.filter((d) => !d.verified).length;
 
   async function handleToggleVerified(id: string, currentStatus: boolean) {
+    if (pendingIds.has(id)) return;
+
     const nextStatus = !currentStatus;
+    setPendingIds((prev) => new Set(prev).add(id));
     // Optimistic UI update
     setDonors((prev) =>
       prev.map((d) => (d._id === id ? { ...d, verified: nextStatus } : d)),
     );
 
-    const res = await toggleDonorVerification(id, nextStatus);
-    if (!res.success) {
-      toast.error('Failed to update donor status');
-      // Revert optimistic update
+    try {
+      const res = await toggleDonorVerification(id, nextStatus);
+      if (!res.success) {
+        toast.error(res.error || 'Failed to update donor status');
+        // Revert optimistic update
+        setDonors((prev) =>
+          prev.map((d) =>
+            d._id === id ? { ...d, verified: currentStatus } : d,
+          ),
+        );
+      } else {
+        toast.success(
+          nextStatus
+            ? 'Donor marked as verified'
+            : 'Donor marked as unverified',
+        );
+      }
+    } catch {
+      toast.error('Network error while updating donor status');
       setDonors((prev) =>
         prev.map((d) => (d._id === id ? { ...d, verified: currentStatus } : d)),
       );
-    } else {
-      toast.success(
-        nextStatus ? 'Donor marked as verified' : 'Donor marked as unverified',
-      );
+    } finally {
+      setPendingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
     }
   }
 

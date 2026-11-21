@@ -26,6 +26,7 @@ export default function ManageUsersClient({
   const [users, setUsers] = useState<SerializedUser[]>(initialUsers);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('All');
+  const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
 
   const filtered = users.filter((u) => {
     const matchSearch =
@@ -40,23 +41,39 @@ export default function ManageUsersClient({
     id: string,
     currentStatus: 'Active' | 'Suspended',
   ) {
+    if (pendingIds.has(id)) return;
+
     const nextStatus = currentStatus === 'Active' ? 'Suspended' : 'Active';
     const nextActive = nextStatus === 'Active';
 
+    setPendingIds((prev) => new Set(prev).add(id));
     // Optimistic UI update
     setUsers((us) =>
       us.map((u) => (u.id === id ? { ...u, status: nextStatus } : u)),
     );
 
-    const res = await toggleUserStatusAction(id, nextActive);
-    if (!res.success) {
-      toast.error('Failed to update user status');
-      // Revert optimistic update
+    try {
+      const res = await toggleUserStatusAction(id, nextActive);
+      if (!res.success) {
+        toast.error(res.error || 'Failed to update user status');
+        // Revert optimistic update
+        setUsers((us) =>
+          us.map((u) => (u.id === id ? { ...u, status: currentStatus } : u)),
+        );
+      } else {
+        toast.success(`User marked as ${nextStatus}`);
+      }
+    } catch {
+      toast.error('Network error while updating user status');
       setUsers((us) =>
         us.map((u) => (u.id === id ? { ...u, status: currentStatus } : u)),
       );
-    } else {
-      toast.success(`User marked as ${nextStatus}`);
+    } finally {
+      setPendingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
     }
   }
 

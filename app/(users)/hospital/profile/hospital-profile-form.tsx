@@ -34,6 +34,13 @@ export default function HospitalProfileForm({
     success: false,
   });
   const lastStateRef = useRef(state);
+  const onSuccessRef = useRef(onSuccess);
+  const isIncompleteRef = useRef(isIncomplete);
+
+  useEffect(() => {
+    onSuccessRef.current = onSuccess;
+    isIncompleteRef.current = isIncomplete;
+  });
 
   // Geolocation state for hospital facility coordinates
   const {
@@ -61,18 +68,18 @@ export default function HospitalProfileForm({
 
     if (state.success) {
       toast.success(
-        isIncomplete
+        isIncompleteRef.current
           ? 'Facility profile completed! Your account is now activated.'
           : 'Profile updated successfully!',
       );
       const timer = setTimeout(() => {
-        onSuccess();
+        onSuccessRef.current();
       }, 600);
       return () => clearTimeout(timer);
     } else if (state.error) {
       toast.error(state.error);
     }
-  }, [state, onSuccess, isIncomplete]);
+  }, [state]);
 
   // Format hospital type label
   const formatType = (type: string) => {

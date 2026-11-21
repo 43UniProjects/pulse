@@ -25,6 +25,10 @@ export async function getDonationRequest(
     ...req,
     _id: req._id.toString(),
     hospitalId: req.hospitalId.toString(),
+    notifiedDonors: Array.isArray(req.notifiedDonors)
+      ? req.notifiedDonors.map((donorId) => donorId.toString())
+      : [],
+    fulfilledBy: req.fulfilledBy ? req.fulfilledBy.toString() : undefined,
     createdAt: req.createdAt
       ? new Date(req.createdAt).toISOString()
       : new Date().toISOString(),
@@ -54,6 +58,10 @@ export function calculateClinicalEligibility(donor: {
 export async function getDonorProfile(
   donorId: string,
 ): Promise<DonorEntity | null> {
+  if (!mongoose.Types.ObjectId.isValid(donorId)) {
+    return null;
+  }
+
   await connectToDatabase();
   const donor = await Donor.findById(donorId).lean();
   if (!donor) return null;
@@ -61,9 +69,15 @@ export async function getDonorProfile(
   return {
     ...donor,
     _id: donor._id.toString(),
+    history: Array.isArray(donor.history)
+      ? donor.history.map((item) => item.toString())
+      : [],
     dateOfBirth: donor.dateOfBirth ? new Date(donor.dateOfBirth) : null,
     lastDonationDate: donor.lastDonationDate
       ? new Date(donor.lastDonationDate)
+      : null,
+    lastLocationUpdatedAt: donor.lastLocationUpdatedAt
+      ? new Date(donor.lastLocationUpdatedAt)
       : null,
     createdAt: donor.createdAt ? new Date(donor.createdAt) : undefined,
     updatedAt: donor.updatedAt ? new Date(donor.updatedAt) : undefined,
@@ -76,9 +90,14 @@ export async function getDonorProfile(
 export async function getDonationHistory(
   donorId: string,
 ): Promise<DonationEntity[]> {
+  if (!mongoose.Types.ObjectId.isValid(donorId)) {
+    return [];
+  }
+
   await connectToDatabase();
   const donations = await Donation.find({ donorId })
     .sort({ donationDate: -1 })
+    .limit(50)
     .lean();
 
   return donations.map((d) => ({
@@ -90,6 +109,7 @@ export async function getDonationHistory(
     donationDate: d.donationDate
       ? new Date(d.donationDate).toISOString()
       : new Date().toISOString(),
+    expiryDate: d.expiryDate ? new Date(d.expiryDate).toISOString() : undefined,
     createdAt: d.createdAt
       ? new Date(d.createdAt).toISOString()
       : new Date().toISOString(),
@@ -100,18 +120,23 @@ export async function getDonationHistory(
 }
 
 /**
- * Retrieves all active, pending requests in the network.
+ * Retrieves active, pending requests in the network.
  */
 export async function getDonationRequests(): Promise<DonationRequestEntity[]> {
   await connectToDatabase();
   const requests = await DonationRequest.find({ status: 'pending' })
     .sort({ createdAt: -1 })
+    .limit(50)
     .lean();
 
   return requests.map((req) => ({
     ...req,
     _id: req._id.toString(),
     hospitalId: req.hospitalId.toString(),
+    notifiedDonors: Array.isArray(req.notifiedDonors)
+      ? req.notifiedDonors.map((donorId) => donorId.toString())
+      : [],
+    fulfilledBy: req.fulfilledBy ? req.fulfilledBy.toString() : undefined,
     createdAt: req.createdAt
       ? new Date(req.createdAt).toISOString()
       : new Date().toISOString(),

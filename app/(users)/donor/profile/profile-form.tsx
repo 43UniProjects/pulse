@@ -37,6 +37,13 @@ export default function DonorProfileForm({
     success: false,
   });
   const lastStateRef = useRef(state);
+  const onSuccessRef = useRef(onSuccess);
+  const isIncompleteRef = useRef(isIncomplete);
+
+  useEffect(() => {
+    onSuccessRef.current = onSuccess;
+    isIncompleteRef.current = isIncomplete;
+  });
 
   useEffect(() => {
     if (state === lastStateRef.current) return;
@@ -44,18 +51,18 @@ export default function DonorProfileForm({
 
     if (state.success) {
       toast.success(
-        isIncomplete
+        isIncompleteRef.current
           ? 'Profile completed! Your account is now activated.'
           : 'Profile updated successfully!',
       );
       const timer = setTimeout(() => {
-        onSuccess();
+        onSuccessRef.current();
       }, 600);
       return () => clearTimeout(timer);
     } else if (state.error) {
       toast.error(state.error);
     }
-  }, [state, onSuccess, isIncomplete]);
+  }, [state]);
 
   // Manage slider and toggles state so UI updates immediately
 

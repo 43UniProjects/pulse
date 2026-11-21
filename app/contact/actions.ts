@@ -63,12 +63,21 @@ export async function submitContactMessage(
       contactPayload.targetAudience =
         roleTargetMap[userRole.toLowerCase()] || 'developer';
     } else {
-      // Guest User: Use validated form data directly
+      // Guest User: Map department choice to valid CONTACT_TARGET enum ('admin' | 'developer')
+      const guestTargetMap: Record<string, 'admin' | 'developer'> = {
+        technical: 'developer',
+        developer: 'developer',
+        support: 'admin',
+        billing: 'admin',
+        admin: 'admin',
+      };
+
       contactPayload.userId = null;
       contactPayload.name = validation.data.name;
       contactPayload.email = validation.data.email;
       contactPayload.senderRole = 'guest';
-      contactPayload.targetAudience = validation.data.targetAudience;
+      contactPayload.targetAudience =
+        guestTargetMap[validation.data.targetAudience.toLowerCase()] ?? 'admin';
     }
 
     // 3. Database Operation

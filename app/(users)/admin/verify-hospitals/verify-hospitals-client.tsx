@@ -32,6 +32,7 @@ export default function VerifyHospitalsClient({
     useState<SerializedHospitalVerification[]>(initialHospitals);
   const [filterStatus, setFilterStatus] = useState<string>('All');
   const [search, setSearch] = useState<string>('');
+  const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
 
   const pendingCount = hospitals.filter((h) => h.status === 'Pending').length;
 
@@ -47,9 +48,12 @@ export default function VerifyHospitalsClient({
   });
 
   async function update(id: string, status: HospitalStatus) {
+    if (pendingIds.has(id)) return;
+
     const prevHospital = hospitals.find((h) => h.id === id);
     if (!prevHospital) return;
 
+    setPendingIds((prev) => new Set(prev).add(id));
     // Optimistic UI update
     setHospitals((hs) => hs.map((h) => (h.id === id ? { ...h, status } : h)));
 
@@ -60,21 +64,38 @@ export default function VerifyHospitalsClient({
           ? 'reject'
           : 'pending';
 
-    const res = await verifyHospitalAction(id, action);
-    if (!res.success) {
-      toast.error('Failed to update hospital verification status');
-      // Revert optimistic update
+    try {
+      const res = await verifyHospitalAction(id, action);
+      if (!res.success) {
+        toast.error(
+          res.error || 'Failed to update hospital verification status',
+        );
+        // Revert optimistic update
+        setHospitals((hs) =>
+          hs.map((h) =>
+            h.id === id ? { ...h, status: prevHospital.status } : h,
+          ),
+        );
+      } else {
+        toast.success(
+          status === 'Pending'
+            ? 'Verification reset to pending'
+            : `Hospital successfully ${status.toLowerCase()}`,
+        );
+      }
+    } catch {
+      toast.error('Network error while updating hospital status');
       setHospitals((hs) =>
         hs.map((h) =>
           h.id === id ? { ...h, status: prevHospital.status } : h,
         ),
       );
-    } else {
-      toast.success(
-        status === 'Pending'
-          ? 'Verification reset to pending'
-          : `Hospital successfully ${status.toLowerCase()}`,
-      );
+    } finally {
+      setPendingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
     }
   }
 

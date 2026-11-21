@@ -43,13 +43,23 @@ export default function FaqClient({ initialFaqs }: { initialFaqs: FaqData[] }) {
     }
   }, [state]);
 
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
   const handleDelete = async (id: string) => {
+    if (deletingId) return;
     if (confirm('Are you sure you want to delete this FAQ?')) {
-      const result = await deleteFaq(id);
-      if (result.success) {
-        toast.success(result.message);
-      } else {
-        toast.error(result.error);
+      setDeletingId(id);
+      try {
+        const result = await deleteFaq(id);
+        if (result.success) {
+          toast.success(result.message);
+        } else {
+          toast.error(result.error);
+        }
+      } catch {
+        toast.error('Network error while deleting FAQ.');
+      } finally {
+        setDeletingId(null);
       }
     }
   };

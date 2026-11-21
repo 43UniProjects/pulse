@@ -1,8 +1,10 @@
 import { Metadata } from 'next';
+import { Suspense } from 'react';
 import { validateRoleAccess } from '@/lib/auth/guard';
 import { connectToDatabase } from '@/lib/db/connect';
 import { Admin } from '@/lib/models/admin.model';
 import { AdminEntity } from '@/types/admin.type';
+import GenericFallback from '@/components/fallback';
 import AdminProfileClient from '@/app/(users)/admin/profile/admin-profile-client';
 
 export const metadata: Metadata = {
@@ -10,25 +12,30 @@ export const metadata: Metadata = {
   description: 'Manage your administrative account details.',
 };
 
-export default async function AdminProfilePage() {
+async function AdminProfileContent() {
   const session = await validateRoleAccess('admin');
   await connectToDatabase();
 
-  let adminDoc = await Admin.findById(session.user.id).lean();
-
-  if (!adminDoc) {
-    const created = await Admin.create({
-      _id: session.user.id,
-      fullName: session.user.name || 'System Administrator',
-      email: session.user.email,
-      phone: '+94 77 000 0000',
-      role: 'superadmin',
-      status: 'active',
-      department: 'Operations',
-      actionsLogged: 0,
-    });
-    adminDoc = created.toObject();
-  }
+  const adminDoc = await Admin.findByIdAndUpdate(
+    session.user.id,
+    {
+      $setOnInsert: {
+        _id: session.user.id,
+        fullName: session.user.name || 'System Administrator',
+        email: session.user.email,
+        phone: '+94 77 000 0000',
+        role: 'superadmin',
+        status: 'active',
+        department: 'Operations',
+        actionsLogged: 0,
+      },
+    },
+    {
+      upsert: true,
+      returnDocument: 'after',
+      setDefaultsOnInsert: true,
+    },
+  ).lean();
 
   const serializedAdmin = {
     ...adminDoc,
@@ -38,9 +45,15 @@ export default async function AdminProfilePage() {
     updatedAt: adminDoc.updatedAt ? new Date(adminDoc.updatedAt) : undefined,
   } as unknown as AdminEntity;
 
+  return <AdminProfileClient initialData={serializedAdmin} />;
+}
+
+export default function AdminProfilePage() {
   return (
     <div className="max-w-5xl mx-auto w-full space-y-6">
-      <AdminProfileClient initialData={serializedAdmin} />
+      <Suspense fallback={<GenericFallback />}>
+        <AdminProfileContent />
+      </Suspense>
     </div>
   );
 }

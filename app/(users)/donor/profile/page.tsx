@@ -18,17 +18,22 @@ async function DonorProfileContent() {
   const session = await validateRoleAccess('donor', { allowInactive: true });
   await connectToDatabase();
 
-  const donorDoc = await Donor.findById(session.user.id).lean();
-
-  const history = await Donation.find({ donorId: session.user.id }).lean();
-  const completedDonations = history.filter(
-    (req) => req.status === DONATION_STATUS[2], // 'completed'
-  ).length;
+  const [donorDoc, historyCount, completedDonations] = await Promise.all([
+    Donor.findById(session.user.id).lean(),
+    Donation.countDocuments({ donorId: session.user.id }),
+    Donation.countDocuments({
+      donorId: session.user.id,
+      status: DONATION_STATUS[2], // 'completed'
+    }),
+  ]);
 
   const serializedDonor: DonorEntity = donorDoc
     ? ({
         ...donorDoc,
         _id: donorDoc._id.toString(),
+        history: Array.isArray(donorDoc.history)
+          ? donorDoc.history.map((item) => item.toString())
+          : [],
         dateOfBirth: donorDoc.dateOfBirth
           ? new Date(donorDoc.dateOfBirth)
           : null,
@@ -68,7 +73,7 @@ async function DonorProfileContent() {
   return (
     <DonorProfileClient
       initialData={serializedDonor}
-      historyCount={history.length}
+      historyCount={historyCount}
       completedDonations={completedDonations}
       isAccountActive={Boolean(session.user.isActive)}
     />
