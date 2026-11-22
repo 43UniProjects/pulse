@@ -7,7 +7,7 @@ import GenericFallback from '@/components/fallback';
 import PostRequestClient from '@/app/(users)/hospital/post-request/post-request-client';
 
 export const metadata: Metadata = {
-  title: 'Post Blood Request | Pulse',
+  title: 'Post Blood Request',
   description: 'Broadcast an emergency request to eligible nearby donors.',
 };
 

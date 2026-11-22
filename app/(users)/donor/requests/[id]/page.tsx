@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import mongoose from 'mongoose';
 import RequestDetailClient, {
@@ -13,6 +14,11 @@ import '@/lib/models/hospital.model';
 import { BLOOD_COMPATIBILITY } from '@/lib/matching/blood-compatibility';
 import { type BloodGroup } from '@/types/common.type';
 import { calculateClinicalEligibility } from '@/app/(users)/donor/requests/data';
+
+export const metadata: Metadata = {
+  title: 'Request Details',
+  description: 'View emergency blood request details and donor eligibility.',
+};
 
 function calculateHaversineDistanceKm(
   coords1: [number, number], // [lng, lat]

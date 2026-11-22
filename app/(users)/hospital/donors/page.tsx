@@ -10,7 +10,7 @@ import DonorsClient, {
 } from '@/app/(users)/hospital/donors/donors-client';
 
 export const metadata: Metadata = {
-  title: 'Registered Donors | Pulse',
+  title: 'Registered Donors',
   description: 'View registered donors and manage health verifications.',
 };
 

@@ -9,7 +9,7 @@ import HospitalTrackingClient, {
 } from '@/app/(users)/hospital/tracking/tracking-client';
 
 export const metadata: Metadata = {
-  title: 'Emergency Tracking | Pulse',
+  title: 'Emergency Tracking',
   description:
     'Monitor active blood requests and incoming donors in real-time.',
 };

@@ -9,7 +9,7 @@ import { Donation } from '@/lib/models/donation.model';
 import { Hospital } from '@/lib/models/hospital.model';
 import { DonationRequestEntity } from '@/types/donor-request.type';
 
-export const metadata: Metadata = { title: 'Hospital Dashboard | Pulse' };
+export const metadata: Metadata = { title: 'Hospital Dashboard' };
 
 const statusStyles: Record<string, string> = {
   pending:

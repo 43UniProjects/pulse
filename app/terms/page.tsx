@@ -1,5 +1,11 @@
+import type { Metadata } from 'next';
 import Footer from '@/components/footer';
 import Header from '@/components/header/main';
+
+export const metadata: Metadata = {
+  title: 'Terms of Service',
+  description: 'Review the terms and conditions for using the Pulse network.',
+};
 
 export default function TermsPage() {
   return (

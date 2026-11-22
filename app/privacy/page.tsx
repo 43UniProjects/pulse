@@ -1,5 +1,11 @@
+import type { Metadata } from 'next';
 import Footer from '@/components/footer';
 import Header from '@/components/header/main';
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy',
+  description: 'Read how Pulse collects, uses, and protects your information.',
+};
 
 export default function PrivacyPage() {
   return (
