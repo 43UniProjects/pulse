@@ -6,7 +6,7 @@ import { AdminEntity } from '@/types/admin.type';
 import AdminProfileClient from '@/app/(users)/admin/profile/admin-profile-client';
 
 export const metadata: Metadata = {
-  title: 'Admin Profile | Pulse',
+  title: 'Admin Profile',
   description: 'Manage your administrative account details.',
 };
 

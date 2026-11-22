@@ -1,9 +1,16 @@
+import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { connectToDatabase } from '@/lib/db/connect';
 import { Faq } from '@/lib/models/faq.model';
 import FaqClient from '@/app/(users)/admin/faqs/faq-client';
 import { connection } from 'next/server';
 import GenericFallback from '@/components/fallback';
+
+export const metadata: Metadata = {
+  title: 'FAQ Management',
+  description:
+    'Manage frequently asked questions displayed on the support page.',
+};
 
 async function FaqList() {
   await connection();

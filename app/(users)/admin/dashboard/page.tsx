@@ -7,7 +7,7 @@ import { Hospital } from '@/lib/models/hospital.model';
 import { Donor } from '@/lib/models/donor.model';
 import { DonationRequest } from '@/lib/models/donation-request.model';
 
-export const metadata: Metadata = { title: 'Admin Dashboard | Pulse' };
+export const metadata: Metadata = { title: 'Admin Dashboard' };
 
 function AdminDashboardSkeleton() {
   return (

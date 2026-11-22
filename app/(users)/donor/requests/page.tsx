@@ -10,7 +10,7 @@ import GenericFallback from '@/components/fallback';
 import RequestsClient from '@/app/(users)/donor/requests/requests-client';
 
 export const metadata: Metadata = {
-  title: 'Emergency Requests | Pulse',
+  title: 'Emergency Requests',
   description: 'Manage nearby active emergencies and view your past donations.',
 };
 

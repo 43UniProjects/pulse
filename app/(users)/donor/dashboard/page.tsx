@@ -59,7 +59,7 @@ type LeanDonationRequest = Pick<
 >;
 
 export const metadata: Metadata = {
-  title: 'Donor Dashboard | Pulse',
+  title: 'Donor Dashboard',
   description: 'View your donation status and nearby emergency requests.',
 };
 
