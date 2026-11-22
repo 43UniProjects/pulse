@@ -7,10 +7,10 @@ import ManageUsersClient, {
 } from '@/app/(users)/admin/manage-users/manage-users-client';
 
 export default async function ManageUsersPage() {
-  await validateRoleAccess('admin');
+  const session = await validateRoleAccess('admin');
   await connectToDatabase();
 
-  const rawUsers = await User.find()
+  const rawUsers = await User.find({ _id: { $ne: session.user.id } })
     .sort({ createdAt: -1 })
     .lean<UserEntity[]>();
 
