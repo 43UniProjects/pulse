@@ -25,6 +25,9 @@ export default async function AdminProfilePage() {
       role: 'superadmin',
       status: 'active',
       department: 'Operations',
+      lastLoginAt: session.session?.createdAt
+        ? new Date(session.session.createdAt)
+        : new Date(),
       actionsLogged: 0,
     });
     adminDoc = created.toObject();

@@ -4,6 +4,7 @@ import { nextCookies } from 'better-auth/next-js';
 import mongoose from 'mongoose';
 import { connectToDatabase } from '@/lib/db/connect';
 import { sendVerificationEmail } from '@/lib/mail';
+import { Admin } from '@/lib/models/admin.model';
 
 let client: unknown = {};
 let db: unknown = {};
@@ -72,6 +73,30 @@ export const auth = betterAuth({
         type: 'boolean',
         required: true,
         defaultValue: false,
+      },
+    },
+  },
+  databaseHooks: {
+    session: {
+      create: {
+        after: async (session) => {
+          if (
+            !session?.userId ||
+            !mongoose.Types.ObjectId.isValid(session.userId)
+          ) {
+            return;
+          }
+
+          try {
+            await connectToDatabase();
+            await Admin.updateOne(
+              { _id: new mongoose.Types.ObjectId(session.userId) },
+              { $set: { lastLoginAt: new Date() } },
+            );
+          } catch (error) {
+            console.error('[Auth] Failed to update admin lastLoginAt:', error);
+          }
+        },
       },
     },
   },

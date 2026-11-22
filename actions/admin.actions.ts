@@ -150,6 +150,13 @@ export async function toggleUserStatusAction(
     return { success: false, error: 'Unauthorized' };
   }
 
+  if (userId === session.user.id) {
+    return {
+      success: false,
+      error: 'You cannot change your own account status.',
+    };
+  }
+
   await connectToDatabase();
 
   await User.findByIdAndUpdate(userId, {

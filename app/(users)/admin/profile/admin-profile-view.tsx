@@ -1,3 +1,6 @@
+'use client';
+
+import { useSyncExternalStore } from 'react';
 import {
   User,
   Phone,
@@ -13,6 +16,34 @@ import {
 } from 'lucide-react';
 import { AdminEntity } from '@/types/admin.type';
 
+const emptySubscribe = () => () => {};
+
+function formatLastLogin(date: Date | string, isClient: boolean): string {
+  const parsed = new Date(date);
+  if (Number.isNaN(parsed.getTime())) {
+    return 'Never logged in';
+  }
+
+  if (!isClient) {
+    return `${new Intl.DateTimeFormat('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'UTC',
+    }).format(parsed)} UTC`;
+  }
+
+  return new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(parsed);
+}
+
 export default function AdminProfileView({
   admin,
   onEdit,
@@ -20,6 +51,11 @@ export default function AdminProfileView({
   admin: AdminEntity;
   onEdit: () => void;
 }) {
+  const isClient = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  );
   const formatRole = (role: string) => {
     return role
       .split('_')
@@ -166,7 +202,7 @@ export default function AdminProfileView({
                 <p className="text-xs font-medium text-muted-foreground mb-1 flex items-center gap-2">
                   <Activity className="w-3.5 h-3.5" /> Total Actions Logged
                 </p>
-                <p className="text-xl font-bold text-foreground">
+                <p className="text-xl font-bold text-foreground font-tabular">
                   {admin.actionsLogged?.toLocaleString() || 0}
                 </p>
               </div>
@@ -175,9 +211,9 @@ export default function AdminProfileView({
                 <p className="text-xs font-medium text-muted-foreground mb-1 flex items-center gap-2">
                   <Clock className="w-3.5 h-3.5" /> Last Login
                 </p>
-                <p className="text-sm font-medium text-foreground">
+                <p className="text-sm font-medium text-foreground font-tabular">
                   {admin.lastLoginAt
-                    ? new Date(admin.lastLoginAt).toLocaleString()
+                    ? formatLastLogin(admin.lastLoginAt, isClient)
                     : 'Never logged in'}
                 </p>
               </div>
