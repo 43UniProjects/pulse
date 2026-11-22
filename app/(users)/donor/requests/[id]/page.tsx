@@ -10,6 +10,9 @@ import { DonationRequest } from '@/lib/models/donation-request.model';
 import { Donation } from '@/lib/models/donation.model';
 import { Donor } from '@/lib/models/donor.model';
 import '@/lib/models/hospital.model';
+import { BLOOD_COMPATIBILITY } from '@/lib/matching/blood-compatibility';
+import { type BloodGroup } from '@/types/common.type';
+import { calculateClinicalEligibility } from '@/app/(users)/donor/requests/data';
 
 function calculateHaversineDistanceKm(
   coords1: [number, number], // [lng, lat]
@@ -60,10 +63,23 @@ async function RequestPageContent({
     );
   }
 
-  // 1. Fetch current donor's geospatial coordinates
+  // 1. Fetch current donor's geospatial coordinates, status & blood group
   const donor = await Donor.findById(session.user.id)
-    .select('location isAvailable isEligible')
+    .select('location isAvailable isEligible bloodGroup lastDonationDate')
     .lean();
+
+  const donorBloodGroup = (donor?.bloodGroup as BloodGroup) || '';
+  const isCompatible = donorBloodGroup
+    ? (BLOOD_COMPATIBILITY[rawReq.bloodGroup as BloodGroup] || []).includes(
+        donorBloodGroup,
+      )
+    : false;
+
+  const isEligible = calculateClinicalEligibility({
+    isEligible: Boolean(donor?.isEligible),
+    lastDonationDate: donor?.lastDonationDate,
+  });
+  const inCooldown = Boolean(donor?.isEligible && !isEligible);
 
   // 2. Fetch existing response status for this specific donor
   const userDonation = await Donation.findOne({
@@ -139,6 +155,10 @@ async function RequestPageContent({
     <RequestDetailClient
       request={serializedRequest}
       initialResponseStatus={initialResponse}
+      isCompatible={isCompatible}
+      isEligible={isEligible}
+      inCooldown={inCooldown}
+      donorBloodGroup={donorBloodGroup}
     />
   );
 }

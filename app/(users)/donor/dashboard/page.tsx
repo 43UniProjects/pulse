@@ -278,9 +278,15 @@ async function DonorDashboardContent() {
             <h1 className="font-semibold text-2xl tracking-tight text-foreground">
               Dashboard
             </h1>
-            <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 inline-flex items-center gap-1">
-              <ShieldCheck className="w-3 h-3" /> Verified Donor
-            </span>
+            {donor.isEligible ? (
+              <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 inline-flex items-center gap-1">
+                <ShieldCheck className="w-3 h-3" /> Verified Donor
+              </span>
+            ) : (
+              <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20 inline-flex items-center gap-1">
+                <Clock className="w-3 h-3" /> Verification Pending
+              </span>
+            )}
           </div>
           <p className="text-sm text-muted-foreground">
             Welcome back,{' '}

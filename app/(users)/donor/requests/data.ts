@@ -10,6 +10,8 @@ import {
 } from '@/types/donor-request.type';
 import { DonationEntity } from '@/types/donation.type';
 import { DonorEntity } from '@/types/donor.type';
+import { getCompatibleRequestBloodGroups } from '@/lib/matching/blood-compatibility';
+import { type BloodGroup } from '@/types/common.type';
 
 /**
  * Retrieves a specific donation request by MongoDB ObjectId or requestId code.
@@ -128,11 +130,12 @@ export async function getDonationRequests(
 
   let userDonations: { requestId?: unknown; status?: string }[] = [];
   let donorCreatedAt: Date | null = null;
+  let donorBloodGroup: string = '';
 
   if (donorId) {
     const [donations, donorDoc] = await Promise.all([
       Donation.find({ donorId }).select('requestId status').lean(),
-      Donor.findById(donorId).select('createdAt').lean(),
+      Donor.findById(donorId).select('createdAt bloodGroup').lean(),
     ]);
     userDonations = donations as unknown as {
       requestId?: unknown;
@@ -140,6 +143,9 @@ export async function getDonationRequests(
     }[];
     if (donorDoc && 'createdAt' in donorDoc && donorDoc.createdAt) {
       donorCreatedAt = new Date(donorDoc.createdAt);
+    }
+    if (donorDoc && 'bloodGroup' in donorDoc && donorDoc.bloodGroup) {
+      donorBloodGroup = donorDoc.bloodGroup;
     }
   }
 
@@ -175,6 +181,15 @@ export async function getDonationRequests(
   // Only surface emergency requests broadcast after this donor registered
   if (donorCreatedAt) {
     generalCriteria.createdAt = { $gte: donorCreatedAt };
+  }
+  // Only surface requests with blood groups compatible for this donor to donate to
+  if (donorBloodGroup) {
+    const compatibleGroups = getCompatibleRequestBloodGroups(
+      donorBloodGroup as BloodGroup,
+    );
+    if (compatibleGroups.length > 0) {
+      generalCriteria.bloodGroup = { $in: compatibleGroups };
+    }
   }
 
   // If this donor has accepted requests (whose request status may now be 'accepted' if fully committed),
