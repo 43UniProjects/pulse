@@ -34,7 +34,10 @@ export async function submitContactMessage(
       if (!fieldErrors[field]) fieldErrors[field] = [];
       fieldErrors[field].push(issue.message);
     });
-    return { fieldErrors, error: 'Please fix the errors in the form.' };
+    return {
+      fieldErrors,
+      error: 'Please check the highlighted fields and try again.',
+    };
   }
 
   try {

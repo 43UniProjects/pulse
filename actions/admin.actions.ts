@@ -58,7 +58,7 @@ export async function updateAdminProfile(
 
     return {
       success: false,
-      error: 'Please fix the errors in the form.',
+      error: 'Please check the highlighted fields and try again.',
       fieldErrors,
     };
   }
