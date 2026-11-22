@@ -93,7 +93,7 @@ export async function updateHospitalProfile(
 
     return {
       success: false,
-      error: 'Please fix the errors in the form.',
+      error: 'Please check the highlighted fields and try again.',
       fieldErrors,
     };
   }
@@ -220,6 +220,11 @@ export async function createHospitalDonationRequest(formData: FormData) {
   await connectToDatabase();
 
   const hospital = await Hospital.findById(session.user.id).lean();
+  if (!hospital || hospital.verificationStatus !== 'verified') {
+    throw new Error(
+      'Your facility account is pending verification by an administrator. You cannot post emergency requests until approved.',
+    );
+  }
   const hospitalName =
     hospital?.name || session.user.name || 'Hospital Facility';
   const hospitalAddress = hospital?.address || 'Colombo, Sri Lanka';
@@ -275,6 +280,17 @@ export async function toggleDonorVerification(
           'Your facility account is deactivated. Please complete your profile to activate your account.',
       };
     }
+  }
+
+  const hospital = await Hospital.findById(session.user.id)
+    .select('verificationStatus')
+    .lean();
+  if (!hospital || hospital.verificationStatus !== 'verified') {
+    return {
+      success: false,
+      error:
+        'Your facility account is pending verification by an administrator. You cannot modify donor eligibility until approved.',
+    };
   }
 
   await Donor.findByIdAndUpdate(donorId, {

@@ -195,6 +195,14 @@ export async function createDonationRequest(
     const { bloodGroup, quantity, radiusKm, urgency, notes } = validated.data;
 
     const hospital = await Hospital.findById(session.user.id).lean();
+
+    if (!hospital || hospital.verificationStatus !== 'verified') {
+      return {
+        success: false,
+        error:
+          'Your facility account is pending verification by an administrator. You cannot post emergency requests until approved.',
+      };
+    }
     const hospitalName =
       hospital?.name?.trim() || session.user.name || 'Hospital Facility';
     const hospitalAddress = hospital?.address?.trim() || 'Colombo, Sri Lanka';

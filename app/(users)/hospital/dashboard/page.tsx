@@ -1,10 +1,12 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { Suspense } from 'react';
+import { AlertTriangle } from 'lucide-react';
 import { validateRoleAccess } from '@/lib/auth/guard';
 import { connectToDatabase } from '@/lib/db/connect';
 import { DonationRequest } from '@/lib/models/donation-request.model';
 import { Donation } from '@/lib/models/donation.model';
+import { Hospital } from '@/lib/models/hospital.model';
 import { DonationRequestEntity } from '@/types/donor-request.type';
 
 export const metadata: Metadata = { title: 'Hospital Dashboard | Pulse' };
@@ -39,11 +41,17 @@ async function HospitalDashboardContent() {
   const session = await validateRoleAccess('hospital');
   await connectToDatabase();
 
-  const requestsRaw = await DonationRequest.find({
-    hospitalId: session.user.id,
-  })
-    .sort({ createdAt: -1 })
-    .lean();
+  const [hospital, requestsRaw] = await Promise.all([
+    Hospital.findById(session.user.id).select('verificationStatus').lean(),
+    DonationRequest.find({
+      hospitalId: session.user.id,
+    })
+      .sort({ createdAt: -1 })
+      .lean(),
+  ]);
+
+  const isVerified = hospital?.verificationStatus === 'verified';
+  const verificationStatus = hospital?.verificationStatus || 'pending';
 
   const requestIds = requestsRaw.map((r) => r._id);
 
@@ -100,6 +108,26 @@ async function HospitalDashboardContent() {
           + Post New Request
         </Link>
       </div>
+
+      {!isVerified && (
+        <div className="mb-6 bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <h3 className="text-sm font-semibold text-amber-600 dark:text-amber-400">
+              Facility Verification Pending
+            </h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Your facility account is currently{' '}
+              <span className="font-semibold text-foreground uppercase">
+                {verificationStatus}
+              </span>
+              . An administrator must verify and approve your facility account
+              before you can broadcast emergency blood requests or manage donor
+              eligibility.
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="bg-card border border-border rounded-lg overflow-hidden">
         <div className="px-5 py-3 border-b border-border">

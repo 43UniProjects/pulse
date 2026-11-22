@@ -16,7 +16,7 @@ async function PostRequestContent() {
   await connectToDatabase();
 
   const hospital = await Hospital.findById(session.user.id)
-    .select('name address city')
+    .select('name address city verificationStatus')
     .lean();
 
   const hospitalName = hospital?.name?.trim() || session.user.name || '';
@@ -27,10 +27,15 @@ async function PostRequestContent() {
     .filter(Boolean)
     .join(', ');
 
+  const isVerified = hospital?.verificationStatus === 'verified';
+  const verificationStatus = hospital?.verificationStatus || 'pending';
+
   return (
     <PostRequestClient
       hospitalName={hospitalName}
       hospitalLocationLabel={hospitalLocationLabel}
+      isVerified={isVerified}
+      verificationStatus={verificationStatus}
     />
   );
 }

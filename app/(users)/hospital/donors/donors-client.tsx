@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { toggleDonorVerification } from '@/actions/hospital.actions';
 
@@ -14,11 +15,17 @@ export interface SerializedDonor {
   verified: boolean;
 }
 
+interface DonorsClientProps {
+  initialDonors: SerializedDonor[];
+  isVerified?: boolean;
+  verificationStatus?: string;
+}
+
 export default function DonorsClient({
   initialDonors,
-}: {
-  initialDonors: SerializedDonor[];
-}) {
+  isVerified = true,
+  verificationStatus = 'verified',
+}: DonorsClientProps) {
   const [donors, setDonors] = useState<SerializedDonor[]>(initialDonors);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('All');
@@ -37,6 +44,13 @@ export default function DonorsClient({
   const pending = donors.filter((d) => !d.verified).length;
 
   async function handleToggleVerified(id: string, currentStatus: boolean) {
+    if (!isVerified) {
+      toast.error(
+        'Your facility account is pending verification by an administrator. You cannot modify donor eligibility.',
+      );
+      return;
+    }
+
     const nextStatus = !currentStatus;
     // Optimistic UI update
     setDonors((prev) =>
@@ -45,7 +59,7 @@ export default function DonorsClient({
 
     const res = await toggleDonorVerification(id, nextStatus);
     if (!res.success) {
-      toast.error('Failed to update donor status');
+      toast.error(res.error || 'Failed to update donor status');
       // Revert optimistic update
       setDonors((prev) =>
         prev.map((d) => (d._id === id ? { ...d, verified: currentStatus } : d)),
@@ -68,6 +82,26 @@ export default function DonorsClient({
           verification
         </p>
       </div>
+
+      {!isVerified && (
+        <div className="border border-amber-500/30 bg-amber-500/10 rounded-lg p-4 flex items-start gap-3 mb-5">
+          <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <h3 className="text-sm font-semibold text-amber-600 dark:text-amber-400">
+              Donor Eligibility Management Restricted
+            </h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Your facility account is currently{' '}
+              <span className="font-semibold text-foreground uppercase">
+                {verificationStatus}
+              </span>
+              . Health verifications and donor eligibility updates are
+              restricted until an administrator verifies and approves your
+              facility account.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Note */}
       <div className="border border-border bg-muted/20 rounded-lg p-4 flex items-start gap-3 mb-5">
@@ -180,10 +214,13 @@ export default function DonorsClient({
                     <td className="px-5 py-3.5">
                       <button
                         onClick={() => handleToggleVerified(d._id, d.verified)}
-                        className={`text-xs font-medium px-2.5 py-1 rounded border transition-colors cursor-pointer ${
-                          d.verified
-                            ? 'border-border text-muted-foreground hover:bg-muted/50 bg-transparent'
-                            : 'border-green-200 dark:border-green-900/50 text-green-600 dark:text-green-400 bg-transparent dark:bg-green-950/20 hover:bg-green-50 dark:hover:bg-green-900/40'
+                        disabled={!isVerified}
+                        className={`text-xs font-medium px-2.5 py-1 rounded border transition-colors ${
+                          !isVerified
+                            ? 'opacity-50 cursor-not-allowed border-border text-muted-foreground bg-muted/20'
+                            : d.verified
+                              ? 'border-border text-muted-foreground hover:bg-muted/50 bg-transparent cursor-pointer'
+                              : 'border-green-200 dark:border-green-900/50 text-green-600 dark:text-green-400 bg-transparent dark:bg-green-950/20 hover:bg-green-50 dark:hover:bg-green-900/40 cursor-pointer'
                         }`}
                       >
                         {d.verified ? 'Mark Unverified' : 'Mark Verified'}
@@ -248,10 +285,13 @@ export default function DonorsClient({
                   <div className="pt-3 mt-1 border-t border-border/50 flex justify-end">
                     <button
                       onClick={() => handleToggleVerified(d._id, d.verified)}
-                      className={`text-xs font-medium px-4 py-2 w-full sm:w-auto rounded border transition-colors shadow-sm cursor-pointer ${
-                        d.verified
-                          ? 'border-border text-muted-foreground hover:bg-muted/50 bg-transparent'
-                          : 'border-green-200 dark:border-green-900/50 text-green-600 dark:text-green-400 bg-transparent dark:bg-green-950/20 hover:bg-green-50 dark:hover:bg-green-900/40'
+                      disabled={!isVerified}
+                      className={`text-xs font-medium px-4 py-2 w-full sm:w-auto rounded border transition-colors shadow-sm ${
+                        !isVerified
+                          ? 'opacity-50 cursor-not-allowed border-border text-muted-foreground bg-muted/20'
+                          : d.verified
+                            ? 'border-border text-muted-foreground hover:bg-muted/50 bg-transparent cursor-pointer'
+                            : 'border-green-200 dark:border-green-900/50 text-green-600 dark:text-green-400 bg-transparent dark:bg-green-950/20 hover:bg-green-50 dark:hover:bg-green-900/40 cursor-pointer'
                       }`}
                     >
                       {d.verified ? 'Mark Unverified' : 'Mark Verified'}
