@@ -40,7 +40,7 @@ async function RequestTrackingContent({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  await validateRoleAccess('hospital');
+  const session = await validateRoleAccess('hospital');
   await connectToDatabase();
 
   const query = mongoose.Types.ObjectId.isValid(id)
@@ -49,10 +49,10 @@ async function RequestTrackingContent({
 
   const request = await DonationRequest.findOne(query).lean();
 
-  if (!request) {
+  if (!request || request.hospitalId.toString() !== session.user.id) {
     return (
       <div className="p-8 max-w-5xl mx-auto text-center text-muted-foreground">
-        Emergency blood request record not found.
+        Emergency blood request record not found or access restricted.
       </div>
     );
   }

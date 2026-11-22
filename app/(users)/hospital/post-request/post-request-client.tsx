@@ -32,11 +32,15 @@ const INITIAL_STATE: CreateDonationRequestState = {
 interface PostRequestClientProps {
   hospitalName?: string;
   hospitalLocationLabel?: string;
+  isVerified?: boolean;
+  verificationStatus?: string;
 }
 
 export default function PostRequestClient({
   hospitalName,
   hospitalLocationLabel,
+  isVerified = true,
+  verificationStatus = 'verified',
 }: PostRequestClientProps) {
   const [radiusKm, setRadiusKm] = useState<number>(10);
   const [state, formAction, isPending] = useActionState(
@@ -235,6 +239,25 @@ export default function PostRequestClient({
         </div>
       )}
 
+      {!isVerified && (
+        <div className="mb-6 bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <h3 className="text-sm font-semibold text-amber-600 dark:text-amber-400">
+              Facility Verification Pending
+            </h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Your facility account is currently{' '}
+              <span className="font-semibold text-foreground uppercase">
+                {verificationStatus}
+              </span>
+              . Emergency blood request broadcasts are restricted until an
+              administrator verifies and approves your facility account.
+            </p>
+          </div>
+        </div>
+      )}
+
       {!state.success && state.error && (
         <div className="mb-6 bg-destructive/10 border border-destructive/30 rounded-xl p-4 flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
@@ -255,8 +278,9 @@ export default function PostRequestClient({
           <select
             name="bloodGroup"
             required
+            disabled={!isVerified || isPending}
             defaultValue=""
-            className="w-full border border-border rounded px-3 py-2 text-sm outline-none focus:border-border transition-colors bg-background"
+            className="w-full border border-border rounded px-3 py-2 text-sm outline-none focus:border-border transition-colors bg-background disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <option value="">Select blood group</option>
             {BLOOD_GROUPS.map((g) => (
@@ -283,7 +307,8 @@ export default function PostRequestClient({
             max={20}
             defaultValue={1}
             required
-            className="w-full border border-border rounded px-3 py-2 text-sm outline-none focus:border-border transition-colors bg-background font-tabular"
+            disabled={!isVerified || isPending}
+            className="w-full border border-border rounded px-3 py-2 text-sm outline-none focus:border-border transition-colors bg-background font-tabular disabled:opacity-50 disabled:cursor-not-allowed"
           />
           {state.fieldErrors?.quantity && (
             <p className="text-xs text-destructive mt-1">
@@ -301,8 +326,9 @@ export default function PostRequestClient({
               <button
                 key={r.value}
                 type="button"
+                disabled={!isVerified || isPending}
                 onClick={() => setRadiusKm(r.value)}
-                className={`flex-1 text-sm font-medium py-2 rounded border transition-colors font-tabular ${
+                className={`flex-1 text-sm font-medium py-2 rounded border transition-colors font-tabular disabled:opacity-50 disabled:cursor-not-allowed ${
                   radiusKm === r.value
                     ? 'bg-red-600 text-white border-red-600'
                     : 'bg-transparent text-muted-foreground border-border hover:bg-muted/50'
@@ -326,8 +352,9 @@ export default function PostRequestClient({
           <select
             name="urgency"
             required
+            disabled={!isVerified || isPending}
             defaultValue="critical"
-            className="w-full border border-border rounded px-3 py-2 text-sm outline-none focus:border-border transition-colors bg-background"
+            className="w-full border border-border rounded px-3 py-2 text-sm outline-none focus:border-border transition-colors bg-background disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <option value="critical">Critical</option>
             <option value="high">High</option>
@@ -347,8 +374,9 @@ export default function PostRequestClient({
           <textarea
             name="notes"
             rows={3}
+            disabled={!isVerified || isPending}
             placeholder="Any specific instructions or context for the donor..."
-            className="w-full border border-border rounded px-3 py-2 text-sm outline-none focus:border-border transition-colors resize-none bg-background"
+            className="w-full border border-border rounded px-3 py-2 text-sm outline-none focus:border-border transition-colors resize-none bg-background disabled:opacity-50 disabled:cursor-not-allowed"
           />
           {state.fieldErrors?.notes && (
             <p className="text-xs text-destructive mt-1">
@@ -360,11 +388,15 @@ export default function PostRequestClient({
         <div className="flex items-center gap-3 pt-1">
           <button
             type="submit"
-            disabled={isPending}
-            className="inline-flex items-center gap-2 bg-red-600 text-white font-medium text-sm px-5 py-2 rounded hover:bg-red-700 transition-colors disabled:opacity-60 shadow-sm hover:shadow-md cursor-pointer"
+            disabled={!isVerified || isPending}
+            className="inline-flex items-center gap-2 bg-red-600 text-white font-medium text-sm px-5 py-2 rounded hover:bg-red-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm hover:shadow-md cursor-pointer"
           >
             {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
-            {isPending ? 'Broadcasting...' : 'Post Request'}
+            {isPending
+              ? 'Broadcasting...'
+              : !isVerified
+                ? 'Verification Required'
+                : 'Post Request'}
           </button>
         </div>
       </form>

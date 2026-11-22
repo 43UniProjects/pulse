@@ -11,6 +11,8 @@ import { Donor } from '@/lib/models/donor.model';
 import { Hospital } from '@/lib/models/hospital.model';
 import { sendDonationThankYouEmail } from '@/lib/mail';
 import { SCREENING_STATUS } from '@/types/donation.type';
+import { BLOOD_COMPATIBILITY } from '@/lib/matching/blood-compatibility';
+import { type BloodGroup } from '@/types/common.type';
 
 export interface ActionResponse<T = unknown> {
   success: boolean;
@@ -93,7 +95,46 @@ export async function acceptDonationRequest(
       };
     }
 
-    // 2. Atomic capacity check: Ensure accepted + completed units don't exceed request quantity
+    // 2. Verify Donor Clinical Eligibility, Medical Cooldown, and Blood Compatibility
+    const donor = await Donor.findById(session.user.id).lean();
+    if (!donor) {
+      return { success: false, error: 'Donor profile record not found.' };
+    }
+
+    if (!donor.isEligible) {
+      return {
+        success: false,
+        error:
+          'Your clinical donor eligibility is currently unverified. You cannot accept donation requests at this time.',
+      };
+    }
+
+    if (donor.lastDonationDate) {
+      const cooldownMs = 120 * 24 * 60 * 60 * 1000;
+      const lastDonationTime = new Date(donor.lastDonationDate).getTime();
+      if (Date.now() - lastDonationTime < cooldownMs) {
+        return {
+          success: false,
+          error:
+            'You are currently in the mandatory 120-day recovery period following your last donation.',
+        };
+      }
+    }
+
+    const requestedBloodGroup = request.bloodGroup as BloodGroup;
+    const compatibleDonorGroups =
+      BLOOD_COMPATIBILITY[requestedBloodGroup] || [];
+    if (
+      !donor.bloodGroup ||
+      !compatibleDonorGroups.includes(donor.bloodGroup as BloodGroup)
+    ) {
+      return {
+        success: false,
+        error: `Your blood group (${donor.bloodGroup || 'Unspecified'}) is clinically incompatible with requested blood group (${request.bloodGroup}).`,
+      };
+    }
+
+    // 3. Atomic capacity check: Ensure accepted + completed units don't exceed request quantity
     const committedCount = await Donation.countDocuments({
       requestId: request._id,
       status: { $in: ['accepted', 'completed'] },
@@ -179,6 +220,16 @@ export async function declineDonationRequest(
       return { success: false, error: 'Emergency blood request not found.' };
     }
 
+    // Avoid duplicate records if already responded
+    const existing = await Donation.findOne({
+      requestId: request._id,
+      donorId: session.user.id,
+    }).lean();
+
+    if (existing) {
+      return { success: true };
+    }
+
     // Record 'declined' response for tracking metrics
     const donationCode = `DON-${Date.now().toString().slice(-6)}`;
     await Donation.create({
@@ -260,6 +311,25 @@ export async function completeBloodDonation(
       };
     }
 
+    if (donation.hospitalId.toString() !== session.user.id) {
+      return {
+        success: false,
+        error:
+          'Unauthorized: You can only complete blood intakes for your own facility requests.',
+      };
+    }
+
+    const hospital = await Hospital.findById(session.user.id)
+      .select('verificationStatus name')
+      .lean();
+    if (!hospital || hospital.verificationStatus !== 'verified') {
+      return {
+        success: false,
+        error:
+          'Your facility account is pending verification by an administrator. You cannot process blood intakes until approved.',
+      };
+    }
+
     const now = new Date();
     // 35 days CPD-A1 whole blood preservation standard
     const expiryDate = new Date(now.getTime() + 35 * 24 * 60 * 60 * 1000);
@@ -319,7 +389,6 @@ export async function completeBloodDonation(
 
     // 4. Send Automated Thank-You & Recovery Email
     const donor = await Donor.findById(donation.donorId).lean();
-    const hospital = await Hospital.findById(session.user.id).lean();
 
     if (donor?.email) {
       const formattedDonationDate = new Intl.DateTimeFormat('en-GB', {

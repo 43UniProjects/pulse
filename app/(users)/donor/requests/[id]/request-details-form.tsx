@@ -2,7 +2,14 @@
 
 import { useState, useTransition } from 'react';
 import Link from 'next/link';
-import { MapPin, Navigation, Phone, CheckCircle2, Loader2 } from 'lucide-react';
+import {
+  MapPin,
+  Navigation,
+  Phone,
+  CheckCircle2,
+  Loader2,
+  AlertTriangle,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import {
   acceptDonationRequest,
@@ -32,11 +39,19 @@ export interface SerializedRequestData {
 interface RequestDetailClientProps {
   request: SerializedRequestData;
   initialResponseStatus: string;
+  isCompatible?: boolean;
+  isEligible?: boolean;
+  inCooldown?: boolean;
+  donorBloodGroup?: string;
 }
 
 export default function RequestDetailClient({
   request,
   initialResponseStatus,
+  isCompatible = true,
+  isEligible = true,
+  inCooldown = false,
+  donorBloodGroup = '',
 }: RequestDetailClientProps) {
   const [responseStatus, setResponseStatus] = useState<string>(
     initialResponseStatus,
@@ -53,6 +68,22 @@ export default function RequestDetailClient({
   const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${request.hospitalCoords.lat},${request.hospitalCoords.lng}`;
 
   const handleAccept = () => {
+    if (!isCompatible) {
+      toast.error(
+        `Your blood group (${donorBloodGroup || 'Unspecified'}) is clinically incompatible with requested blood group (${request.bloodGroup}).`,
+      );
+      return;
+    }
+
+    if (!isEligible) {
+      toast.error(
+        inCooldown
+          ? 'You are currently in the mandatory 120-day recovery period following your last donation.'
+          : 'Your clinical donor eligibility is currently unverified. You cannot accept requests.',
+      );
+      return;
+    }
+
     startTransition(async () => {
       const res = await acceptDonationRequest(request.requestId || request._id);
       if (res.success) {
@@ -82,6 +113,42 @@ export default function RequestDetailClient({
 
   return (
     <div className="p-4 md:p-8 max-w-4xl mx-auto font-sans space-y-6">
+      {/* Incompatible Blood Group Banner */}
+      {responseStatus === 'pending' && !isCompatible && (
+        <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <h3 className="text-sm font-semibold text-amber-600 dark:text-amber-400">
+              Incompatible Blood Group
+            </h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              This emergency request specifically requires{' '}
+              <strong className="text-foreground">{request.bloodGroup}</strong>{' '}
+              blood. Your registered blood group (
+              {donorBloodGroup || 'Unspecified'}) is not clinically compatible
+              to donate for this request.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Ineligible / Cooldown Banner */}
+      {responseStatus === 'pending' && isCompatible && !isEligible && (
+        <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <h3 className="text-sm font-semibold text-amber-600 dark:text-amber-400">
+              Clinical Eligibility Restricted
+            </h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              {inCooldown
+                ? 'You are currently in the mandatory 120-day clinical recovery period following your recent donation.'
+                : 'Your donor account is currently pending clinical health verification by a hospital facility.'}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Commitment Banner when Accepted */}
       {responseStatus === 'accepted' && (
         <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -316,15 +383,19 @@ export default function RequestDetailClient({
 
                 <button
                   type="button"
-                  disabled={isPending}
+                  disabled={isPending || !isCompatible || !isEligible}
                   onClick={handleAccept}
-                  className="flex-1 sm:flex-initial text-xs font-semibold px-6 py-2.5 rounded-lg bg-primary hover:bg-red-700 text-primary-foreground transition-colors shadow-sm disabled:opacity-50 flex items-center justify-center gap-1.5"
+                  className="flex-1 sm:flex-initial text-xs font-semibold px-6 py-2.5 rounded-lg bg-primary hover:bg-red-700 text-primary-foreground transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
                 >
                   {isPending ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
                       Accepting...
                     </>
+                  ) : !isCompatible ? (
+                    'Incompatible Blood Group'
+                  ) : !isEligible ? (
+                    'Ineligible to Donate'
                   ) : (
                     'Accept Request'
                   )}

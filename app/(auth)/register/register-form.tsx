@@ -55,7 +55,7 @@ function RegisterFormContent() {
       });
 
       setFieldErrors(errors);
-      toast.error('Please fix the errors in the form.');
+      toast.error('Please check the highlighted fields and try again.');
       setIsPending(false);
       return;
     }

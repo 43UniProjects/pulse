@@ -3,6 +3,7 @@ import { Suspense } from 'react';
 import { validateRoleAccess } from '@/lib/auth/guard';
 import { connectToDatabase } from '@/lib/db/connect';
 import { Donor } from '@/lib/models/donor.model';
+import { Hospital } from '@/lib/models/hospital.model';
 import GenericFallback from '@/components/fallback';
 import DonorsClient, {
   SerializedDonor,
@@ -14,10 +15,16 @@ export const metadata: Metadata = {
 };
 
 async function RegisteredDonorsContent() {
-  await validateRoleAccess('hospital');
+  const session = await validateRoleAccess('hospital');
   await connectToDatabase();
 
-  const donorsRaw = await Donor.find().sort({ createdAt: -1 }).lean();
+  const [hospital, donorsRaw] = await Promise.all([
+    Hospital.findById(session.user.id).select('verificationStatus').lean(),
+    Donor.find().sort({ createdAt: -1 }).lean(),
+  ]);
+
+  const isVerified = hospital?.verificationStatus === 'verified';
+  const verificationStatus = hospital?.verificationStatus || 'pending';
 
   const serializedDonors: SerializedDonor[] = donorsRaw.map((d) => ({
     _id: d._id.toString(),
@@ -35,7 +42,13 @@ async function RegisteredDonorsContent() {
     verified: Boolean(d.isEligible),
   }));
 
-  return <DonorsClient initialDonors={serializedDonors} />;
+  return (
+    <DonorsClient
+      initialDonors={serializedDonors}
+      isVerified={isVerified}
+      verificationStatus={verificationStatus}
+    />
+  );
 }
 
 export default function RegisteredDonorsPage() {
