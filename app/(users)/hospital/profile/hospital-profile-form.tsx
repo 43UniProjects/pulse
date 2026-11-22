@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useEffect, useRef } from 'react';
+import { useActionState, useEffect, useRef, useState } from 'react';
 import {
   Building2,
   MapPin,
@@ -34,6 +34,126 @@ export default function HospitalProfileForm({
     success: false,
   });
   const lastStateRef = useRef(state);
+
+  const [formData, setFormData] = useState({
+    name: initialData.name || '',
+    facilityType: initialData.facilityType || '',
+    website: initialData.website || '',
+    hotline: initialData.hotline || '',
+    address: initialData.address || '',
+    city: initialData.city || '',
+    coordinatorName: initialData.coordinator?.name || '',
+    coordinatorDesignation: initialData.coordinator?.designation || '',
+    coordinatorContactNumber: initialData.coordinator?.contactNumber || '',
+    coordinatorEmail: initialData.coordinator?.email || '',
+  });
+
+  const [clientErrors, setClientErrors] = useState<Record<string, string[]>>(
+    {},
+  );
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (clientErrors[name]) {
+      setClientErrors((prev) => {
+        const copy = { ...prev };
+        delete copy[name];
+        return copy;
+      });
+    }
+  };
+
+  const getFieldError = (field: string): string | undefined => {
+    return clientErrors[field]?.[0] || state.fieldErrors?.[field]?.[0];
+  };
+
+  const validateClientSide = (): boolean => {
+    const errors: Record<string, string[]> = {};
+
+    if (!formData.name.trim() || formData.name.trim().length < 2) {
+      errors.name = ['Facility name must be at least 2 characters'];
+    }
+
+    if (!formData.facilityType) {
+      errors.facilityType = ['Please select a facility type'];
+    }
+
+    if (formData.website && formData.website.trim() !== '') {
+      try {
+        const url = new URL(formData.website.trim());
+        if (!url.protocol.startsWith('http')) {
+          errors.website = ['Website URL must start with http:// or https://'];
+        }
+      } catch {
+        errors.website = ['Invalid website URL'];
+      }
+    }
+
+    if (!formData.hotline.trim() || formData.hotline.trim().length < 9) {
+      errors.hotline = ['Hotline number is required (at least 9 digits)'];
+    }
+
+    if (!formData.address.trim() || formData.address.trim().length < 5) {
+      errors.address = [
+        'Full street address is required (at least 5 characters)',
+      ];
+    }
+
+    if (!formData.city.trim() || formData.city.trim().length < 2) {
+      errors.city = ['City is required'];
+    }
+
+    if (
+      !formData.coordinatorName.trim() ||
+      formData.coordinatorName.trim().length < 2
+    ) {
+      errors.coordinatorName = ['Coordinator name is required'];
+    }
+
+    if (
+      !formData.coordinatorDesignation.trim() ||
+      formData.coordinatorDesignation.trim().length < 2
+    ) {
+      errors.coordinatorDesignation = ['Coordinator designation is required'];
+    }
+
+    if (
+      !formData.coordinatorContactNumber.trim() ||
+      formData.coordinatorContactNumber.trim().length < 9
+    ) {
+      errors.coordinatorContactNumber = [
+        'Coordinator contact is required (at least 9 digits)',
+      ];
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (
+      !formData.coordinatorEmail.trim() ||
+      !emailRegex.test(formData.coordinatorEmail.trim())
+    ) {
+      errors.coordinatorEmail = ['Invalid coordinator email address'];
+    }
+
+    setClientErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const locationValid = requireLocationBeforeSubmit(e);
+    if (!locationValid) {
+      return;
+    }
+
+    const isValid = validateClientSide();
+    if (!isValid) {
+      e.preventDefault();
+      toast.error('Please check the highlighted fields and try again.');
+      return;
+    }
+  };
 
   // Geolocation state for hospital facility coordinates
   const {
@@ -85,7 +205,7 @@ export default function HospitalProfileForm({
   return (
     <form
       action={formAction}
-      onSubmit={requireLocationBeforeSubmit}
+      onSubmit={handleSubmit}
       className="space-y-8 pb-12"
     >
       {isIncomplete && (
@@ -121,15 +241,14 @@ export default function HospitalProfileForm({
               <input
                 type="text"
                 name="name"
-                defaultValue={initialData.name || ''}
+                value={formData.name}
+                onChange={handleChange}
                 placeholder="e.g. National Hospital Colombo"
                 required
                 className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
               />
-              {state.fieldErrors?.name && (
-                <p className="text-xs text-red-500">
-                  {state.fieldErrors.name[0]}
-                </p>
+              {getFieldError('name') && (
+                <p className="text-xs text-red-500">{getFieldError('name')}</p>
               )}
             </div>
 
@@ -140,7 +259,8 @@ export default function HospitalProfileForm({
               <div className="relative">
                 <select
                   name="facilityType"
-                  defaultValue={initialData.facilityType || ''}
+                  value={formData.facilityType}
+                  onChange={handleChange}
                   required
                   className="w-full h-10 pl-10 pr-3 appearance-none rounded-md border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
                 >
@@ -155,9 +275,9 @@ export default function HospitalProfileForm({
                 </select>
                 <Building className="w-4 h-4 text-muted-foreground absolute left-3 top-3 opacity-80 pointer-events-none" />
               </div>
-              {state.fieldErrors?.facilityType && (
+              {getFieldError('facilityType') && (
                 <p className="text-xs text-red-500">
-                  {state.fieldErrors.facilityType[0]}
+                  {getFieldError('facilityType')}
                 </p>
               )}
             </div>
@@ -173,15 +293,16 @@ export default function HospitalProfileForm({
                 <input
                   type="url"
                   name="website"
-                  defaultValue={initialData.website || ''}
+                  value={formData.website}
+                  onChange={handleChange}
                   placeholder="https://..."
                   className="w-full h-10 pl-10 pr-3 rounded-md border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
                 />
                 <Globe className="w-4 h-4 text-muted-foreground absolute left-3 top-3 opacity-80 pointer-events-none" />
               </div>
-              {state.fieldErrors?.website && (
+              {getFieldError('website') && (
                 <p className="text-xs text-red-500">
-                  {state.fieldErrors.website[0]}
+                  {getFieldError('website')}
                 </p>
               )}
             </div>
@@ -230,16 +351,17 @@ export default function HospitalProfileForm({
                 <input
                   type="tel"
                   name="hotline"
-                  defaultValue={initialData.hotline || ''}
+                  value={formData.hotline}
+                  onChange={handleChange}
                   placeholder="e.g. +94 11 234 5678"
                   required
                   className="w-full h-10 pl-10 pr-3 rounded-md border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
                 />
                 <Phone className="w-4 h-4 text-muted-foreground absolute left-3 top-3 opacity-80 pointer-events-none" />
               </div>
-              {state.fieldErrors?.hotline && (
+              {getFieldError('hotline') && (
                 <p className="text-xs text-red-500">
-                  {state.fieldErrors.hotline[0]}
+                  {getFieldError('hotline')}
                 </p>
               )}
             </div>
@@ -276,14 +398,15 @@ export default function HospitalProfileForm({
               <input
                 type="text"
                 name="address"
-                defaultValue={initialData.address || ''}
+                value={formData.address}
+                onChange={handleChange}
                 placeholder="e.g. Regent Street, Colombo 08"
                 required
                 className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
               />
-              {state.fieldErrors?.address && (
+              {getFieldError('address') && (
                 <p className="text-xs text-red-500">
-                  {state.fieldErrors.address[0]}
+                  {getFieldError('address')}
                 </p>
               )}
             </div>
@@ -295,15 +418,14 @@ export default function HospitalProfileForm({
               <input
                 type="text"
                 name="city"
-                defaultValue={initialData.city || ''}
+                value={formData.city}
+                onChange={handleChange}
                 placeholder="e.g. Colombo"
                 required
                 className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
               />
-              {state.fieldErrors?.city && (
-                <p className="text-xs text-red-500">
-                  {state.fieldErrors.city[0]}
-                </p>
+              {getFieldError('city') && (
+                <p className="text-xs text-red-500">{getFieldError('city')}</p>
               )}
             </div>
 
@@ -376,14 +498,15 @@ export default function HospitalProfileForm({
               <input
                 type="text"
                 name="coordinatorName"
-                defaultValue={initialData.coordinator?.name || ''}
+                value={formData.coordinatorName}
+                onChange={handleChange}
                 placeholder="e.g. Dr. Priyantha Silva"
                 required
                 className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
               />
-              {state.fieldErrors?.coordinatorName && (
+              {getFieldError('coordinatorName') && (
                 <p className="text-xs text-red-500">
-                  {state.fieldErrors.coordinatorName[0]}
+                  {getFieldError('coordinatorName')}
                 </p>
               )}
             </div>
@@ -395,14 +518,15 @@ export default function HospitalProfileForm({
               <input
                 type="text"
                 name="coordinatorDesignation"
-                defaultValue={initialData.coordinator?.designation || ''}
+                value={formData.coordinatorDesignation}
+                onChange={handleChange}
                 placeholder="e.g. Blood Bank Coordinator"
                 required
                 className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
               />
-              {state.fieldErrors?.coordinatorDesignation && (
+              {getFieldError('coordinatorDesignation') && (
                 <p className="text-xs text-red-500">
-                  {state.fieldErrors.coordinatorDesignation[0]}
+                  {getFieldError('coordinatorDesignation')}
                 </p>
               )}
             </div>
@@ -414,14 +538,15 @@ export default function HospitalProfileForm({
               <input
                 type="tel"
                 name="coordinatorContactNumber"
-                defaultValue={initialData.coordinator?.contactNumber || ''}
+                value={formData.coordinatorContactNumber}
+                onChange={handleChange}
                 placeholder="e.g. +94 77 987 6543"
                 required
                 className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
               />
-              {state.fieldErrors?.coordinatorContactNumber && (
+              {getFieldError('coordinatorContactNumber') && (
                 <p className="text-xs text-red-500">
-                  {state.fieldErrors.coordinatorContactNumber[0]}
+                  {getFieldError('coordinatorContactNumber')}
                 </p>
               )}
             </div>
@@ -433,14 +558,15 @@ export default function HospitalProfileForm({
               <input
                 type="email"
                 name="coordinatorEmail"
-                defaultValue={initialData.coordinator?.email || ''}
+                value={formData.coordinatorEmail}
+                onChange={handleChange}
                 placeholder="e.g. coordinator@hospital.lk"
                 required
                 className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-all"
               />
-              {state.fieldErrors?.coordinatorEmail && (
+              {getFieldError('coordinatorEmail') && (
                 <p className="text-xs text-red-500">
-                  {state.fieldErrors.coordinatorEmail[0]}
+                  {getFieldError('coordinatorEmail')}
                 </p>
               )}
             </div>
