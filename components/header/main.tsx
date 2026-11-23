@@ -1,10 +1,25 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
-import { Sun, Moon, LayoutDashboard } from 'lucide-react';
+import {
+  Sun,
+  Moon,
+  LayoutDashboard,
+  ChevronDown,
+  User,
+  LogOut,
+} from 'lucide-react';
 
 import MobileMenu from '@/components/header/mobile-menu';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 import { NAV_LINKS } from '@/types/common.type';
 import { authClient } from '@/lib/auth/client';
 
@@ -14,6 +29,7 @@ interface HeaderProps {
 }
 
 export default function Header({ session: initialSession }: HeaderProps = {}) {
+  const router = useRouter();
   const { resolvedTheme, setTheme } = useTheme();
 
   // Secure client-side session fetching
@@ -23,6 +39,29 @@ export default function Header({ session: initialSession }: HeaderProps = {}) {
   const dashboardHref = session?.user?.role
     ? `/${session.user.role}/dashboard`
     : '/login';
+
+  const handleLogout = async () => {
+    try {
+      await authClient.signOut({
+        fetchOptions: {
+          onSuccess: () => {
+            router.push('/login?logged_out=true');
+            router.refresh();
+          },
+          onError: (ctx) => {
+            console.error('[Logout Error]', ctx.error);
+            router.push('/login?logged_out=true');
+            router.refresh();
+          },
+        },
+      });
+    } catch (err) {
+      console.error('[Logout Exception]', err);
+    } finally {
+      router.push('/login?logged_out=true');
+      router.refresh();
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full flex flex-col shadow-sm transform-gpu">
@@ -96,12 +135,63 @@ export default function Header({ session: initialSession }: HeaderProps = {}) {
                   >
                     Hi, {session.user.name}
                   </Link>
-                  <Link
-                    href={dashboardHref}
-                    className="inline-flex items-center justify-center h-9 px-4 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm"
-                  >
-                    <LayoutDashboard className="w-4 h-4 mr-2" /> Dashboard
-                  </Link>
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      aria-label="User Profile and Actions Menu"
+                      className="inline-flex items-center justify-center h-9 px-4 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    >
+                      <User className="w-4 h-4 mr-2" />
+                      <span>Profile</span>
+                      <ChevronDown className="w-3.5 h-3.5 ml-1.5 opacity-80" />
+                    </DropdownMenuTrigger>
+
+                    <DropdownMenuContent align="end" className="w-52">
+                      <div className="px-2.5 py-2 border-b border-border/50">
+                        <p className="text-xs text-muted-foreground">
+                          Signed in as
+                        </p>
+                        <p className="text-sm font-semibold text-foreground truncate">
+                          {session.user.name}
+                        </p>
+                        <p className="text-[11px] font-mono text-muted-foreground capitalize">
+                          {session.user.role}
+                        </p>
+                      </div>
+
+                      <div className="py-1">
+                        <DropdownMenuItem
+                          onClick={() => {
+                            router.push(dashboardHref);
+                          }}
+                          className="cursor-pointer"
+                        >
+                          <LayoutDashboard className="w-4 h-4 mr-2 text-muted-foreground" />
+                          <span>Dashboard</span>
+                        </DropdownMenuItem>
+
+                        <DropdownMenuItem
+                          onClick={() => {
+                            router.push(`/${session.user.role}/profile`);
+                          }}
+                          className="cursor-pointer"
+                        >
+                          <User className="w-4 h-4 mr-2 text-muted-foreground" />
+                          <span>My Profile</span>
+                        </DropdownMenuItem>
+                      </div>
+
+                      <DropdownMenuSeparator />
+
+                      <DropdownMenuItem
+                        onClick={handleLogout}
+                        className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive dark:focus:bg-destructive/20"
+                      >
+                        <LogOut className="w-4 h-4 mr-2 text-destructive" />
+                        <span>Logout</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </li>
               ) : (
                 <li className="flex items-center gap-3">

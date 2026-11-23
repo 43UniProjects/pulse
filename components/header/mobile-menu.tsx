@@ -89,6 +89,14 @@ export default function MobileMenu({
               {isProfileOpen && (
                 <div className="mt-3 flex flex-col gap-1 border-l-2 border-primary/30 pl-3 animate-in slide-in-from-top-2 fade-in duration-200">
                   <Link
+                    href={dashboardHref}
+                    onClick={() => setOpen(false)}
+                    className="flex items-center py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <LayoutDashboard className="w-4 h-4 mr-2" />
+                    Dashboard
+                  </Link>
+                  <Link
                     href={`/${session.user.role}/profile`}
                     onClick={() => setOpen(false)}
                     className="flex items-center py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
