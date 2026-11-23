@@ -128,22 +128,17 @@ export default function Header({ session: initialSession }: HeaderProps = {}) {
 
               {/* Dynamic Role-Based Authentication UI */}
               {session ? (
-                <li className="flex items-center gap-4 pl-2 border-l border-border/50">
-                  <Link
-                    href={`/${session.user.role}/profile`}
-                    className="text-sm font-medium text-foreground hover:text-primary transition-colors hover:underline underline-offset-4"
-                  >
-                    Hi, {session.user.name}
-                  </Link>
-
+                <li className="flex items-center pl-2 border-l border-border/50">
                   <DropdownMenu>
                     <DropdownMenuTrigger
-                      aria-label="User Profile and Actions Menu"
-                      className="inline-flex items-center justify-center h-9 px-4 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      aria-label="User Account Menu"
+                      className="inline-flex items-center justify-center h-9 px-3.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                     >
-                      <User className="w-4 h-4 mr-2" />
-                      <span>Profile</span>
-                      <ChevronDown className="w-3.5 h-3.5 ml-1.5 opacity-80" />
+                      <User className="w-4 h-4 mr-2 shrink-0" />
+                      <span className="max-w-36 truncate">
+                        {session.user.name}
+                      </span>
+                      <ChevronDown className="w-3.5 h-3.5 ml-1.5 shrink-0 opacity-80" />
                     </DropdownMenuTrigger>
 
                     <DropdownMenuContent align="end" className="w-52">
