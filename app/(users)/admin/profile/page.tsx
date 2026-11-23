@@ -1,4 +1,6 @@
 import { Metadata } from 'next';
+import { Suspense } from 'react';
+import GenericFallback from '@/components/fallback';
 import { validateRoleAccess } from '@/lib/auth/guard';
 import { connectToDatabase } from '@/lib/db/connect';
 import { Admin } from '@/lib/models/admin.model';
@@ -10,7 +12,7 @@ export const metadata: Metadata = {
   description: 'Manage your administrative account details.',
 };
 
-export default async function AdminProfilePage() {
+async function AdminProfileContent() {
   const session = await validateRoleAccess('admin');
   await connectToDatabase();
 
@@ -45,5 +47,13 @@ export default async function AdminProfilePage() {
     <div className="max-w-5xl mx-auto w-full space-y-6">
       <AdminProfileClient initialData={serializedAdmin} />
     </div>
+  );
+}
+
+export default function AdminProfilePage() {
+  return (
+    <Suspense fallback={<GenericFallback />}>
+      <AdminProfileContent />
+    </Suspense>
   );
 }

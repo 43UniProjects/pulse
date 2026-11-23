@@ -1,3 +1,5 @@
+import { Suspense } from 'react';
+import GenericFallback from '@/components/fallback';
 import { validateRoleAccess } from '@/lib/auth/guard';
 import { connectToDatabase } from '@/lib/db/connect';
 import { Hospital } from '@/lib/models/hospital.model';
@@ -7,7 +9,7 @@ import VerifyHospitalsClient, {
   HospitalStatus,
 } from '@/app/(users)/admin/verify-hospitals/verify-hospitals-client';
 
-export default async function VerifyHospitalsPage() {
+async function VerifyHospitalsContent() {
   await validateRoleAccess('admin');
   await connectToDatabase();
 
@@ -45,4 +47,12 @@ export default async function VerifyHospitalsPage() {
   );
 
   return <VerifyHospitalsClient initialHospitals={initialHospitals} />;
+}
+
+export default function VerifyHospitalsPage() {
+  return (
+    <Suspense fallback={<GenericFallback />}>
+      <VerifyHospitalsContent />
+    </Suspense>
+  );
 }

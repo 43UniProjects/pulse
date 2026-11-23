@@ -103,10 +103,10 @@ function RegisterFormContent() {
           <button
             type="button"
             onClick={() => handleTabChange(ACCOUNT_TYPE[0])}
-            className={`flex-1 text-xs font-medium py-2 rounded-md transition-all uppercase tracking-wider ${
+            className={`flex-1 text-xs font-semibold py-2.5 rounded-md transition-all uppercase tracking-wider cursor-pointer ${
               tab === ACCOUNT_TYPE[0]
-                ? 'bg-background text-foreground shadow-sm border border-border/50'
-                : 'text-muted-foreground hover:text-foreground hover:bg-background/50 border border-transparent'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground hover:bg-background/40'
             }`}
           >
             Donor
@@ -114,10 +114,10 @@ function RegisterFormContent() {
           <button
             type="button"
             onClick={() => handleTabChange(ACCOUNT_TYPE[1])}
-            className={`flex-1 text-xs font-medium py-2 rounded-md transition-all uppercase tracking-wider ${
+            className={`flex-1 text-xs font-semibold py-2.5 rounded-md transition-all uppercase tracking-wider cursor-pointer ${
               tab === ACCOUNT_TYPE[1]
-                ? 'bg-background text-foreground shadow-sm border border-border/50'
-                : 'text-muted-foreground hover:text-foreground hover:bg-background/50 border border-transparent'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground hover:bg-background/40'
             }`}
           >
             Hospital
