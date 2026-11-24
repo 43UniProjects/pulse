@@ -109,86 +109,20 @@ export default function Header({ session: initialSession }: HeaderProps = {}) {
           </Link>
 
           <nav aria-label="Main" className="flex items-center gap-4 sm:gap-6">
-            <ul className="hidden sm:flex items-center gap-6">
-              {/* Filter out duplicates if NAV_LINKS already has Login */}
-              {NAV_LINKS.filter((link) => {
-                if (session && link.label === 'Home') return false;
-                if (link.label === 'Login') return false;
-                return true;
-              }).map(({ label, href }) => (
-                <li key={href}>
-                  <Link
-                    href={href}
-                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {label}
-                  </Link>
-                </li>
-              ))}
-
-              {/* Dynamic Role-Based Authentication UI */}
-              {session ? (
-                <li className="flex items-center pl-2 border-l border-border/50">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger
-                      aria-label="User Account Menu"
-                      className="inline-flex items-center justify-center h-9 px-3.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                    >
-                      <User className="w-4 h-4 mr-2 shrink-0" />
-                      <span className="max-w-36 truncate">
-                        {session.user.name}
-                      </span>
-                      <ChevronDown className="w-3.5 h-3.5 ml-1.5 shrink-0 opacity-80" />
-                    </DropdownMenuTrigger>
-
-                    <DropdownMenuContent align="end" className="w-52">
-                      <div className="px-2.5 py-2 border-b border-border/50">
-                        <p className="text-xs text-muted-foreground">
-                          Signed in as
-                        </p>
-                        <p className="text-sm font-semibold text-foreground truncate">
-                          {session.user.name}
-                        </p>
-                        <p className="text-[11px] font-mono text-muted-foreground capitalize">
-                          {session.user.role}
-                        </p>
-                      </div>
-
-                      <div className="py-1">
-                        <DropdownMenuItem
-                          onClick={() => {
-                            router.push(dashboardHref);
-                          }}
-                          className="cursor-pointer"
-                        >
-                          <LayoutDashboard className="w-4 h-4 mr-2 text-muted-foreground" />
-                          <span>Dashboard</span>
-                        </DropdownMenuItem>
-
-                        <DropdownMenuItem
-                          onClick={() => {
-                            router.push(`/${session.user.role}/profile`);
-                          }}
-                          className="cursor-pointer"
-                        >
-                          <User className="w-4 h-4 mr-2 text-muted-foreground" />
-                          <span>My Profile</span>
-                        </DropdownMenuItem>
-                      </div>
-
-                      <DropdownMenuSeparator />
-
-                      <DropdownMenuItem
-                        onClick={handleLogout}
-                        className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive dark:focus:bg-destructive/20"
+            {!session && (
+              <ul className="hidden sm:flex items-center gap-6">
+                {NAV_LINKS.filter((link) => link.label !== 'Login').map(
+                  ({ label, href }) => (
+                    <li key={href}>
+                      <Link
+                        href={href}
+                        className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                       >
-                        <LogOut className="w-4 h-4 mr-2 text-destructive" />
-                        <span>Logout</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </li>
-              ) : (
+                        {label}
+                      </Link>
+                    </li>
+                  ),
+                )}
                 <li className="flex items-center gap-3">
                   <Link
                     href="/login"
@@ -203,11 +137,77 @@ export default function Header({ session: initialSession }: HeaderProps = {}) {
                     Register
                   </Link>
                 </li>
-              )}
-            </ul>
-            <div className="sm:hidden">
-              <MobileMenu session={session} dashboardHref={dashboardHref} />
-            </div>
+              </ul>
+            )}
+
+            {/* Authenticated User Dropdown - Rendered on BOTH Mobile and Desktop */}
+            {session ? (
+              <div className="flex items-center">
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    aria-label="User Account Menu"
+                    className="inline-flex items-center justify-center h-9 px-3 sm:px-3.5 rounded-md bg-primary text-primary-foreground text-xs sm:text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  >
+                    <User className="w-4 h-4 mr-1.5 sm:mr-2 shrink-0" />
+                    <span className="max-w-28 sm:max-w-36 truncate">
+                      {session.user.name}
+                    </span>
+                    <ChevronDown className="w-3.5 h-3.5 ml-1 sm:ml-1.5 shrink-0 opacity-80" />
+                  </DropdownMenuTrigger>
+
+                  <DropdownMenuContent align="end" className="w-52">
+                    <div className="px-2.5 py-2 border-b border-border/50">
+                      <p className="text-xs text-muted-foreground">
+                        Signed in as
+                      </p>
+                      <p className="text-sm font-semibold text-foreground truncate">
+                        {session.user.name}
+                      </p>
+                      <p className="text-[11px] font-mono text-muted-foreground capitalize">
+                        {session.user.role}
+                      </p>
+                    </div>
+
+                    <div className="py-1">
+                      <DropdownMenuItem
+                        onClick={() => {
+                          router.push(dashboardHref);
+                        }}
+                        className="cursor-pointer"
+                      >
+                        <LayoutDashboard className="w-4 h-4 mr-2 text-muted-foreground" />
+                        <span>Dashboard</span>
+                      </DropdownMenuItem>
+
+                      <DropdownMenuItem
+                        onClick={() => {
+                          router.push(`/${session.user.role}/profile`);
+                        }}
+                        className="cursor-pointer"
+                      >
+                        <User className="w-4 h-4 mr-2 text-muted-foreground" />
+                        <span>My Profile</span>
+                      </DropdownMenuItem>
+                    </div>
+
+                    <DropdownMenuSeparator />
+
+                    <DropdownMenuItem
+                      onClick={handleLogout}
+                      className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive dark:focus:bg-destructive/20"
+                    >
+                      <LogOut className="w-4 h-4 mr-2 text-destructive" />
+                      <span>Logout</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            ) : (
+              /* Mobile Drawer (Only shown for Guests when not logged in) */
+              <div className="sm:hidden">
+                <MobileMenu session={session} dashboardHref={dashboardHref} />
+              </div>
+            )}
           </nav>
         </div>
       </div>
